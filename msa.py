@@ -20,20 +20,19 @@ def msa(ls):
 def flatten(ls):
     ret = []
     while len(ls) >= 2:
-        (x, y), ls = list(ls[0:2]), list(ls[2:])
-        if type(x) == type(y):
-            if type(x) == unicode or type(x) == str:
-                ls = [x + y] + ls
-                continue
-        if type(x) == list or type(x) == tuple:
-            x = flatten(x)
-        if type(y) == unicode or type(y) == str:
-            ret.append(x)
-            ls = [y] + ls
-            continue
-        if type(y) == list or type(y) == tuple:
-            y = flatten(y)
-        ret += [x, y]
+        (x, y), ls = ls[0:2], ls[2:]
+        if isinstance(x, basestring):
+            if isinstance(y, basestring):
+                ls = [x + y] + list(ls)
+            else:
+                ret += [x, flatten(y)]
+        else:
+            if isinstance(y, basestring):
+                ls = [y] + ls
+                ret += [flatten(x)]
+            else:
+                ret += [flatten(x), flatten(y)]
+
     if len(ls) == 1 and (type(ls[0]) == list or type(ls[0]) == tuple):
         ret += flatten(ls[0])
     elif len(ls) == 1:
