@@ -17,6 +17,25 @@ def msa(ls):
         ls = [s] + ls
     return ls
 
+def flatten_each(ls):
+    if isinstance(ls, basestring):
+        yield ls
+    else:
+        for x in ls:
+            for y in flatten_each(x):
+                yield y
+        if len(ls) == 0:
+            yield ''
+
+def lattice(ls):
+    ret = []
+    for x in ls:
+        s = set()
+        for y in flatten_each(x):
+            s.add(y)
+        ret.append(sorted(list(s)))
+    return ret
+
 def flatten(ls):
     ret = []
     while len(ls) >= 2:
