@@ -30,24 +30,19 @@ class Disjunct:
     def __repr__(self):
         return 'd'+tuple(self.items).__repr__()
     def simplify(self):
+        if len(self) == 1:
+            return simplify(self.items[0])
         d = Disjunct([])
         for x in self.items:
-            if isinstance(x, basestring):
-                d.add(x)
+            x = simplify(x)
+            if not isinstance(x, basestring) and len(x) == 1:
+                d.add(simplify(x[0]))
             elif isinstance(x, Disjunct):
-                for y in x.simplify():
-                    d.add(y)
-            elif isinstance(x, tuple) and len(x) == 1:
-                if isinstance(x[0], Disjunct):
-                    d.add(x[0].simplify())
-                else:
-                    t = type(x[0])
-                    d.add(t([y for y in simplify(x[0])]))
-            elif isinstance(x, tuple):
-                d.add(tuple([y.simplify() if isinstance(y, Disjunct) else y for y in x]))
+                for y in x:
+                    d.add(simplify(y))
             else:
                 d.add(x)
-        return d
+        return Disjunct(list(set(d)))
     def compact(self):
         return Disjunct([compact(x) for x in self.items])
 
@@ -113,17 +108,64 @@ def compact(ls):
 
 def simplify(a):
     if isinstance(a, basestring):
-        yield a
-    if (isinstance(a, list) or isinstance(a, tuple)) and len(a) == 1:
-        for x in simplify(a[0]):
-            yield x
+        return a
+    elif isinstance(a, Disjunct):
+        return a.simplify()
     else:
+        if len(a) == 1:
+            return simplify(a[0])
+        ret = []
         for x in a:
-            if isinstance(x, Disjunct):
-                yield x.simplify()
+            x = simplify(x)
+            if isinstance(x, basestring):
+                ret.append(x)
+            elif isinstance(x, Disjunct):
+                ret.append(x)
             else:
-                yield x
-            
+                ret += x
+        return (type(a))(ret)
+
+Edge = namedtuple('Edge', 'from_ to')
+
+def window(iterable, size):
+    from itertools import tee, izip
+    size = min(size, len(iterable))
+    iters = tee(iterable, size)
+    for i in xrange(1, size):
+        for each in iters[i:]:
+            next(each, None)
+    return izip(*iters)
+
+def to_edges(align, source='START', sink='END'):
+    import inspect
+    #print len(inspect.stack()), pformat(repr([align, source, sink]))
+    if isinstance(align, basestring):
+        if isinstance(source, basestring):
+            yield Edge(source, align)
+        ## ↓があると重複する？
+        # else:
+        #     for e in to_edges(source, source='', sink=align):
+        #         if e.to == align:
+        #             yield Edge(e.from_, align)
+        if isinstance(sink, basestring):
+            yield Edge(align, sink)
+        ## ↓があると重複する？
+        # else:
+        #     for e in to_edges(sink, align, sink=''):
+        #         if e.from_ == align:
+        #             yield Edge(align, e.to)
+    elif isinstance(align, Disjunct):
+        for x in align:
+            for d in to_edges(x, source, sink):
+                yield d
+    else:
+        if len(align) == 0:
+            yield Edge(source, sink)
+        else:
+            for (x,y,z) in window([source]+list(align)+[sink], 3):
+                for d in to_edges(y, x, z):
+                    yield d
+     
 def pformat(ls):
     import re
     import pprint
@@ -133,21 +175,31 @@ def pformat(ls):
 if __name__ == '__main__':
 
     import sys
+    import codecs
 
-    for x in simplify(msa([['A','B','C','D','E'],
-                           ['x','B','C','D','E'],
-                           ['x','y','B','C','z','E'],
-                           ['A','B','C','x','y','z','D']])):
-        print x
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
-    print [x for x in simplify(msa(['ABCDE',
-                                    'xBCDE',
-                                    'xyBCzE',
-                                    'ABCxyzD']))]
+    print simplify(msa([['A','B','C','D','E'],
+                        ['x','B','C','D','E'],
+                        ['x','y','B','C','z','E'],
+                        ['A','B','C','x','y','z','D']]))
 
-    print pformat(compact([x for x in simplify(msa([u'ひとりひとりが持つ知識を自由に共有できる世界を、想像してみてください。それが私たちの、誓約なのです。',
+    print simplify(msa(['ABCDE',
+                        'xBCDE',
+                        'xyBCzE',
+                        'ABCxyzD']))
+
+    print pformat(compact(simplify(msa([u'ひとりひとりが持つ知識を自由に共有できる世界を、想像してみてください。それが私たちの、誓約なのです。',
                        u'全ての人が自由に全人類の知識の総体を享受できる世界を、想像してみてください。それが私たちの、誓約なのです。',
                        u'人類が自由に知識の総体を共有できる世界を思い浮かべてください。そのことが私たちの約束なのです。',
                        u'あらゆる知識の集積を誰もが自由に利用することのできる世界を、想像してみてください。私たちはそれを実現します。',
                        u'ありとあらゆる知識が集まり、誰でも自由に入手できる世界を、想像してみてください。私たちはそれを実現します。',
-                       u'全人類の知の総和を誰もが自由に共有できる世界を、想像してみてください。その実現が、私たちの公約です。']))]))
+                       u'全人類の知の総和を誰もが自由に共有できる世界を、想像してみてください。その実現が、私たちの公約です。']))))
+
+    for x in to_edges(compact(simplify(msa([u'ひとりひとりが持つ知識を自由に共有できる世界を、想像してみてください。それが私たちの、誓約なのです。',
+                       u'全ての人が自由に全人類の知識の総体を享受できる世界を、想像してみてください。それが私たちの、誓約なのです。',
+                       u'人類が自由に知識の総体を共有できる世界を思い浮かべてください。そのことが私たちの約束なのです。',
+                       u'あらゆる知識の集積を誰もが自由に利用することのできる世界を、想像してみてください。私たちはそれを実現します。',
+                       u'ありとあらゆる知識が集まり、誰でも自由に入手できる世界を、想像してみてください。私たちはそれを実現します。',
+                       u'全人類の知の総和を誰もが自由に共有できる世界を、想像してみてください。その実現が、私たちの公約です。'])))):
+        print '%s -> %s;' % (x.from_, x.to)
