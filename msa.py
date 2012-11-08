@@ -165,7 +165,7 @@ def to_edges(align, source='START', sink='END'):
             for (x,y,z) in window([source]+list(align)+[sink], 3):
                 for d in to_edges(y, x, z):
                     yield d
-     
+
 def pformat(ls):
     import re
     import pprint
@@ -177,29 +177,37 @@ if __name__ == '__main__':
     import sys
     import codecs
 
-    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--verbose',
+                        dest='verbose', action='store_true', default=False,
+                        help='turn on verbose message output')
+    parser.add_argument('-o', '--output', default='-')
+    parser.add_argument('-e', '--encoding', default='utf8') 
+    parser.add_argument('inputs', nargs='+')
+    options = parser.parse_args()
 
-    print simplify(msa([['A','B','C','D','E'],
-                        ['x','B','C','D','E'],
-                        ['x','y','B','C','z','E'],
-                        ['A','B','C','x','y','z','D']]))
+    if options.output == '-':
+        options.output = codecs.getwriter(options.encoding)(sys.stdout)
+    else:
+        options.output = codecs.open(options.output, 'w', encoding=options.encoding)
+    if options.inputs == ['-']:
+        options.inputs = [codecs.getreader(options.encoding)(sys.stdin)]
+    else:
+        options.inputs = [codecs.open(x, encoding=options.encoding) for x in options.inputs]
+    sys.stderr = codecs.getwriter(options.encoding)(sys.stderr)
 
-    print simplify(msa(['ABCDE',
-                        'xBCDE',
-                        'xyBCzE',
-                        'ABCxyzD']))
+    lines = []
+    for f in options.inputs:
+        lines += [x.strip() for x in f.readlines()]
 
-    print pformat(compact(simplify(msa([u'ひとりひとりが持つ知識を自由に共有できる世界を、想像してみてください。それが私たちの、誓約なのです。',
-                       u'全ての人が自由に全人類の知識の総体を享受できる世界を、想像してみてください。それが私たちの、誓約なのです。',
-                       u'人類が自由に知識の総体を共有できる世界を思い浮かべてください。そのことが私たちの約束なのです。',
-                       u'あらゆる知識の集積を誰もが自由に利用することのできる世界を、想像してみてください。私たちはそれを実現します。',
-                       u'ありとあらゆる知識が集まり、誰でも自由に入手できる世界を、想像してみてください。私たちはそれを実現します。',
-                       u'全人類の知の総和を誰もが自由に共有できる世界を、想像してみてください。その実現が、私たちの公約です。']))))
+    if options.verbose:
+        print >>sys.stderr, pformat(compact(simplify(msa(lines))))
 
-    for x in to_edges(compact(simplify(msa([u'ひとりひとりが持つ知識を自由に共有できる世界を、想像してみてください。それが私たちの、誓約なのです。',
-                       u'全ての人が自由に全人類の知識の総体を享受できる世界を、想像してみてください。それが私たちの、誓約なのです。',
-                       u'人類が自由に知識の総体を共有できる世界を思い浮かべてください。そのことが私たちの約束なのです。',
-                       u'あらゆる知識の集積を誰もが自由に利用することのできる世界を、想像してみてください。私たちはそれを実現します。',
-                       u'ありとあらゆる知識が集まり、誰でも自由に入手できる世界を、想像してみてください。私たちはそれを実現します。',
-                       u'全人類の知の総和を誰もが自由に共有できる世界を、想像してみてください。その実現が、私たちの公約です。'])))):
-        print '%s -> %s;' % (x.from_, x.to)
+    print >>options.output, '''digraph g {
+  rankdir = LR;
+'''
+    for x in to_edges(compact(simplify(msa(lines)))):
+        print >>options.output, '  %s -> %s;' % (x.from_, x.to)
+    print >>options.output,'''}
+'''

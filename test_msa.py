@@ -37,6 +37,17 @@ class TestMSA(unittest.TestCase):
     def setUp(self):
         None
 
+    def test_str_list(self):
+        from msa import msa, simplify
+        self.assertEqual(simplify(msa([['A','B','C','D','E'],
+                                       ['x','B','C','D','E'],
+                                       ['x','y','B','C','z','E'],
+                                       ['A','B','C','x','y','z','D']])),
+                         simplify(msa(['ABCDE',
+                                       'xBCDE',
+                                       'xyBCzE',
+                                       'ABCxyzD'])))
+
     def test_disjunct(self):
         from msa import Disjunct as d
         self.assertEqual([x for x in d(1,2,3)],
