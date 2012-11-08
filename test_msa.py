@@ -56,30 +56,31 @@ class TestMSA(unittest.TestCase):
                          d([1,2,3]))
 
     def test_pair(self):
-        from msa import Disjunct as d
+        from msa import Disjunct as d, Sub as s
         self.assertEqual(msa.msa(['ABC', 'BCDE']),
-                         [d(('A',), ()),
-                           'B', 
-                           'C',
-                           d((), ('D', 'E'))])
+                         [d((s('A'),), ()),
+                           s('B'), s('C'),
+                           d((), (s('D'), s('E')))])
     def test_triple_compact(self):
-        from msa import Disjunct as d
+        from msa import Disjunct as d, Sub as s
         self.assertEqual(msa.compact(msa.msa(['ABC', 'BCD', 'BCX'])),
-                         [d((d(('A',), ()),), ()),
-                          'BC',
-                          d((d((), ('D',)),), ('X',))])
+                         [d((d((s('A'),), ()),), ()),
+                          s('BC'),
+                          d((d((), (s('D'),)),), (s('X'),))])
     def test_edges(self):
-        from msa import to_edges, Edge, Disjunct as d
-        self.assertEqual(set([x for x in to_edges([d('A', ('B', d('C', 'D'))),'E'])]),
+        from msa import to_edges, Edge, Disjunct as d, Sub as s
+        def new_edge(f, t):
+            return Edge(f.seq, t.seq, f.id(), t.id())
+        self.assertEqual(set([x for x in to_edges([d(s('A'), (s('B'), d(s('C'), s('D')))),s('E')])]),
                          set([
-                    Edge(from_='START', to='A'),
-                    Edge(from_='START', to='B'),
-                    Edge(from_='B', to='C'),
-                    Edge(from_='B', to='D'),
-                    Edge(from_='E', to='END'),
-                    Edge(from_='C', to='E'),
-                    Edge(from_='D', to='E'),
-                    Edge(from_='A', to='E'),
+                    new_edge(s('START'), s('A')),
+                    new_edge(s('START'), s('B')),
+                    new_edge(s('B'), s('C')),
+                    new_edge(s('B'), s('D')),
+                    new_edge(s('E'), s('END')),
+                    new_edge(s('C'), s('E')),
+                    new_edge(s('D'), s('E')),
+                    new_edge(s('A'), s('E')),
                     ]))
 
 if __name__ == '__main__':

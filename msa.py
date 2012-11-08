@@ -2,12 +2,53 @@
 # -*- coding:utf-8 -*-
 
 from collections import namedtuple
+from functools import total_ordering
 import difflib
 
+def shahash(s_):
+    s = ''.join([hex(ord(x)) for x in s_]) if type(s_) == unicode else s_
+    import hashlib
+    h = hashlib.sha1()
+    h.update(s)
+    ret = h.hexdigest()
+    return ret
+
+@total_ordering
+class Sub:
+    def __init__(self, parent, pos=None, end=None, seq=None):
+        if pos == None:
+            self.seq = parent
+            self.parent = parent
+            self.pos = 0
+            self.end = len(parent)
+        else:
+            self.parent = parent
+            self.pos = pos
+            self.end = end
+            if seq == None:
+                self.seq = parent[pos:end]
+            else:
+                self.seq = seq
+    def id(self):
+        return 'S_%s_%d_%d' % (shahash(self.parent), self.pos, self.end)
+    def __hash__(self):
+        return hash(tuple(self.seq))
+    def __len__(self):
+        return len(self.seq)
+    def __getitem__(self, i):
+        return self.seq.__getitem__(i)
+    def __eq__(self, x):
+        return repr(self) == repr(x)
+    def __le__(self, x):
+        return repr(self) < repr(x)
+    def __repr__(self):
+        return 's('+repr(self.seq)+')'
+
+@total_ordering
 class Disjunct:
     def __init__(self, *args):
         if len(args) == 1:
-            if isinstance(args[0], basestring):
+            if isinstance(args[0], basestring) or isinstance(args[0], Sub):
                 self.items = [args[0]]
             else:
                 self.items = args[0]
@@ -24,7 +65,9 @@ class Disjunct:
     def __len__(self):
         return self.items.__len__()
     def __eq__(self, x):
-        return type(self) == type(x) and sorted(self.items) == sorted(x.items)
+        return self.__class__ == x.__class__ and sorted(self.items) == sorted(x.items)
+    def __le__(self, x):
+        return repr(self) < repr(x)
     def __getitem__(self, i):
         return self.items.__getitem__(i)
     def __repr__(self):
@@ -35,7 +78,7 @@ class Disjunct:
         d = Disjunct([])
         for x in self.items:
             x = simplify(x)
-            if not isinstance(x, basestring) and len(x) == 1:
+            if not isinstance(x, basestring) and not isinstance(x, Sub) and len(x) == 1:
                 d.add(simplify(x[0]))
             elif isinstance(x, Disjunct):
                 for y in x:
@@ -46,19 +89,10 @@ class Disjunct:
     def compact(self):
         return Disjunct([compact(x) for x in self.items])
 
-class Seq:
-    def __init__(self, items=[]):
-        self.items = items
-    def append(self, x):
-        self.items.append(x)
-    def lappend(self, x):
-        self.items += x
-    def lprepend(self, x):
-        self.items = x + self.items
-    def __iter__(self):
-        return self.items.__iter__()
-
 def msa(ls):
+    for i in xrange(0, len(ls)):
+        ls[i] = [Sub(ls[i], j, j+1) for j in xrange(0, len(ls[i]))]
+
     while len(ls) >= 2:
         (s1, s2), ls = ls[0:2], ls[2:]
         sm = difflib.SequenceMatcher(lambda x: x == None, s1, s2)
@@ -73,16 +107,12 @@ def msa(ls):
         ls = ls[0]
     return ls
 
-def compact(ls):
-    if isinstance(ls, Disjunct):
-        return ls.compact()
-    if not isinstance(ls, list) and not isinstance(ls, tuple):
-        return ls
+def regions(ls, tp):
     start = None
     length = 0
     rep = []
     for (i,x) in enumerate(ls):
-        if isinstance(x, basestring):
+        if isinstance(x, tp):
             if start == None:
                 start = i
             length += 1
@@ -93,17 +123,26 @@ def compact(ls):
                 length = 0
     if start != None:
         rep.append((start, length))
+    return rep
+
+def compact(ls):
+    if isinstance(ls, Disjunct):
+        return ls.compact()
+    if not isinstance(ls, list) and not isinstance(ls, tuple):
+        return ls
     mask = [True] * len(ls)
     ret = [x for x in ls]
-    for (s,l) in rep:
+    for (s,l) in regions(ls, basestring):
         ret[s:s+l] = [''.join(ls[s:s+l])] + [None] * (l-1)
+        mask[s:s+l] = [False] * l
+    for (s,l) in regions(ls, Sub):
+        ret[s:s+l] = [Sub(ls[s].parent, ls[s].pos, ls[s+l-1].end)] + [None] * (l-1)
         mask[s:s+l] = [False] * l
     for (i,x) in enumerate(ls):
         if mask[i] and isinstance(ls[i], Disjunct):
             ret[i] = compact(ret[i])
     ret = [x for x in ret if x]
-    if isinstance(ls, tuple):
-        ret = tuple(ret)
+    ret = (ls.__class__)(ret)
     return ret
 
 def simplify(a):
@@ -111,21 +150,35 @@ def simplify(a):
         return a
     elif isinstance(a, Disjunct):
         return a.simplify()
+    elif isinstance(a, Sub):
+        if len(a) == 1 and not isinstance(a.parent, basestring) and isinstance(a[0], Sub):
+            return simplify(a[0])
+        else:
+            return Sub(a.parent, a.pos, a.end, seq=simplify(a.seq))
     else:
         if len(a) == 1:
             return simplify(a[0])
         ret = []
         for x in a:
             x = simplify(x)
-            if isinstance(x, basestring):
-                ret.append(x)
-            elif isinstance(x, Disjunct):
+            if isinstance(x, basestring) or isinstance(x, Disjunct) or isinstance(x, Sub):
                 ret.append(x)
             else:
                 ret += x
-        return (type(a))(ret)
+        return (a.__class__)(ret)
 
-Edge = namedtuple('Edge', 'from_ to')
+Edge = namedtuple('Edge', 'from_ to fid tid')
+def new_edge(f, t):
+    if isinstance(f, Sub) and isinstance(t, Sub):
+        return Edge(f.seq, t.seq, f.id(), t.id())
+    elif isinstance(f, Sub) and isinstance(t, basestring):
+        return Edge(f.seq, t, f.id(), t)
+    elif isinstance(f, basestring) and isinstance(t, Sub):
+        return Edge(f, t.seq, f, t.id())
+    elif isinstance(f, basestring) and isinstance(t, basestring):
+        return Edge(f, t, f, t)
+    else:
+        None
 
 def window(iterable, size):
     from itertools import tee, izip
@@ -136,31 +189,21 @@ def window(iterable, size):
             next(each, None)
     return izip(*iters)
 
-def to_edges(align, source='START', sink='END'):
+def to_edges(align, source=Sub('START'), sink=Sub('END')):
     import inspect
     #print len(inspect.stack()), pformat(repr([align, source, sink]))
-    if isinstance(align, basestring):
-        if isinstance(source, basestring):
-            yield Edge(source, align)
-        ## ↓があると重複する？
-        # else:
-        #     for e in to_edges(source, source='', sink=align):
-        #         if e.to == align:
-        #             yield Edge(e.from_, align)
-        if isinstance(sink, basestring):
-            yield Edge(align, sink)
-        ## ↓があると重複する？
-        # else:
-        #     for e in to_edges(sink, align, sink=''):
-        #         if e.from_ == align:
-        #             yield Edge(align, e.to)
+    if isinstance(align, Sub) or isinstance(align, basestring):
+        if isinstance(source, Sub) or isinstance(source, basestring):
+            yield new_edge(source, align)
+        if isinstance(sink, Sub) or isinstance(sink, basestring):
+            yield new_edge(align, sink)
     elif isinstance(align, Disjunct):
         for x in align:
             for d in to_edges(x, source, sink):
                 yield d
     else:
         if len(align) == 0:
-            yield Edge(source, sink)
+            yield Edge(source.seq, sink.seq, source.id(), sink.id())
         else:
             for (x,y,z) in window([source]+list(align)+[sink], 3):
                 for d in to_edges(y, x, z):
@@ -179,9 +222,10 @@ if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--verbose',
-                        dest='verbose', action='store_true', default=False,
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='turn on verbose message output')
+    parser.add_argument('-t', '--type', choices=['dot', 'lattice'], default='dot',
+                        help='type of output')
     parser.add_argument('-o', '--output', default='-')
     parser.add_argument('-e', '--encoding', default='utf8') 
     parser.add_argument('inputs', nargs='+')
@@ -202,12 +246,21 @@ if __name__ == '__main__':
         lines += [x.strip() for x in f.readlines()]
 
     if options.verbose:
-        print >>sys.stderr, pformat(compact(simplify(msa(lines))))
+        print >>sys.stderr, '  ', pformat(((msa(lines))))
+        print >>sys.stderr, ' s', pformat((simplify(msa(lines))))
+        print >>sys.stderr, 'c ', pformat(compact((msa(lines))))
+        print >>sys.stderr, 'cs', pformat(compact(simplify(msa(lines))))
 
-    print >>options.output, '''digraph g {
+    
+    if options.type == 'dot':
+        print >>options.output, '''digraph g {
   rankdir = LR;
 '''
-    for x in to_edges(compact(simplify(msa(lines)))):
-        print >>options.output, '  %s -> %s;' % (x.from_, x.to)
-    print >>options.output,'''}
+        for x in to_edges(compact(simplify(msa(lines)))):
+            print >>options.output, '  %s[label="%s"];' % (x.fid, x.from_)
+            print >>options.output, '  %s[label="%s"];' % (x.tid, x.to)
+            print >>options.output, '  %s -> %s; // %s -> %s' % (x.fid, x.tid, x.from_, x.to)
+        print >>options.output,'''}
 '''
+    elif options.type == 'lattice':
+        print >>options.output, pformat((msa(lines)))
