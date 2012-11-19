@@ -228,6 +228,7 @@ if __name__ == '__main__':
                         help='type of output')
     parser.add_argument('-o', '--output', default='-')
     parser.add_argument('-e', '--encoding', default='utf8') 
+    parser.add_argument('-m', '--maxlen', type=int, default=30)
     parser.add_argument('inputs', nargs='+')
     options = parser.parse_args()
 
@@ -253,12 +254,23 @@ if __name__ == '__main__':
 
     
     if options.type == 'dot':
+        def format_label(s):
+            s = s.replace('\\', '\\\\').replace('"', '\\"')
+            if len(s) <= options.maxlen:
+                return '"%s"' % s
+            else:
+                a = []
+                seg = options.maxlen
+                for i in xrange(0, len(s) / seg):
+                    a.append(s[i*seg:(i+1)*seg])
+                return '<%s>' % '<br/>'.join([x.replace('<', '&lt;').replace('>', '&gt;') for x in a])
+
         print >>options.output, '''digraph g {
   rankdir = LR;
 '''
         for x in to_edges(compact(simplify(msa(lines)))):
-            print >>options.output, '  %s[label="%s"];' % (x.fid, x.from_)
-            print >>options.output, '  %s[label="%s"];' % (x.tid, x.to)
+            print >>options.output, '  %s[label=%s];' % (x.fid, format_label(x.from_))
+            print >>options.output, '  %s[label=%s];' % (x.tid, format_label(x.to))
             print >>options.output, '  %s -> %s; // %s -> %s' % (x.fid, x.tid, x.from_, x.to)
         print >>options.output,'''}
 '''
