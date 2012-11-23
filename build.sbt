@@ -5,7 +5,8 @@ version := "0.1"
 
 scalaVersion := "2.9.2"
 
-scalacOptions += "-deprecation"
+scalacOptions ++= Seq("-deprecation",
+                      "-unchecked")
 
 libraryDependencies ++= Seq(
   // "org.apache.commons" % "commons-lang3" % "3.1",
