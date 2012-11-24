@@ -29,13 +29,13 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
     Dag[Node](nodes.toList, edges.toList)
   }
 
-  def scorer(x: Node, y:Node): Int = {
+  private def scorer(x: Node, y:Node): Int = {
     1 //!
   }
 
   def align(): Dag[Node] = align(dags)
 
-  def align(ls: List[Dag[Node]]): Dag[Node] = {
+  private def align(ls: List[Dag[Node]]): Dag[Node] = {
     if ( ls.size == 1 ) {
       return ls(0)
     } else if ( ls.size == 2 ) {
@@ -46,16 +46,18 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
   }
 }
 
+//! scorer は weight として、Dag[T,W] と型パラメータにする
 case class Dag[T](nodes: List[T], edges: List[(Int,Int)]) {
   abstract class Operation {
   }
   case class OpEquals(from: Int, to: Int)       extends Operation
   case class OpSubstitutes(from: Int, to: Int)  extends Operation
-
-  def length = nodes.length
+  case class OpInserts(from: Int)  extends Operation
+  case class OpDeletes(from: Int)  extends Operation
 
   def align(that: Dag[T], scorer: (T,T) => Int): Dag[T] = {
-    val ops = align(that, scorer, this.length, that.length)
+    val memo = new mutable.HashMap[(Int,Int), (Int, List[Operation])]
+    val ops = align(that, scorer, memo, this.nodes.length - 1, that.nodes.length - 1)
 
     // 操作列から、統合された dag をつくる
     // while 
@@ -63,25 +65,39 @@ case class Dag[T](nodes: List[T], edges: List[(Int,Int)]) {
     //    前の Eq からの部分 dag ペアを並列につなげて合流させる
     //  else
     //    並列して部分 dag ペアをそれぞれたどってためていく
+
+    println(ops)
+
     this //!
   }
-  def align(that: Dag[T], scorer: (T,T) => Int, this_end: Int, that_end: Int): (Int,List[Operation]) = {
-    if ( 0 == this_end ) {
-      
+  def align(that: Dag[T], scorer: (T,T) => Int, memo: mutable.Map[(Int,Int), (Int, List[Operation])], this_cur: Int, that_cur: Int): (Int,List[Operation]) = {
+    memo.get((this_cur, that_cur)) match {
+      case Some(x) => {
+        return x
+      }
+      case _ => {}
     }
-    if ( 0 == that_end ) {
-      
+    println(this + " " + this_cur + " " + that_cur)
+    if ( -1 == this_cur ) {
+      return (Int.MaxValue, List())
     }
-    val inserts: List[(Int, List[Operation])] = for ( i <- prev_nodes(this_end) ) yield {
-      (Int.MaxValue, List(OpEquals(0, 0))) //!
+    if ( -1 == that_cur ) {
+      return (Int.MaxValue, List())
     }
-    val deletes: List[(Int, List[Operation])] = for ( i <- prev_nodes(this_end) ) yield {
-      (Int.MaxValue, List(OpEquals(0, 0))) //!
+    val inserts: List[(Int, List[Operation])] = for ( i <- prev_nodes(this_cur) ) yield {
+      val (score,ops) = this.align(that, scorer, memo, i, that_cur)
+      val s = score + scorer(this.nodes(i), that.nodes(that_cur))
+      (s, List(OpInserts(i)))
+    }
+    val deletes: List[(Int, List[Operation])] = for ( i <- prev_nodes(that_cur) ) yield {
+      val (score,ops) = this.align(that, scorer, memo, this_cur, i)
+      val s = score + scorer(this.nodes(this_cur), that.nodes(i))
+      (s, List(OpDeletes(i)))
     }
     var substs: List[(Int, List[Operation])] =
-      for ( i <- prev_nodes(this_end);
-            j <- prev_nodes(that_end) ) yield {
-              val (score,ops) = this.align(that, scorer, i, j)
+      for ( i <- prev_nodes(this_cur);
+            j <- prev_nodes(that_cur) ) yield {
+              val (score,ops) = this.align(that, scorer, memo, i, j)
               val s = score + scorer(this.nodes(i), that.nodes(j))
               val o = if (this.nodes(i) == that.nodes(j)) {
                 OpSubstitutes(i, j)
@@ -90,10 +106,13 @@ case class Dag[T](nodes: List[T], edges: List[(Int,Int)]) {
               }
               (s, ops ++ List(o))
             }
-    return (inserts ++ deletes ++ substs).min(Ordering.by[(Int, List[Operation]), Int](_._1))
+    val ret = (inserts ++ deletes ++ substs ++ List((Int.MaxValue, List(OpEquals(-1,-1))))).min(Ordering.by[(Int, List[Operation]), Int](_._1))
+    memo((this_cur, that_cur)) = ret
+    return ret
   }
   def prev_nodes(node: Int): List[Int] = {
-    this.edges.filter(x => x == node).map(x => x._1)
+    printf("prev_nodes(%s): %s\n", node, this.edges.filter(x => x._2 == node).map(x => x._1))
+    this.edges.filter(x => x._2 == node).map(x => x._1)
   }
 }
 
