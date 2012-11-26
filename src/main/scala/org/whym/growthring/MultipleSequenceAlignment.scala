@@ -21,12 +21,12 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
   }
   val dags = for (s <- strings) yield {
     val nodes = new mutable.ListBuffer[Node]
-    val edges = new mutable.ListBuffer[(Int, Int)]
+    val edges = new mutable.HashSet[(Int, Int)]
     for ( i <- 0.until(s.size) ) {
-      nodes.append(Node(s, i, i + 1))
-      edges.append((i, i+1))
+      nodes += Node(s, i, i + 1)
+      edges += Pair(i, i+1)
     }
-    Dag(nodes.toList, edges.toList)
+    Dag(nodes.toList, edges.toSet)
   }
 
   private def weight(x: Option[Node], y:Option[Node]): Double = {
@@ -46,30 +46,112 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
   }
 }
 
-case class Dag[T](nodes: List[T], edges: List[(Int,Int)]) {
-  abstract class Operation {
+//! align 関数は object Dag の中に置いたほうがいい
+
+case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
+
+  //! OpCode は内部クラスにする
+  case class Operation(at: Int, _with: Int, opcode: OpCode)
+  abstract class OpCode() {
+    override def toString(): String = this.getClass.getSimpleName
   }
-  case class OpEqual(at: Int, _with: Int) extends Operation
-  case class OpReplace(at: Int, _with: Int) extends Operation
-  case class OpInsert(at: Int, _with: Int)  extends Operation
-  case class OpDelete(at: Int)  extends Operation
+  object OpEqual extends OpCode
+  object OpReplace extends OpCode
+  object OpInsert extends OpCode
+  object OpDelete  extends OpCode
+  object OpNone extends OpCode
 
   //! weight として一括するだけでなく、replace などを個別に与える align も用意
   def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W)(implicit num: Numeric[W]): Dag[T] = {
     val memo = new mutable.HashMap[(Int,Int), (W, List[Operation])]
-    val ops = align(that, weight, memo, this.nodes.length - 1, that.nodes.length - 1)(num)
+    val (score,ops) = align(that, weight, memo, this.nodes.length - 1, that.nodes.length - 1)(num)
 
-    // 操作列から、統合された dag をつくる
-    // while 
-    //  if Eq
-    //    前の Eq からの部分 dag ペアを並列につなげて合流させる
-    //  else
-    //    並列して部分 dag ペアをそれぞれたどってためていく
+    //println(memo) //!
 
-    println(memo) //!
-    println(ops) //!
+    println(score, ops) //!
 
-    this //!
+    // assertions
+    if ( ops.head.opcode != OpEqual ||
+        ops.reverse.head.opcode != OpEqual ) {
+      throw new RuntimeException("needs to start and end with Equal")
+    }
+
+    val this_trans = new mutable.HashMap[Int,Int]
+    val that_trans = new mutable.HashMap[Int,Int]
+    var this_offset = 0
+    var that_offset = 0
+    var this_cur = 0
+    var that_cur = 0
+    var prev:OpCode = OpNone
+    for ( op <- ops ) {
+      while ( this_cur < op.at ) {
+        this_trans.get(this_cur) match {
+          case Some(_) => {}
+          case _ => {
+            this_trans(this_cur) = this_cur + this_offset
+            if (prev != OpInsert)
+              that_offset += 1
+          }
+        }
+        this_cur += 1
+      }
+      while ( that_cur < op._with ) {
+        that_trans.get(that_cur) match {
+          case Some(_) => {}
+          case _ => {
+            that_trans(that_cur) = that_cur + that_offset
+            if (prev != OpDelete)
+              this_offset += 1
+          }
+        }
+        that_cur += 1
+      }
+      println(op, this_cur, that_cur, this_offset, that_offset, this_trans, that_trans) //!
+      prev = op.opcode
+      op match {
+        case Operation(i, j, OpEqual) => {
+          this_trans(i) = i + this_offset
+          that_trans(j) = this_trans(i)
+         //this_trans(j) = j + that_offset //! 何らかの形でポインタを保持してどこから合流したかを記憶させる？
+          
+        }
+        case Operation(i, j , OpReplace) => {
+          this_trans(i) = i + this_offset
+          this_offset += 1
+          that_offset += 1
+          that_trans(j) = j + that_offset
+        }
+        case Operation(i, j, OpInsert) => {
+          that_trans(j) = j + that_offset
+          this_offset += 1
+        }
+        case Operation(i, j, OpDelete) => {
+          this_trans(i) = i + this_offset
+          that_offset += 1
+        }
+      }
+      println(op, this_cur, that_cur, this_offset, that_offset, this_trans, that_trans) //!
+    }
+
+    println(this_trans)
+    println(that_trans)
+
+    val n = mutable.ArrayBuffer.fill((this_trans ++ that_trans).map(x => x._2).max + 1)(this.nodes(0)) //! placeholder として不可能な値を使う
+    for ( (i, j) <- this_trans ) {
+      n(j) = this.nodes(i)
+    }
+    for ( (i, j) <- that_trans ) {
+      n(j) = that.nodes(i)
+    }
+    val e = new mutable.HashSet[(Int,Int)]
+    for ( (i,j) <- this.edges ) {
+      e += Pair(this_trans(i), this_trans(j))
+    }
+    for ( (i,j) <- that.edges ) {
+      e += Pair(that_trans(i), that_trans(j))
+    }
+
+    Dag(n.toList, e.toSet)
   }
 
   //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
@@ -88,39 +170,40 @@ case class Dag[T](nodes: List[T], edges: List[(Int,Int)]) {
     if ( this_cur == 0 && that_cur == 0 ) {
       val ret = (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
                  List(if (this.nodes(this_cur) == that.nodes(that_cur)) {
-                   OpEqual(this_cur, that_cur)
+                   Operation(this_cur, that_cur, OpEqual)
                  } else {
-                   OpReplace(this_cur, that_cur)
+                   Operation(this_cur, that_cur, OpReplace)
                  }))
       memo((this_cur, that_cur)) = ret
       return ret
     }
-    val deletes: List[(W, List[Operation])] = for ( i <- this.prev_nodes(this_cur) ) yield {
+    val deletes = for ( i <- this.prev_nodes(this_cur) ) yield {
       //println("looking for deletes at " + i + "," + that_cur)
       val (score,ops) = this.align(that, weight, memo, i, that_cur)
       val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
-      (s, ops ++ List(OpDelete(this_cur)))
+      (s, ops ++ List(Operation(this_cur, i, OpDelete)))
     }
-    val inserts: List[(W, List[Operation])] = for ( i <- that.prev_nodes(that_cur) ) yield {
+    val inserts = for ( i <- that.prev_nodes(that_cur) ) yield {
       //println("looking for inserts at " + this_cur + "," + i)
       val (score,ops) = this.align(that, weight, memo, this_cur, i)
       val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
-      (s, ops ++ List(OpInsert(i, that_cur)))
+      (s, ops ++ List(Operation(i, that_cur, OpInsert)))
     }
-    var substs: List[(W, List[Operation])] =
+    var substs =
       for ( i <- this.prev_nodes(this_cur);
             j <- that.prev_nodes(that_cur) ) yield {
               //println("looking for replaces at " + i + "," + j)
               val (score,ops) = this.align(that, weight, memo, i, j)
               val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
-              (s, ops ++ List(if (this.nodes(this_cur) == that.nodes(that_cur)) {
-                OpEqual(this_cur, that_cur)
-              } else {
-                OpReplace(this_cur, that_cur)
-              }))
+              (s, ops ++ List(Operation(this_cur, that_cur,
+                                        if (this.nodes(this_cur) == that.nodes(that_cur)) {
+                                          OpEqual
+                                        } else {
+                                          OpReplace
+                                        })))
             }
     val ls = inserts ++ deletes ++ substs
-    val ret = if (ls.length > 0 ) ls.min(Ordering.by[(W, List[Operation]), W](_._1)) else (num.zero, List())
+    val ret = if (ls.size > 0 ) ls.min(Ordering.by[(W, List[Operation]), W](_._1)) else (num.zero, List())
     memo((this_cur, that_cur)) = ret
     //println(memo)//!
 
@@ -128,7 +211,7 @@ case class Dag[T](nodes: List[T], edges: List[(Int,Int)]) {
   }
 
   //! インデックスして速くする
-  def prev_nodes(node: Int): List[Int] = {
+  def prev_nodes(node: Int): Set[Int] = {
     //printf("prev_nodes(%s): %s\n", node, this.edges.filter(x => x._2 == node).map(x => x._1))
     this.edges.filter(x => x._2 == node).map(x => x._1)
   }
