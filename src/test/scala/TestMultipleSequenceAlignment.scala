@@ -16,11 +16,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(classOf[JUnitRunner])
 class TestMultipleSequenceAlignment extends FunSuite {
-  test("test msa") {
-    val m = new MultipleSequenceAlignment(List("abc".toCharArray.toList,
-                                               "cbc".toCharArray.toList))
-    println(m)
-  }
   def weight()(implicit
                eql:Double=0.0,
                del:Double=1.0,
@@ -143,5 +138,12 @@ class TestMultipleSequenceAlignment extends FunSuite {
                    (0,2), (2,3), (3,4), (4, 6), (6,8), (8,10), (10,12), (12,13), (13,14)))) {
       linear_dag("$色は匂えど散りぬるを$").align(linear_dag("$いろはにほへとちりぬるを$"), weight())
     }
+  }
+
+  test("test msa") {
+    val m = new MultipleSequenceAlignment(List("$abc$".toCharArray.toList,
+                                               "$cbc$".toCharArray.toList,
+                                               "$bcd$".toCharArray.toList))
+    println(m.align)
   }
 }

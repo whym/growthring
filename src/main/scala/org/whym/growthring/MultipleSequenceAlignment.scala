@@ -26,22 +26,38 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
       nodes += Node(s, i, i + 1)
       edges += Pair(i, i+1)
     }
+    edges.remove(Pair(s.size-1, s.size))
     Dag(nodes.toList, edges.toSet)
   }
 
-  private def weight(x: Option[Node], y:Option[Node]): Double = {
-    1.0 //!
-  }
+  def weight()(implicit
+               eql:Double=0.0,
+               del:Double=1.0,
+               ins:Double=1.0,
+               rep:Double=1.5,
+               ooo:Double=10.0) =
+    (_x: Option[Node], _y: Option[Node]) => {
+    (_x, _y) match {
+      case (Some(x),Some(y)) => if (x.label == y.label) eql else rep
+      case (Some(x),_)    => del
+      case (_,Some(x))    => ins
+      case _              => ooo
+    }
+    }
+
+  def equ(x:Node, y:Node): Boolean = x.label == y.label
 
   def align(): Dag[Node] = align(dags)
 
   private def align(ls: List[Dag[Node]]): Dag[Node] = {
-    if ( ls.size == 1 ) {
+    if ( ls.size == 0 ) {
+      return Dag(List(), Set())
+    } else if ( ls.size == 1 ) {
       return ls(0)
     } else if ( ls.size == 2 ) {
-      return ls(0).align(ls(1), weight)
+      return ls(0).align(ls(1), this.weight(), equ)
     } else {
-      return this.align(ls.slice(0, ls.size/2)).align(this.align(ls.slice(ls.size/2, ls.size)), weight)
+      return this.align(ls.slice(0, ls.size/2)).align(this.align(ls.slice(ls.size/2, ls.size)), this.weight(), equ)
     }
   }
 }
@@ -62,9 +78,10 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
   object OpNone extends OpCode
 
   //! weight として一括するだけでなく、replace などを個別に与える align も用意
-  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W)(implicit num: Numeric[W]): Dag[T] = {
+  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, equ: (T,T)=>Boolean=(x,y) => x == y)
+  (implicit num: Numeric[W]): Dag[T] = {
     val memo = new mutable.HashMap[(Int,Int), (W, List[Operation])]
-    val (score,ops) = align(that, weight, memo, this.nodes.length - 1, that.nodes.length - 1)(num)
+    val (score,ops) = this.align_(that, weight, equ, memo, this.nodes.length - 1, that.nodes.length - 1)(num)
 
     //println(memo) //!
 
@@ -144,6 +161,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       n(j) = that.nodes(i)
     }
     val e = new mutable.HashSet[(Int,Int)]
+    println(this.edges, this.nodes)//!
     for ( (i,j) <- this.edges ) {
       e += Pair(this_trans(i), this_trans(j))
     }
@@ -156,7 +174,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
   //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
 
-  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, memo: mutable.Map[(Int,Int), (W, List[Operation])], this_cur: Int, that_cur: Int)(implicit num: Numeric[W]): (W,List[Operation]) = {
+  def align_[W](that: Dag[T], weight: (Option[T],Option[T]) => W, equ: (T,T)=>Boolean, memo: mutable.Map[(Int,Int), (W, List[Operation])], this_cur: Int, that_cur: Int)(implicit num: Numeric[W]): (W,List[Operation]) = {
     val maxValue = num.fromInt(Int.MaxValue)
 
     memo.get((this_cur, that_cur)) match {
@@ -169,7 +187,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
     if ( this_cur == 0 && that_cur == 0 ) {
       val ret = (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
-                 List(if (this.nodes(this_cur) == that.nodes(that_cur)) {
+                 List(if (equ(this.nodes(this_cur), that.nodes(that_cur))) {
                    Operation(this_cur, that_cur, OpEqual)
                  } else {
                    Operation(this_cur, that_cur, OpReplace)
@@ -179,13 +197,13 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
     }
     val deletes = for ( i <- this.prev_nodes(this_cur) ) yield {
       //println("looking for deletes at " + i + "," + that_cur)
-      val (score,ops) = this.align(that, weight, memo, i, that_cur)
+      val (score,ops) = this.align_(that, weight, equ, memo, i, that_cur)(num)
       val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
       (s, ops ++ List(Operation(this_cur, i, OpDelete)))
     }
     val inserts = for ( i <- that.prev_nodes(that_cur) ) yield {
       //println("looking for inserts at " + this_cur + "," + i)
-      val (score,ops) = this.align(that, weight, memo, this_cur, i)
+      val (score,ops) = this.align_(that, weight, equ, memo, this_cur, i)(num)
       val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
       (s, ops ++ List(Operation(i, that_cur, OpInsert)))
     }
@@ -193,10 +211,10 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       for ( i <- this.prev_nodes(this_cur);
             j <- that.prev_nodes(that_cur) ) yield {
               //println("looking for replaces at " + i + "," + j)
-              val (score,ops) = this.align(that, weight, memo, i, j)
+              val (score,ops) = this.align_(that, weight, equ, memo, i, j)(num)
               val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
               (s, ops ++ List(Operation(this_cur, that_cur,
-                                        if (this.nodes(this_cur) == that.nodes(that_cur)) {
+                                        if (equ(this.nodes(this_cur), that.nodes(that_cur))) {
                                           OpEqual
                                         } else {
                                           OpReplace
@@ -210,6 +228,10 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
     return ret
   }
 
+  // def trace(seq: List[T]): Some[List[Int]] = {
+  //   val root = 
+  // }
+
   //! インデックスして速くする
   def prev_nodes(node: Int): Set[Int] = {
     //printf("prev_nodes(%s): %s\n", node, this.edges.filter(x => x._2 == node).map(x => x._1))
@@ -219,5 +241,9 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
 object Main {
   def main(args: Array[String]) {
+    import scala.io
+    val strings = args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
+    val msa = new MultipleSequenceAlignment(strings.map(x => ("^"+x+"$").toList))
+    println(msa.align)
   }
 }
