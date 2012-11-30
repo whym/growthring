@@ -195,33 +195,41 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       memo((this_cur, that_cur)) = ret
       return ret
     }
-    val deletes = for ( i <- this.prev_nodes(this_cur) ) yield {
+
+    var min:Option[Pair[W, List[Operation]]] = None
+    def update_min(p: Pair[W, List[Operation]]) {
+      min = Some(if (min.isEmpty) {
+        p
+      } else {
+        List(min.get, p).min(Ordering.by[(W, List[Operation]), W](_._1))
+      })
+    }
+
+    for ( i <- this.prev_nodes(this_cur) ) {
       //println("looking for deletes at " + i + "," + that_cur)
       val (score,ops) = this.align_(that, weight, equ, memo, i, that_cur)(num)
       val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
-      (s, ops ++ List(Operation(this_cur, i, OpDelete)))
+      update_min((s, ops ++ List(Operation(this_cur, i, OpDelete))))
     }
-    val inserts = for ( i <- that.prev_nodes(that_cur) ) yield {
-      //println("looking for inserts at " + this_cur + "," + i)
+    for ( i <- that.prev_nodes(that_cur) ) {
       val (score,ops) = this.align_(that, weight, equ, memo, this_cur, i)(num)
       val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
-      (s, ops ++ List(Operation(i, that_cur, OpInsert)))
+      update_min((s, ops ++ List(Operation(i, that_cur, OpInsert))))
     }
-    var substs =
-      for ( i <- this.prev_nodes(this_cur);
-            j <- that.prev_nodes(that_cur) ) yield {
+    for ( i <- this.prev_nodes(this_cur);
+         j <- that.prev_nodes(that_cur) ) yield {
               //println("looking for replaces at " + i + "," + j)
-              val (score,ops) = this.align_(that, weight, equ, memo, i, j)(num)
-              val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
-              (s, ops ++ List(Operation(this_cur, that_cur,
-                                        if (equ(this.nodes(this_cur), that.nodes(that_cur))) {
-                                          OpEqual
-                                        } else {
-                                          OpReplace
-                                        })))
-            }
-    val ls = inserts ++ deletes ++ substs
-    val ret = if (ls.size > 0 ) ls.min(Ordering.by[(W, List[Operation]), W](_._1)) else (num.zero, List())
+           val (score,ops) = this.align_(that, weight, equ, memo, i, j)(num)
+           val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
+           update_min((s, ops ++
+                       List(Operation(this_cur, that_cur,
+                                      if (equ(this.nodes(this_cur), that.nodes(that_cur))) {
+                                        OpEqual
+                                      } else {
+                                        OpReplace
+                                      }))))
+         }
+    val ret = min.get
     memo((this_cur, that_cur)) = ret
     //println(memo)//!
 
@@ -233,10 +241,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
   // }
 
   //! インデックスして速くする
-  def prev_nodes(node: Int): Set[Int] = {
-    //printf("prev_nodes(%s): %s\n", node, this.edges.filter(x => x._2 == node).map(x => x._1))
-    this.edges.filter(x => x._2 == node).map(x => x._1)
-  }
+  def prev_nodes(node: Int): Set[Int] = this.edges.filter(x => x._2 == node).map(x => x._1)
 }
 
 object Main {
