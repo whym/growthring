@@ -140,10 +140,17 @@ class TestMultipleSequenceAlignment extends FunSuite {
     }
   }
 
-  test("test msa") {
+  test("test msa: three letters") {
     val m = new MultipleSequenceAlignment(List("$abc$".toCharArray.toList,
                                                "$cbc$".toCharArray.toList,
                                                "$bcd$".toCharArray.toList))
-    println(m.align)
+    println(m.align) //! TODO: real test
+  }
+
+  test("test msa: empty sequence") {
+    val m = new MultipleSequenceAlignment(List("$$".toCharArray.toList,
+                                               "$aac$".toCharArray.toList,
+                                               "$xxb$".toCharArray.toList))
+    println(m.align) //! TODO: real test
   }
 }

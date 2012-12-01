@@ -21,15 +21,10 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
     override def toString = this.label.toString + "@%X".format(this.body.hashCode)
   }
   val dags = for (s <- strings) yield {
-    val nodes = new mutable.ListBuffer[Node]
-    val edges = new mutable.HashSet[(Int, Int)]
-    for ( i <- 0.until(s.size) ) {
-      nodes += Node(s, i, i + 1)
-      edges += Pair(i, i+1)
-    }
-    edges.remove(Pair(s.size-1, s.size))
-    Dag(nodes.toList, edges.toSet)
+    Dag(0.until(s.size).map(i => Node(s, i, i + 1)).toList,
+        0.until(s.size-1).map(i => Pair(i, i+1)).toSet)
   }
+  println("dags: " + dags) //!
 
   def weight()(implicit
                eql:Double=0.0,
@@ -60,7 +55,9 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
     } else if ( ls.size == 2 ) {
       return ls(0).align(ls(1), this.weight(), equ)
     } else {
-      return this.align(ls.slice(0, ls.size/2)).align(this.align(ls.slice(ls.size/2, ls.size)), this.weight(), equ)
+      return this.align(ls.slice(0, ls.size/2)).align(this.align(ls.slice(ls.size/2, ls.size)),
+                                                      this.weight(),
+                                                      equ)
     }
   }
 }
@@ -138,10 +135,10 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       }
     }
 
-    println(this_trans)
-    println(that_trans)
+    println(this_trans, this.nodes)
+    println(that_trans, that.nodes)
 
-    val n = mutable.ArrayBuffer.fill((this_trans ++ that_trans).map(x => x._2).max + 1)(this.nodes(0)) //! placeholder として不可能な値を使う
+    val n = mutable.ArrayBuffer.fill(count)(this.nodes(0)) //! placeholder として不可能な値を使う
     for ( (i, j) <- this_trans ) {
       if ( n(j) != 0 && !equ(n(j),this.nodes(i)) ) {
         //throw new RuntimeException("n() doubly substituted for " + j + " " +List(n(j), this.nodes(i)))
