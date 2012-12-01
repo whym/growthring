@@ -18,6 +18,7 @@ import scala.collection.mutable
 class MultipleSequenceAlignment[T](strings: List[List[T]]) {
   case class Node(body: List[T], start: Int, end: Int) {
     def label = body.slice(start, end)
+    override def toString = this.label.toString + "@%X".format(this.body.hashCode)
   }
   val dags = for (s <- strings) yield {
     val nodes = new mutable.ListBuffer[Node]
@@ -49,6 +50,8 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
 
   def align(): Dag[Node] = align(dags)
 
+  // import scala.annotation.tailrec
+  // @tailrec
   private def align(ls: List[Dag[Node]]): Dag[Node] = {
     if ( ls.size == 0 ) {
       return Dag(List(), Set())
@@ -63,7 +66,6 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
 }
 
 //! align 関数は object Dag の中に置いたほうがいい
-
 case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
   //! OpCode は内部クラスにする
@@ -77,7 +79,6 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
   object OpDelete  extends OpCode
   object OpNone extends OpCode
 
-  //! weight として一括するだけでなく、replace などを個別に与える align も用意
   def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, equ: (T,T)=>Boolean=(x,y) => x == y)
   (implicit num: Numeric[W]): Dag[T] = {
     val memo = new mutable.HashMap[(Int,Int), (W, List[Operation])]
@@ -85,69 +86,56 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
     //println(memo) //!
 
+    println("this: " + this.nodes + this.edges)//!
+    println("that: " + that.nodes + that.edges)//!
+
     println(score, ops) //!
 
     // assertions
     if ( ops.head.opcode != OpEqual ||
-        ops.reverse.head.opcode != OpEqual ) {
+        ops.last.opcode != OpEqual ) {
       throw new RuntimeException("needs to start and end with Equal")
     }
 
+    def sliding_pairs[T](ls: List[T]): List[(T,T)] = ls.slice(0, ls.size-1) zip ls.slice(1, ls.size)
+
     val this_trans = new mutable.HashMap[Int,Int]
     val that_trans = new mutable.HashMap[Int,Int]
-    var this_offset = 0
-    var that_offset = 0
-    var this_cur = 0
-    var that_cur = 0
-    var prev:OpCode = OpNone
-    for ( op <- ops ) {
-      while ( this_cur < op.at ) {
-        this_trans.get(this_cur) match {
-          case Some(_) => {}
-          case _ => {
-            this_trans(this_cur) = this_cur + this_offset
-            if (prev != OpInsert)
-              that_offset += 1
-          }
+    var count = 1
+    this_trans(0) = 0
+    that_trans(0) = 0
+    for ((prev,cur) <- sliding_pairs(ops)) {
+      for ( i <- Range(prev.at+1, cur.at) ) {
+        if ( this_trans.getOrElseUpdate(i, count) == count ) {
+          count += 1
         }
-        this_cur += 1
       }
-      while ( that_cur < op._with ) {
-        that_trans.get(that_cur) match {
-          case Some(_) => {}
-          case _ => {
-            that_trans(that_cur) = that_cur + that_offset
-            if (prev != OpDelete)
-              this_offset += 1
-          }
+      for ( i <- Range(prev._with+1, cur._with) ) {
+        if ( that_trans.getOrElseUpdate(i, count) == count ) {
+          count += 1
         }
-        that_cur += 1
       }
-      println(op, this_cur, that_cur, this_offset, that_offset, this_trans, that_trans) //!
-      prev = op.opcode
-      op match {
+      cur match {
         case Operation(i, j, OpEqual) => {
-          this_trans(i) = i + this_offset
-          that_trans(j) = this_trans(i)
-         //this_trans(j) = j + that_offset //! 何らかの形でポインタを保持してどこから合流したかを記憶させる？
-          
+          this_trans(i) = count
+          that_trans(j) = count
+          count += 1
         }
-        case Operation(i, j , OpReplace) => {
-          this_trans(i) = i + this_offset
-          this_offset += 1
-          that_offset += 1
-          that_trans(j) = j + that_offset
+        case Operation(i, j, OpReplace) => {
+          this_trans(i) = count
+          count += 1
+          that_trans(j) = count
+          count += 1
         }
         case Operation(i, j, OpInsert) => {
-          that_trans(j) = j + that_offset
-          this_offset += 1
+          that_trans(j) = count
+          count += 1
         }
         case Operation(i, j, OpDelete) => {
-          this_trans(i) = i + this_offset
-          that_offset += 1
+          this_trans(i) = count
+          count += 1
         }
       }
-      println(op, this_cur, that_cur, this_offset, that_offset, this_trans, that_trans) //!
     }
 
     println(this_trans)
@@ -155,21 +143,27 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
     val n = mutable.ArrayBuffer.fill((this_trans ++ that_trans).map(x => x._2).max + 1)(this.nodes(0)) //! placeholder として不可能な値を使う
     for ( (i, j) <- this_trans ) {
+      if ( n(j) != 0 && !equ(n(j),this.nodes(i)) ) {
+        //throw new RuntimeException("n() doubly substituted for " + j + " " +List(n(j), this.nodes(i)))
+      }
       n(j) = this.nodes(i)
     }
     for ( (i, j) <- that_trans ) {
+      if ( n(j) != 0 && !equ(n(j), that.nodes(i)) ) {
+        //throw new RuntimeException("n() doubly substituted for " + j + " " +List(n(j), that.nodes(i)))
+      }
       n(j) = that.nodes(i)
     }
-    val e = new mutable.HashSet[(Int,Int)]
-    println(this.edges, this.nodes)//!
-    for ( (i,j) <- this.edges ) {
-      e += Pair(this_trans(i), this_trans(j))
-    }
-    for ( (i,j) <- that.edges ) {
-      e += Pair(that_trans(i), that_trans(j))
-    }
 
-    Dag(n.toList, e.toSet)
+    val e = (for ( (i,j) <- this.edges ) yield {
+      Pair(this_trans(i), this_trans(j))
+    }) ++ (for ( (i,j) <- that.edges ) yield {
+      Pair(that_trans(i), that_trans(j))
+    }).toSet
+
+    println(List(n.toList.map(_.toString), e)) //!
+    
+    Dag(n.toList, e)
   }
 
   //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
@@ -204,6 +198,9 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
         List(min.get, p).min(Ordering.by[(W, List[Operation]), W](_._1))
       })
     }
+    def memoise(i:Int, j:Int, value:Pair[W, List[Operation]]) {
+      memo((i, j)) = value
+    }
 
     for ( i <- this.prev_nodes(this_cur) ) {
       //println("looking for deletes at " + i + "," + that_cur)
@@ -212,6 +209,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       update_min((s, ops ++ List(Operation(this_cur, i, OpDelete))))
     }
     for ( i <- that.prev_nodes(that_cur) ) {
+      //println("looking for inserts at " + List(this_cur, that_cur, i).mkString(",")  + " " + that.nodes + that.edges)
       val (score,ops) = this.align_(that, weight, equ, memo, this_cur, i)(num)
       val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
       update_min((s, ops ++ List(Operation(i, that_cur, OpInsert))))
@@ -230,9 +228,9 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
                                       }))))
          }
     val ret = min.get
-    memo((this_cur, that_cur)) = ret
     //println(memo)//!
 
+    memoise(this_cur, that_cur, ret)
     return ret
   }
 
