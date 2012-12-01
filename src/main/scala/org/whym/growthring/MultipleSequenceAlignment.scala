@@ -206,13 +206,13 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       //println("looking for deletes at " + i + "," + that_cur)
       val (score,ops) = this.align_(that, weight, equ, memo, i, that_cur)(num)
       val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
-      update_min((s, ops ++ List(Operation(this_cur, i, OpDelete))))
+      update_min((s, ops ++ List(Operation(this_cur, that_cur, OpDelete))))
     }
     for ( i <- that.prev_nodes(that_cur) ) {
       //println("looking for inserts at " + List(this_cur, that_cur, i).mkString(",")  + " " + that.nodes + that.edges)
       val (score,ops) = this.align_(that, weight, equ, memo, this_cur, i)(num)
       val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
-      update_min((s, ops ++ List(Operation(i, that_cur, OpInsert))))
+      update_min((s, ops ++ List(Operation(this_cur, that_cur, OpInsert))))
     }
     for ( i <- this.prev_nodes(this_cur);
          j <- that.prev_nodes(that_cur) ) yield {
