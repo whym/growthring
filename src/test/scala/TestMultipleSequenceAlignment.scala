@@ -140,11 +140,24 @@ class TestMultipleSequenceAlignment extends FunSuite {
     }
   }
 
+  test("test trace: 1") {
+    expect(Some(List(2))) {
+      linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("b".toCharArray.toList)
+    }
+  }
+  test("test trace: fail") {
+    expect(None) {
+      linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("o".toCharArray.toList)
+    }
+  }
+
   test("test msa: three letters") {
-    val m = new MultipleSequenceAlignment(List("$abc$".toCharArray.toList,
-                                               "$cbc$".toCharArray.toList,
-                                               "$bcd$".toCharArray.toList))
-    println(m.align) //! TODO: real test
+    val m = new MultipleSequenceAlignment(List("^abc$".toCharArray.toList,
+                                               "^cbc$".toCharArray.toList,
+                                               "^bcd$".toCharArray.toList))
+    expect(Some(List(0,1,3,4,6))) {
+      m.align.trace("^abc$".toCharArray.toList, x=>x.label.head.toString)(_.toString)
+    }
   }
 
   test("test msa: empty sequence") {

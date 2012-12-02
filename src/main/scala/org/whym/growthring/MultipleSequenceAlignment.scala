@@ -15,6 +15,7 @@ import scala.collection.mutable
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */
+
 class MultipleSequenceAlignment[T](strings: List[List[T]]) {
   case class Node(body: List[T], start: Int, end: Int) {
     def label = body.slice(start, end)
@@ -41,8 +42,6 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
     }
     }
 
-  def equ(x:Node, y:Node): Boolean = x.label == y.label
-
   def align(): Dag[Node] = align(dags)
 
   // import scala.annotation.tailrec
@@ -53,11 +52,11 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
     } else if ( ls.size == 1 ) {
       return ls(0)
     } else if ( ls.size == 2 ) {
-      return ls(0).align(ls(1), this.weight(), equ)
+      return ls(0).align(ls(1), this.weight(), x => x.label.toString)
     } else {
       return this.align(ls.slice(0, ls.size/2)).align(this.align(ls.slice(ls.size/2, ls.size)),
                                                       this.weight(),
-                                                      equ)
+                                                      x => x.label.toString)
     }
   }
 }
@@ -76,10 +75,10 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
   object OpDelete  extends OpCode
   object OpNone extends OpCode
 
-  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, equ: (T,T)=>Boolean=(x,y) => x == y)
+  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString)
   (implicit num: Numeric[W]): Dag[T] = {
     val memo = new mutable.HashMap[(Int,Int), (W, List[Operation])]
-    val (score,ops) = this.align_(that, weight, equ, memo, this.nodes.length - 1, that.nodes.length - 1)(num)
+    val (score,ops) = this.align_(that, weight, id, memo, this.nodes.length - 1, that.nodes.length - 1)(num)
 
     //println(memo) //!
 
@@ -140,13 +139,13 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
     val n = mutable.ArrayBuffer.fill(count)(this.nodes(0)) //! placeholder として不可能な値を使う
     for ( (i, j) <- this_trans ) {
-      if ( n(j) != 0 && !equ(n(j),this.nodes(i)) ) {
+      if ( n(j) != 0 && id(n(j)) != id(this.nodes(i)) ) {
         //throw new RuntimeException("n() doubly substituted for " + j + " " +List(n(j), this.nodes(i)))
       }
       n(j) = this.nodes(i)
     }
     for ( (i, j) <- that_trans ) {
-      if ( n(j) != 0 && !equ(n(j), that.nodes(i)) ) {
+      if ( n(j) != 0 && id(n(j)) != id(that.nodes(i)) ) {
         //throw new RuntimeException("n() doubly substituted for " + j + " " +List(n(j), that.nodes(i)))
       }
       n(j) = that.nodes(i)
@@ -165,7 +164,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
   //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
 
-  def align_[W](that: Dag[T], weight: (Option[T],Option[T]) => W, equ: (T,T)=>Boolean, memo: mutable.Map[(Int,Int), (W, List[Operation])], this_cur: Int, that_cur: Int)(implicit num: Numeric[W]): (W,List[Operation]) = {
+  def align_[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String, memo: mutable.Map[(Int,Int), (W, List[Operation])], this_cur: Int, that_cur: Int)(implicit num: Numeric[W]): (W,List[Operation]) = {
     val maxValue = num.fromInt(Int.MaxValue)
 
     memo.get((this_cur, that_cur)) match {
@@ -178,7 +177,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
     if ( this_cur == 0 && that_cur == 0 ) {
       val ret = (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
-                 List(if (equ(this.nodes(this_cur), that.nodes(that_cur))) {
+                 List(if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
                    Operation(this_cur, that_cur, OpEqual)
                  } else {
                    Operation(this_cur, that_cur, OpReplace)
@@ -201,24 +200,24 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
     for ( i <- this.prev_nodes(this_cur) ) {
       //println("looking for deletes at " + i + "," + that_cur)
-      val (score,ops) = this.align_(that, weight, equ, memo, i, that_cur)(num)
+      val (score,ops) = this.align_(that, weight, id, memo, i, that_cur)(num)
       val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
       update_min((s, ops ++ List(Operation(this_cur, that_cur, OpDelete))))
     }
     for ( i <- that.prev_nodes(that_cur) ) {
       //println("looking for inserts at " + List(this_cur, that_cur, i).mkString(",")  + " " + that.nodes + that.edges)
-      val (score,ops) = this.align_(that, weight, equ, memo, this_cur, i)(num)
+      val (score,ops) = this.align_(that, weight, id, memo, this_cur, i)(num)
       val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
       update_min((s, ops ++ List(Operation(this_cur, that_cur, OpInsert))))
     }
     for ( i <- this.prev_nodes(this_cur);
          j <- that.prev_nodes(that_cur) ) yield {
               //println("looking for replaces at " + i + "," + j)
-           val (score,ops) = this.align_(that, weight, equ, memo, i, j)(num)
+           val (score,ops) = this.align_(that, weight, id, memo, i, j)(num)
            val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
            update_min((s, ops ++
                        List(Operation(this_cur, that_cur,
-                                      if (equ(this.nodes(this_cur), that.nodes(that_cur))) {
+                                      if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
                                         OpEqual
                                       } else {
                                         OpReplace
@@ -231,9 +230,31 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
     return ret
   }
 
-  // def trace(seq: List[T]): Some[List[Int]] = {
-  //   val root = 
-  // }
+  def trace[S](seq: List[S], id: T=>String = x=>x.toString)(implicit id2:S=>String=id): Option[List[Int]] = {
+    def _trace(rseq: List[Int], acc: List[Int]): Option[List[Int]] =
+      if (rseq.size == 0) {
+        Some(acc)
+      } else {
+        val (h, hh) = (acc.head, rseq.head)
+        val p = prev_nodes(h).filter(x => x == hh)
+        if ( p.size > 0 ) {
+          _trace(rseq.tail, p.head :: acc)
+        } else {
+          None
+        }
+      }
+    if (seq.size == 0) {
+      Some(List())
+    } else {
+      val map = Map(nodes.map(id(_)).zip(0 to nodes.size): _*)
+      if ( seq.filter(x => map.get(id2(x)).isEmpty).size > 0 ) {
+        None
+      } else {
+        val rseq = seq.reverse.map(x => map(id2(x)))
+        _trace(rseq.tail, List(rseq.head))
+      }
+    }
+  }
 
   //! インデックスして速くする
   def prev_nodes(node: Int): Set[Int] = this.edges.filter(x => x._2 == node).map(x => x._1)
