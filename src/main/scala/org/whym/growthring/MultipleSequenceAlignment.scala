@@ -25,7 +25,6 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
     Dag(0.until(s.size).map(i => Node(s, i, i + 1)).toList,
         0.until(s.size-1).map(i => Pair(i, i+1)).toSet)
   }
-  println("dags: " + dags) //!
 
   def weight()(implicit
                eql:Double=0.0,
@@ -82,10 +81,10 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
     //println(memo) //!
 
-    println("this: " + this.nodes + this.edges)//!
-    println("that: " + that.nodes + that.edges)//!
+    //println("this: " + this.nodes + this.edges)//!
+    //println("that: " + that.nodes + that.edges)//!
 
-    println(score, ops) //!
+    //println(score, ops) //!
 
     // assertions
     if ( ops.head.opcode != OpEqual ||
@@ -134,8 +133,8 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       }
     }
 
-    println(this_trans, this.nodes)
-    println(that_trans, that.nodes)
+    // println(this_trans, this.nodes)
+    // println(that_trans, that.nodes)
 
     val n = mutable.ArrayBuffer.fill(count)(this.nodes(0)) //! placeholder として不可能な値を使う
     for ( (i, j) <- this_trans ) {
@@ -157,7 +156,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       Pair(that_trans(i), that_trans(j))
     }).toSet
 
-    println(List(n.toList.map(_.toString), e)) //!
+    // println(List(n.toList.map(_.toString), e)) //!
     
     Dag(n.toList, e)
   }
@@ -246,7 +245,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
     if (seq.size == 0) {
       Some(List())
     } else {
-      val map = Map(nodes.map(id(_)).zip(0 to nodes.size): _*)
+      val map = Map(nodes.map(id).zipWithIndex: _*)
       if ( seq.filter(x => map.get(id2(x)).isEmpty).size > 0 ) {
         None
       } else {
@@ -255,6 +254,15 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       }
     }
   }
+
+  def dot(id:T=>String = x=>x.toString): List[String] =
+    List("digraph g {",
+         "  rankdir = LR;") ++
+    (for ((x,i) <- nodes.zipWithIndex) yield {
+      "  N_%d[label=\"%s\"];".format(i, id(x))
+    }) ++
+    edges.map(x => "  N_%d -> N_%d;".format(x._1, x._2)).toList.sorted ++
+    List("}")
 
   //! インデックスして速くする
   def prev_nodes(node: Int): Set[Int] = this.edges.filter(x => x._2 == node).map(x => x._1)
@@ -265,6 +273,8 @@ object Main {
     import scala.io
     val strings = args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
     val msa = new MultipleSequenceAlignment(strings.map(x => ("^"+x+"$").toList))
-    println(msa.align)
+    for ( line <- msa.align.dot(_.label.head.toString) ) {
+      println(line)
+    }
   }
 }

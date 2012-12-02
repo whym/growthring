@@ -151,6 +151,28 @@ class TestMultipleSequenceAlignment extends FunSuite {
     }
   }
 
+  test("test dot") {
+    expect(List("digraph g {",
+                "  rankdir = LR;",
+                "  N_0[label=\"^\"];",
+                "  N_1[label=\"a\"];",
+                "  N_2[label=\"b\"];",
+                "  N_3[label=\"c\"];",
+                "  N_4[label=\"A\"];",
+                "  N_5[label=\"$\"];",
+                "  N_0 -> N_1;",
+                "  N_0 -> N_4;",
+                "  N_1 -> N_2;",
+                "  N_2 -> N_3;",
+                "  N_3 -> N_5;",
+                "  N_4 -> N_5;",
+                "}").map(_.trim)) {
+      Dag("^abcA$".toCharArray.toList,
+          Set((0,1), (1,2), (2,3), (3,5),
+              (0,4), (4,5))).dot().map(_.trim)
+    }
+  }
+
   test("test msa: three letters") {
     val m = new MultipleSequenceAlignment(List("^abc$".toCharArray.toList,
                                                "^cbc$".toCharArray.toList,
