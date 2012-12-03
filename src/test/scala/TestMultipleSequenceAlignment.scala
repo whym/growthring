@@ -16,6 +16,8 @@ import org.junit.runner.RunWith
  */
 @RunWith(classOf[JUnitRunner])
 class TestMultipleSequenceAlignment extends FunSuite {
+  import org.whym.growthring.{MultipleSequenceAlignment => MSA}
+
   def weight()(implicit
                eql:Double=0.0,
                del:Double=1.0,
@@ -173,19 +175,69 @@ class TestMultipleSequenceAlignment extends FunSuite {
     }
   }
 
+  test("test compact: one path") {
+    expect(Dag(List("^", "abc", "A", "$"),
+               Set((0,1), (1,3),
+                   (0,2), (2,3)))) {
+      Dag("^abcA$".toCharArray.map(_.toString).toList,
+          Set((0,1), (1,2), (2,3), (3,5),
+              (0,4), (4,5))).compact((x,y) => x+y)
+    }
+  }
+
+  test("test compact: twin") {
+    expect(Dag(List("^", "ab", "AB", "$"),
+               Set((0,1), (1,3),
+                   (0,2), (2,3)))) {
+      Dag("^abAB$".toCharArray.map(_.toString).toList,
+          Set((0,1), (1,2), (2,5),
+              (0,3), (3,4), (4,5))).compact((x,y) => x+y)
+    }
+  }
+
+  test("test compact: multiple") {
+    expect(Dag(List("^", "ab", "AB", "CDE","c", "$"),
+               Set((0,1), (1,3), (3,5),
+                   (2,5),
+                   (0,4), (4,5),
+                   (0,2), (2,3)))) {
+      Dag("^aAbBCDEc$".toCharArray.map(_.toString).toList,
+          Set((0,2), (2,4), (4,5), (5,6), (6,7), (7,9),
+              (4,9),
+              (0,8), (8,9),
+              (0,1), (1,3), (3,5))).compact((x,y) => x+y)
+    }
+  }
+
+  test("test compact: start") {
+    expect(Dag(List("^ab", "CDE","c", "$"),
+               Set((0,1), (1,3),
+                   (0,2), (2,3)))) {
+      Dag("^abCDEc$".toCharArray.map(_.toString).toList,
+          Set((0,1), (1,2), (2, 6), (6,7),
+              (2,3), (3,4), (4,5), (5,7))).compact((x,y) => x+y)
+    }
+  }
+
+  test("test node concat") {
+    expect(MSA.Node("abcdef".toList, 0, 4)) {
+      MSA.Node("abcdef".toList, 0, 2) concat MSA.Node("cdef".toList, 0, 2)
+    }
+  }
+
   test("test msa: three letters") {
-    val m = new MultipleSequenceAlignment(List("^abc$".toCharArray.toList,
-                                               "^cbc$".toCharArray.toList,
-                                               "^bcd$".toCharArray.toList))
+    val m = new MSA(List("^abc$".toCharArray.toList,
+                         "^cbc$".toCharArray.toList,
+                         "^bcd$".toCharArray.toList))
     expect(Some(List(0,1,3,4,6))) {
       m.align.trace("^abc$".toCharArray.toList, x=>x.label.head.toString)(_.toString)
     }
   }
 
   test("test msa: empty sequence") {
-    val m = new MultipleSequenceAlignment(List("$$".toCharArray.toList,
-                                               "$aac$".toCharArray.toList,
-                                               "$xxb$".toCharArray.toList))
+    val m = new MSA(List("$$".toCharArray.toList,
+                         "$aac$".toCharArray.toList,
+                         "$xxb$".toCharArray.toList))
     println(m.align) //! TODO: real test
   }
 }

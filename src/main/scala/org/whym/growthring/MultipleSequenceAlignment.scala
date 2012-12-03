@@ -16,11 +16,25 @@ import scala.collection.mutable
  * @author Yusuke Matsubara <whym@whym.org>
  */
 
-class MultipleSequenceAlignment[T](strings: List[List[T]]) {
-  case class Node(body: List[T], start: Int, end: Int) {
+object MultipleSequenceAlignment {
+  case class Node[T](body: List[T], start: Int, end: Int) {
     def label = body.slice(start, end)
     override def toString = this.label.toString + "@%X".format(this.body.hashCode)
+    
+    def concat(that: Node[T]): Node[T] = {
+      if ( this.body.slice(this.end, this.end + that.label.size) == that.label ) {
+        Node(this.body, this.start, this.end + that.label.size)
+      } else if ( that.body.slice(that.start - this.label.size, that.start) == this.label ) {
+        Node(that.body, that.start - this.label.size, that.end)
+      } else {
+        throw new RuntimeException("cannot concat: " + this + that)  //! Option にする
+      }
+    }
   }
+}
+
+class MultipleSequenceAlignment[T](strings: List[List[T]]) {
+  import MultipleSequenceAlignment._
   val dags = for (s <- strings) yield {
     Dag(0.until(s.size).map(i => Node(s, i, i + 1)).toList,
         0.until(s.size-1).map(i => Pair(i, i+1)).toSet)
@@ -32,7 +46,7 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
                ins:Double=1.0,
                rep:Double=1.5,
                ooo:Double=10.0) =
-    (_x: Option[Node], _y: Option[Node]) => {
+    (_x: Option[Node[T]], _y: Option[Node[T]]) => {
     (_x, _y) match {
       case (Some(x),Some(y)) => if (x.label == y.label) eql else rep
       case (Some(x),_)    => del
@@ -41,11 +55,11 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
     }
     }
 
-  def align(): Dag[Node] = align(dags)
+  def align(): Dag[Node[T]] = align(dags)
 
   // import scala.annotation.tailrec
   // @tailrec
-  private def align(ls: List[Dag[Node]]): Dag[Node] = {
+  private def align(ls: List[Dag[Node[T]]]): Dag[Node[T]] = {
     if ( ls.size == 0 ) {
       return Dag(List(), Set())
     } else if ( ls.size == 1 ) {
@@ -264,8 +278,69 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
     edges.map(x => "  N_%d -> N_%d;".format(x._1, x._2)).toList.sorted ++
     List("}")
 
+  def compact(concat: (T,T)=>T): Dag[T] = {
+    def compactable_edges(root: Int, buff: List[Int], acc: Set[List[Int]]): Set[List[Int]] = {
+      val prevs = prev_nodes(root)
+      if ( buff.size == 0 ) {
+        compactable_edges(root, root :: buff, acc)
+      } else if ( prevs.size == 0 ) {
+        if ( buff.size > 1 ) {
+          acc + buff
+        } else {
+          acc
+        }
+      } else if ( prevs.size == 1 ) {
+        val p = prevs.head
+        if ( next_nodes(p).size == 1 ) {
+          compactable_edges(p,
+                            p :: buff,
+                            acc)
+        } else {
+          compactable_edges(p,
+                            List(),
+                            acc + buff)
+        }
+      } else {
+        Set(buff) ++ (prevs.foldLeft(Set[List[Int]]())((s,x) =>
+          s ++ compactable_edges(x, List(), acc)))
+      }
+    }
+    val compactable = compactable_edges(nodes.size - 1, List(), Set()).toList.sorted(Ordering.by[List[Int], Int](_.head))
+    val itrans = new mutable.HashMap[Int, (Int, T)]
+    for ( (n,i) <- nodes.zipWithIndex ) {
+      itrans(i) = (i, n) //! まとめて初期化
+    }
+    for ( ls <- compactable if ls.size >= 2) {
+      System.err.println(ls, ls.map(nodes(_)).reduce(concat))//!
+
+      val h = ls.head
+      val ids = ls.foldLeft(Set[Int]())((s,x) => s + x).toList.sorted
+      val n = ids.map(nodes(_)).reduce(concat)
+      for ( i <- ids ) {
+        itrans(i) = (ids.head, n)
+      }
+    }
+    val itrans_sorted = itrans.toList.sorted(Ordering.by[(Int, (Int, T)), Int](_._1))
+    val nn = itrans_sorted.map(_._2._2).distinct
+    val jtrans = new mutable.HashMap[Int, Int]
+    for ( (i,(j,n)) <- itrans_sorted ) {
+      jtrans.get(j) match {
+        case Some(_) => {}
+        case _ => {
+          jtrans(i) = jtrans.size
+        }
+      }
+    }
+    val ee = edges.map(x => (jtrans(itrans(x._1)._1),
+                             jtrans(itrans(x._2)._1))).filter(x => x._1 != x._2)
+    Dag(nn.toList, ee)
+  }
+
   //! インデックスして速くする
-  def prev_nodes(node: Int): Set[Int] = this.edges.filter(x => x._2 == node).map(x => x._1)
+  def prev_nodes(node: Int): Set[Int] =
+    this.edges.filter(x => x._2 == node).map(x => x._1)
+  def next_nodes(node: Int): Set[Int] =
+    this.edges.filter(x => x._1 == node).map(x => x._2)
 }
 
 object Main {
@@ -273,7 +348,8 @@ object Main {
     import scala.io
     val strings = args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
     val msa = new MultipleSequenceAlignment(strings.map(x => ("^"+x+"$").toList))
-    for ( line <- msa.align.dot(_.label.head.toString) ) {
+    val dag = msa.align.compact((x,y) => x.concat(y))
+    for ( line <- dag.dot(_.label.map(_.toString).mkString) ) {
       println(line)
     }
   }
