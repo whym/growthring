@@ -92,7 +92,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
   import Dag._
   import Dag.Operation._
 
-  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString)
+  def align[@specialized W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString)
   (implicit num: Numeric[W]): Dag[T] = {
     val memo = new mutable.HashMap[(Int,Int), (W, List[Operation])]
     val (score,ops) = this.align_(that, weight, id, memo, this.nodes.length - 1, that.nodes.length - 1)(num)
@@ -184,7 +184,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
   //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
 
-  def align_[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String, memo: mutable.Map[(Int,Int), (W, List[Operation])], this_cur: Int, that_cur: Int)(implicit num: Numeric[W]): (W,List[Operation]) = {
+  def align_[@specialized W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String, memo: mutable.Map[(Int,Int), (W, List[Operation])], this_cur: Int, that_cur: Int)(implicit num: Numeric[W]): (W,List[Operation]) = {
     val maxValue = num.fromInt(Int.MaxValue)
 
     memo.get((this_cur, that_cur)) match {
