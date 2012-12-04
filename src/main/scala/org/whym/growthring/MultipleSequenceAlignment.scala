@@ -74,19 +74,23 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
   }
 }
 
-//! align 関数は object Dag の中に置いたほうがいい
-case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
-
-  //! OpCode は内部クラスにする
-  case class Operation(at: Int, _with: Int, opcode: OpCode)
-  abstract class OpCode() {
-    override def toString(): String = this.getClass.getSimpleName
+object Dag {
+  case class Operation(at: Int, _with: Int, opcode: Operation.OpCode)
+  object Operation {
+    sealed abstract class OpCode() {
+      override def toString(): String = this.getClass.getSimpleName
+    }
+    object OpEqual extends OpCode
+    object OpReplace extends OpCode
+    object OpInsert extends OpCode
+    object OpDelete  extends OpCode
+    object OpNone extends OpCode
   }
-  object OpEqual extends OpCode
-  object OpReplace extends OpCode
-  object OpInsert extends OpCode
-  object OpDelete  extends OpCode
-  object OpNone extends OpCode
+}
+
+case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
+  import Dag._
+  import Dag.Operation._
 
   def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString)
   (implicit num: Numeric[W]): Dag[T] = {
@@ -143,6 +147,9 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
         case Operation(i, j, OpDelete) => {
           this_trans(i) = count
           count += 1
+        }
+        case Operation(_, _, OpNone) => {
+          throw new RuntimeException("OpNone")
         }
       }
     }
@@ -305,11 +312,11 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
           s ++ compactable_edges(x, List(), acc)))
       }
     }
+
     val compactable = compactable_edges(nodes.size - 1, List(), Set()).toList.sorted(Ordering.by[List[Int], Int](_.head))
-    val itrans = new mutable.HashMap[Int, (Int, T)]
-    for ( (n,i) <- nodes.zipWithIndex ) {
-      itrans(i) = (i, n) //! まとめて初期化
-    }
+    val itrans = new mutable.HashMap[Int, (Int, T)] ++
+                 Map(nodes.zipWithIndex.map(_ match {case (n,i) => (i, (i, n))}): _*)
+
     for ( ls <- compactable if ls.size >= 2) {
       System.err.println(ls, ls.map(nodes(_)).reduce(concat))//!
 
