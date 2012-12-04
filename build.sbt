@@ -8,6 +8,7 @@ scalaVersion := "2.9.2"
 scalacOptions ++= Seq("-deprecation",
                       "-unchecked",
                       //"-optimise",
+                      "-explaintypes",
                       "-g:source")
 
 libraryDependencies ++= Seq(
