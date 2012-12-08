@@ -33,10 +33,10 @@ class TestMultipleSequenceAlignment extends FunSuite {
     }
     }
 
-  def linear_dag(str: String): Dag[Char] = Dag((str).toCharArray.toList,
+  def linear_dag(str: String): Dag[Char] = Dag((str).toIndexedSeq,
                                                Range(0, str.length-1).map(x => (x,x+1)).toSet)
   test("linear align: simple replace") {
-    expect(Dag(("abBc$").toCharArray.toList,
+    expect(Dag(("abBc$").toIndexedSeq,
            Set((0,1), (1,3),
                (0,2), (2,3),
                (3,4)))) {
@@ -45,7 +45,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: many vs one replace") {
-    expect(Dag("aBzbc$".toCharArray.toList,
+    expect(Dag("aBzbc$".toIndexedSeq,
                Set((0,1), (1,4),
                    (0,2), (2,3), (3,4),
                    (4,5)))) {
@@ -54,7 +54,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: deletions") {
-    expect(Dag("abzzc$".toCharArray.toList,
+    expect(Dag("abzzc$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4),
                    (1,4),
                    (4,5)))) {
@@ -63,7 +63,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: insertion + deletion") {
-    expect(Dag("$abcz$".toCharArray.toList,
+    expect(Dag("$abcz$".toIndexedSeq,
                Set((0,1), (1,2), (2,3),
                    (0,2), (2,3),
                    (3,4), (3,5),
@@ -74,7 +74,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("dag align: subsumed") {
-    val dag1 = Dag("$bB$".toCharArray.toList,
+    val dag1 = Dag("$bB$".toIndexedSeq,
                    Set((0, 1),
                        (0, 2),
                        (1, 3),
@@ -93,19 +93,19 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("dag align: one-node added") {
-    val dag1 = Dag("$bB$".toCharArray.toList,
+    val dag1 = Dag("$bB$".toIndexedSeq,
                    Set((0, 1),
                        (0, 2),
                        (1, 3),
                        (2, 3))
                    )
-    val dag2 = Dag("$bA$".toCharArray.toList,
+    val dag2 = Dag("$bA$".toIndexedSeq,
                    Set((0, 1),
                        (0, 2),
                        (1, 3),
                        (2, 3))
                    )
-    expect(Dag("$bBA$".toCharArray.toList,
+    expect(Dag("$bBA$".toIndexedSeq,
                Set((0, 1),
                    (0, 2),
                    (0, 3),
@@ -118,7 +118,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: insertions") {
-    expect(Dag("azbzzc$".toCharArray.toList,
+    expect(Dag("azbzzc$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4), (4,5),
                    (0,2), (2,5),
                    (5,6)))) {
@@ -127,7 +127,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: simple insertions") {
-    expect(Dag("$zbxx$".toCharArray.toList,
+    expect(Dag("$zbxx$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4), (4,5),
                    (0,2), (2,5)))) {
       linear_dag("$b$").align(linear_dag("$zbxx$"), weight())
@@ -135,7 +135,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: JA") {
-    expect(Dag("$色いろは匂にえほどへ散とちりぬるを$".toCharArray.toList,
+    expect(Dag("$色いろは匂にえほどへ散とちりぬるを$".toIndexedSeq,
                Set((0,1), (1,4), (4,5), (5,7), (7,9), (9, 11), (11,14), (14,15), (15,16), (16,17), (17,18),
                    (0,2), (2,3), (3,4), (4, 6), (6,8), (8,10), (10,12), (12,13), (13,14)))) {
       linear_dag("$色は匂えど散りぬるを$").align(linear_dag("$いろはにほへとちりぬるを$"), weight())
@@ -144,12 +144,12 @@ class TestMultipleSequenceAlignment extends FunSuite {
 
   test("test trace: 1") {
     expect(Some(List(2))) {
-      linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("b".toCharArray.toList)
+      linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("b".toIndexedSeq)
     }
   }
   test("test trace: fail") {
     expect(None) {
-      linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("o".toCharArray.toList)
+      linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("o".toIndexedSeq)
     }
   }
 
@@ -169,39 +169,39 @@ class TestMultipleSequenceAlignment extends FunSuite {
                 "  N_3 -> N_5;",
                 "  N_4 -> N_5;",
                 "}").map(_.trim)) {
-      Dag("^abcA$".toCharArray.toList,
+      Dag("^abcA$".toIndexedSeq,
           Set((0,1), (1,2), (2,3), (3,5),
               (0,4), (4,5))).dot().map(_.trim)
     }
   }
 
   test("test compact: one path") {
-    expect(Dag(List("^", "abc", "A", "$"),
+    expect(Dag(Vector("^", "abc", "A", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
-      Dag("^abcA$".toCharArray.map(_.toString).toList,
+      Dag("^abcA$".toIndexedSeq.map({x: Char => x.toString}),
           Set((0,1), (1,2), (2,3), (3,5),
               (0,4), (4,5))).compact((x,y) => x+y)
     }
   }
 
   test("test compact: twin") {
-    expect(Dag(List("^", "ab", "AB", "$"),
+    expect(Dag(Vector("^", "ab", "AB", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
-      Dag("^abAB$".toCharArray.map(_.toString).toList,
+      Dag("^abAB$".toIndexedSeq.map({x: Char => x.toString}),
           Set((0,1), (1,2), (2,5),
               (0,3), (3,4), (4,5))).compact((x,y) => x+y)
     }
   }
 
   test("test compact: multiple") {
-    expect(Dag(List("^", "ab", "AB", "CDE","c", "$"),
+    expect(Dag(Vector("^", "ab", "AB", "CDE","c", "$"),
                Set((0,1), (1,3), (3,5),
                    (2,5),
                    (0,4), (4,5),
                    (0,2), (2,3)))) {
-      Dag("^aAbBCDEc$".toCharArray.map(_.toString).toList,
+      Dag("^aAbBCDEc$".toIndexedSeq.map({x: Char => x.toString}),
           Set((0,2), (2,4), (4,5), (5,6), (6,7), (7,9),
               (4,9),
               (0,8), (8,9),
@@ -210,34 +210,35 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: start") {
-    expect(Dag(List("^ab", "CDE","c", "$"),
+    expect(Dag(Vector("^ab", "CDE","c", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
-      Dag("^abCDEc$".toCharArray.map(_.toString).toList,
+      Dag("^abCDEc$".toIndexedSeq.map({x: Char => x.toString}),
           Set((0,1), (1,2), (2, 6), (6,7),
               (2,3), (3,4), (4,5), (5,7))).compact((x,y) => x+y)
     }
   }
 
   test("test node concat") {
-    expect(MSA.Node("abcdef".toList, 0, 4)) {
-      MSA.Node("abcdef".toList, 0, 2) concat MSA.Node("cdef".toList, 0, 2)
+    expect(MSA.Node("abcdef".toIndexedSeq, 0, 4)) {
+      MSA.Node("abcdef".toIndexedSeq, 0, 2) concat MSA.Node("cdef".toIndexedSeq, 0, 2)
     }
   }
 
   test("test msa: three letters") {
-    val m = new MSA(List("^abc$".toCharArray.toList,
-                         "^cbc$".toCharArray.toList,
-                         "^bcd$".toCharArray.toList))
+    val m = new MSA(List("^abc$".toIndexedSeq,
+                         "^cbc$".toIndexedSeq,
+                         "^bcd$".toIndexedSeq))
     expect(Some(List(0,1,3,4,6))) {
-      m.align.trace("^abc$".toCharArray.toList, x=>x.label.head.toString)(_.toString)
+      m.align.trace("^abc$".toIndexedSeq,
+                    x => x.label.head.toString)(_.toString)
     }
   }
 
   test("test msa: empty sequence") {
-    val m = new MSA(List("$$".toCharArray.toList,
-                         "$aac$".toCharArray.toList,
-                         "$xxb$".toCharArray.toList))
+    val m = new MSA(List("$$".toIndexedSeq,
+                         "$aac$".toIndexedSeq,
+                         "$xxb$".toIndexedSeq))
     println(m.align) //! TODO: real test
   }
 }

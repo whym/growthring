@@ -9,6 +9,7 @@ package org.whym.growthring
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.collection.immutable
 
 /**
  * DESCRIBE THIS CLASS HERE
@@ -17,7 +18,7 @@ import scala.collection.mutable
  */
 
 object MultipleSequenceAlignment {
-  case class Node[T](body: List[T], start: Int, end: Int) {
+  case class Node[T](body: immutable.IndexedSeq[T], start: Int, end: Int) {
     def label = body.slice(start, end)
     override def toString = this.label.toString + "@%X".format(this.body.hashCode)
     
@@ -33,10 +34,10 @@ object MultipleSequenceAlignment {
   }
 }
 
-class MultipleSequenceAlignment[T](strings: List[List[T]]) {
+class MultipleSequenceAlignment[T](strings: List[immutable.IndexedSeq[T]]) {
   import MultipleSequenceAlignment._
   val dags = for (s <- strings) yield {
-    Dag(0.until(s.size).map(i => Node(s, i, i + 1)).toList,
+    Dag(0.until(s.size).map(i => Node(s, i, i + 1)),
         0.until(s.size-1).map(i => Pair(i, i+1)).toSet)
   }
 
@@ -57,11 +58,9 @@ class MultipleSequenceAlignment[T](strings: List[List[T]]) {
 
   def align(): Dag[Node[T]] = align(dags)
 
-  // import scala.annotation.tailrec
-  // @tailrec
-  private def align(ls: List[Dag[Node[T]]]): Dag[Node[T]] = {
+  private def align(ls: Seq[Dag[Node[T]]]): Dag[Node[T]] = {
     if ( ls.size == 0 ) {
-      return Dag(List(), Set())
+      return Dag(immutable.IndexedSeq(), Set())
     } else if ( ls.size == 1 ) {
       return ls(0)
     } else if ( ls.size == 2 ) {
@@ -88,7 +87,7 @@ object Dag {
   }
 }
 
-case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
+case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
   import Dag._
   import Dag.Operation._
 
@@ -179,7 +178,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
 
     // println(List(n.toList.map(_.toString), e)) //!
     
-    Dag(n.toList, e)
+    Dag(n.toIndexedSeq, e)
   }
 
   //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
@@ -250,8 +249,8 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
     return ret
   }
 
-  def trace[S](seq: List[S], id: T=>String = x=>x.toString)(implicit id2:S=>String=id): Option[List[Int]] = {
-    def _trace(rseq: List[Int], acc: List[Int]): Option[List[Int]] =
+  def trace[S](seq: Seq[S], id: T=>String = x=>x.toString)(implicit id2:S=>String=id): Option[List[Int]] = {
+    def _trace(rseq: Seq[Int], acc: List[Int]): Option[List[Int]] =
       if (rseq.size == 0) {
         Some(acc)
       } else {
@@ -313,7 +312,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       }
     }
 
-    val compactable = compactable_edges(nodes.size - 1, List(), Set()).toList.sorted(Ordering.by[List[Int], Int](_.head))
+    val compactable = compactable_edges(nodes.size - 1, List(), Set()).toArray.sorted(Ordering.by[List[Int], Int](_.head))
     val itrans = new mutable.HashMap[Int, (Int, T)] ++
                  Map(nodes.zipWithIndex.map(_ match {case (n,i) => (i, (i, n))}): _*)
 
@@ -321,13 +320,13 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
       System.err.println(ls, ls.map(nodes(_)).reduce(concat))//!
 
       val h = ls.head
-      val ids = ls.foldLeft(Set[Int]())((s,x) => s + x).toList.sorted
+      val ids = ls.foldLeft(Set[Int]())((s,x) => s + x).toArray.sorted
       val n = ids.map(nodes(_)).reduce(concat)
       for ( i <- ids ) {
         itrans(i) = (ids.head, n)
       }
     }
-    val itrans_sorted = itrans.toList.sorted(Ordering.by[(Int, (Int, T)), Int](_._1))
+    val itrans_sorted = itrans.toArray.sorted(Ordering.by[(Int, (Int, T)), Int](_._1))
     val nn = itrans_sorted.map(_._2._2).distinct
     val jtrans = new mutable.HashMap[Int, Int]
     for ( (i,(j,n)) <- itrans_sorted ) {
@@ -340,7 +339,7 @@ case class Dag[T](nodes: List[T], edges: Set[(Int,Int)]) {
     }
     val ee = edges.map(x => (jtrans(itrans(x._1)._1),
                              jtrans(itrans(x._2)._1))).filter(x => x._1 != x._2)
-    Dag(nn.toList, ee)
+    Dag(nn.toIndexedSeq, ee)
   }
 
   //! インデックスして速くする
@@ -354,7 +353,7 @@ object Main {
   def main(args: Array[String]) {
     import scala.io
     val strings = args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
-    val msa = new MultipleSequenceAlignment(strings.map(x => ("^"+x+"$").toList))
+    val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^"+x+"$").toCharArray.toIndexedSeq))
     val dag = msa.align.compact((x,y) => x.concat(y))
     for ( line <- dag.dot(_.label.map(_.toString).mkString) ) {
       println(line)
