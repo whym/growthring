@@ -113,10 +113,10 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
       } else {
         var min: Option[(W, List[Operation])] = None
         def update_min(p: (W, List[Operation])) {
-          min = Some(if (min.isEmpty) {
+          min = Some(if (min.isEmpty || num.lt(p._1, min.get._1) ) {
             p
           } else {
-            List(min.get, p).min(Ordering.by[(W, List[Operation]), W](_._1)) //! TODO: 単純な比較におきかえ
+            min.get
           })
         }
 
