@@ -154,13 +154,10 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     pointers.append((this.nodes.size - 1, that.nodes.size - 1))
     while ( this.prev_nodes(pointers.head._1).size > 0 || that.prev_nodes(pointers.head._2).size > 0 ) {
       val (_,_,i,j) = table(pointers.head._1)(pointers.head._2)
-      //println(i, j)
       pointers.prepend((i,j))
     }
     
     val ops = pointers.map{x => table(x._1)(x._2)._2}.toList
-
-    //println(score, ops) //!
 
     // assertions
     if ( ops.head.opcode != OpEqual ||
@@ -217,15 +214,9 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
 
     val n = mutable.ArrayBuffer.fill(count)(this.nodes(0)) //! placeholder として不可能な値を使う
     for ( (i, j) <- this_trans ) {
-      if ( n(j) != 0 && id(n(j)) != id(this.nodes(i)) ) {
-        //throw new RuntimeException("n() doubly substituted for " + j + " " +List(n(j), this.nodes(i)))
-      }
       n(j) = this.nodes(i)
     }
     for ( (i, j) <- that_trans ) {
-      if ( n(j) != 0 && id(n(j)) != id(that.nodes(i)) ) {
-        //throw new RuntimeException("n() doubly substituted for " + j + " " +List(n(j), that.nodes(i)))
-      }
       n(j) = that.nodes(i)
     }
 
@@ -235,8 +226,6 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
       Pair(that_trans(i), that_trans(j))
     }).toSet
 
-    // println(List(n.toList.map(_.toString), e)) //!
-    
     Dag(n.toIndexedSeq, e)
   }
 
