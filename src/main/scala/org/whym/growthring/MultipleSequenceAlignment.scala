@@ -246,6 +246,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
       Some(List())
     } else {
       val map = Map(nodes.map(id).zipWithIndex: _*)
+      //! TODO: おなじ文字が2回以上ある時に対応
       if ( seq.filter(x => map.get(id2(x)).isEmpty).size > 0 ) {
         None
       } else {
@@ -297,7 +298,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
                  Map(nodes.zipWithIndex.map(_ match {case (n,i) => (i, (i, n))}): _*)
 
     for ( ls <- compactable if ls.size >= 2) {
-      System.err.println(ls, ls.map(nodes(_)).reduce(concat))//!
+      //System.err.println(ls, ls.map(nodes(_)).reduce(concat))//!
 
       val h = ls.head
       val ids = ls.foldLeft(Set[Int]())((s,x) => s + x).toArray.sorted

@@ -227,18 +227,41 @@ class TestMultipleSequenceAlignment extends FunSuite {
 
   test("test msa: three letters") {
     val m = new MSA(List("^abc$".toIndexedSeq,
-                         "^cbc$".toIndexedSeq,
+                         "^xbc$".toIndexedSeq,
                          "^bcd$".toIndexedSeq))
+    val align = m.align
     expect(Some(List(0,1,3,4,6))) {
-      m.align.trace("^abc$".toIndexedSeq,
+      align.trace("^abc$".toIndexedSeq,
+                    x => x.label.head.toString)(_.toString)
+    }
+    expect(Some(List(0,2,3,4,6))) {
+      align.trace("^xbc$".toIndexedSeq,
+                    x => x.label.head.toString)(_.toString)
+    }
+    expect(Some(List(0,3,4,5,6))) {
+      align.trace("^bcd$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
   }
 
+  test("test msa: recurring letters") {
+    val m = new MSA(List("^aba$".toIndexedSeq,
+                         "^bab$".toIndexedSeq))
+    val align = m.align
+    println(align) //! TODO: real test
+  }
+
   test("test msa: empty sequence") {
-    val m = new MSA(List("$$".toIndexedSeq,
-                         "$aac$".toIndexedSeq,
-                         "$xxb$".toIndexedSeq))
-    println(m.align) //! TODO: real test
+    val m = new MSA(List("^$".toIndexedSeq,
+                         "^ac$".toIndexedSeq,
+                         "^xb$".toIndexedSeq))
+    expect(Some(List(0,2,4,5))) {
+      m.align.trace("^xb$".toIndexedSeq,
+                    x => x.label.head.toString)(_.toString)
+    }
+    expect(Some(List(0,1,3,5))) {
+      m.align.trace("^ac$".toIndexedSeq,
+                    x => x.label.head.toString)(_.toString)
+    }
   }
 }
