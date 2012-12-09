@@ -96,7 +96,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
 
     val maxValue = num.fromInt(Int.MaxValue)
 
-    lazy val table: Stream[Stream[(W, List[Operation])]] = Stream.tabulate(this.nodes.size, that.nodes.size) { (this_cur, that_cur) => {
+    lazy val table: Stream[Stream[(W, Operation, Int, Int)]] = Stream.tabulate(this.nodes.size, that.nodes.size) { (this_cur, that_cur) => {
       //println(this_cur, that_cur, this.prev_nodes(this_cur), that.prev_nodes(that_cur)) //!
 
       //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
@@ -105,14 +105,14 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
         
       if ( this_prevs.size == 0 && that_prevs.size == 0 ) {
             (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
-             List(if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
+             (if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
                Operation(this_cur, that_cur, OpEqual)
              } else {
                Operation(this_cur, that_cur, OpReplace)
-             }))
+             }), -1, -1)
       } else {
-        var min: Option[(W, List[Operation])] = None
-        def update_min(p: (W, List[Operation])) {
+        var min: Option[(W, Operation, Int, Int)] = None
+        def update_min(p: (W, Operation, Int, Int)) {
           min = Some(if (min.isEmpty || num.lt(p._1, min.get._1) ) {
             p
           } else {
@@ -122,34 +122,43 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
 
         for ( i <- this_prevs ) {
           //println("looking for deletes at " + i + "," + that_cur)
-          val (score,ops):(W, List[Operation]) = table(i)(that_cur)
+          val (score,ops,_,_):(W, Operation, Int, Int) = table(i)(that_cur)
           val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
-          update_min((s, ops ++ List(Operation(this_cur, that_cur, OpDelete))))
+          update_min((s, Operation(this_cur, that_cur, OpDelete), i, that_cur))
         }
         for ( i <- that_prevs ) {
           //println("looking for inserts at " + List(this_cur, that_cur, i).mkString(",")  + " " + that.nodes + that.edges)
-          val (score,ops):(W, List[Operation]) = table(this_cur)(i)
+          val (score,ops,_,_):(W, Operation, Int, Int) = table(this_cur)(i)
           val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
-          update_min((s, ops ++ List(Operation(this_cur, that_cur, OpInsert))))
+          update_min((s, Operation(this_cur, that_cur, OpInsert), this_cur, i))
         }
         for ( i <- this_prevs; j <- that_prevs ) {
           //println("looking for replaces at " + i + "," + j)
-          val (score,ops):(W, List[Operation]) = table(i)(j)
+          val (score,ops,_,_):(W, Operation, Int, Int) = table(i)(j)
           val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
-          update_min((s, ops ++
-                      List(Operation(this_cur, that_cur,
-                                     if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
-                                       OpEqual
-                                     } else {
-                                       OpReplace
-                                     }))))
+          update_min((s,
+                      Operation(this_cur, that_cur,
+                                if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
+                                  OpEqual
+                                } else {
+                                  OpReplace
+                                }),
+                      i, j))
         }
 
         min.get
       }
     }}
 
-    val (score, ops): (W, List[Operation]) = table(this.nodes.size - 1)(that.nodes.size - 1)
+    val pointers = new mutable.ListBuffer[(Int,Int)]
+    pointers.append((this.nodes.size - 1, that.nodes.size - 1))
+    while ( this.prev_nodes(pointers.head._1).size > 0 || that.prev_nodes(pointers.head._2).size > 0 ) {
+      val (_,_,i,j) = table(pointers.head._1)(pointers.head._2)
+      //println(i, j)
+      pointers.prepend((i,j))
+    }
+    
+    val ops = pointers.map{x => table(x._1)(x._2)._2}.toList
 
     //println(score, ops) //!
 
