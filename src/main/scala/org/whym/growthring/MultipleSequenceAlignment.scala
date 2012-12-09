@@ -279,7 +279,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     List("digraph g {",
          "  rankdir = LR;") ++
     (for ((x,i) <- nodes.zipWithIndex) yield {
-      "  N_%d[label=\"%s\"];".format(i, id(x))
+      "  N_%d[label=\"%s\"];".format(i, id(x).replace("\"", "\\\""))
     }) ++
     edges.map(x => "  N_%d -> N_%d;".format(x._1, x._2)).toList.sorted ++
     List("}")
