@@ -79,11 +79,11 @@ object Dag {
     sealed abstract class OpCode() {
       override def toString(): String = this.getClass.getSimpleName
     }
-    object OpEqual extends OpCode
+    object OpEqual   extends OpCode
     object OpReplace extends OpCode
-    object OpInsert extends OpCode
+    object OpInsert  extends OpCode
     object OpDelete  extends OpCode
-    object OpNone extends OpCode
+    object OpNone    extends OpCode
   }
 }
 
@@ -91,15 +91,65 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
   import Dag._
   import Dag.Operation._
 
-  def align[@specialized W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString)
+  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString)
   (implicit num: Numeric[W]): Dag[T] = {
-    val memo = new mutable.HashMap[(Int,Int), (W, List[Operation])]
-    val (score,ops) = this.align_(that, weight, id, memo, this.nodes.length - 1, that.nodes.length - 1)(num)
 
-    //println(memo) //!
+    val maxValue = num.fromInt(Int.MaxValue)
 
-    //println("this: " + this.nodes + this.edges)//!
-    //println("that: " + that.nodes + that.edges)//!
+    lazy val table: Stream[Stream[(W, List[Operation])]] = Stream.tabulate(this.nodes.size, that.nodes.size) { (this_cur, that_cur) => {
+      //println(this_cur, that_cur, this.prev_nodes(this_cur), that.prev_nodes(that_cur)) //!
+
+      //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
+      val this_prevs = this.prev_nodes(this_cur)
+      val that_prevs = that.prev_nodes(that_cur)
+        
+      if ( this_prevs.size == 0 && that_prevs.size == 0 ) {
+            (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
+             List(if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
+               Operation(this_cur, that_cur, OpEqual)
+             } else {
+               Operation(this_cur, that_cur, OpReplace)
+             }))
+      } else {
+        var min: Option[(W, List[Operation])] = None
+        def update_min(p: (W, List[Operation])) {
+          min = Some(if (min.isEmpty) {
+            p
+          } else {
+            List(min.get, p).min(Ordering.by[(W, List[Operation]), W](_._1)) //! TODO: 単純な比較におきかえ
+          })
+        }
+
+        for ( i <- this_prevs ) {
+          //println("looking for deletes at " + i + "," + that_cur)
+          val (score,ops):(W, List[Operation]) = table(i)(that_cur)
+          val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
+          update_min((s, ops ++ List(Operation(this_cur, that_cur, OpDelete))))
+        }
+        for ( i <- that_prevs ) {
+          //println("looking for inserts at " + List(this_cur, that_cur, i).mkString(",")  + " " + that.nodes + that.edges)
+          val (score,ops):(W, List[Operation]) = table(this_cur)(i)
+          val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
+          update_min((s, ops ++ List(Operation(this_cur, that_cur, OpInsert))))
+        }
+        for ( i <- this_prevs; j <- that_prevs ) {
+          //println("looking for replaces at " + i + "," + j)
+          val (score,ops):(W, List[Operation]) = table(i)(j)
+          val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
+          update_min((s, ops ++
+                      List(Operation(this_cur, that_cur,
+                                     if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
+                                       OpEqual
+                                     } else {
+                                       OpReplace
+                                     }))))
+        }
+
+        min.get
+      }
+    }}
+
+    val (score, ops): (W, List[Operation]) = table(this.nodes.size - 1)(that.nodes.size - 1)
 
     //println(score, ops) //!
 
@@ -179,74 +229,6 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     // println(List(n.toList.map(_.toString), e)) //!
     
     Dag(n.toIndexedSeq, e)
-  }
-
-  //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
-
-  def align_[@specialized W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String, memo: mutable.Map[(Int,Int), (W, List[Operation])], this_cur: Int, that_cur: Int)(implicit num: Numeric[W]): (W,List[Operation]) = {
-    val maxValue = num.fromInt(Int.MaxValue)
-
-    memo.get((this_cur, that_cur)) match {
-      case Some(x) => {
-        return x
-      }
-      case _ => {}
-    }
-    //println(List(this, that, this_cur, that_cur).mkString(" ")) //!
-
-    if ( this_cur == 0 && that_cur == 0 ) {
-      val ret = (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
-                 List(if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
-                   Operation(this_cur, that_cur, OpEqual)
-                 } else {
-                   Operation(this_cur, that_cur, OpReplace)
-                 }))
-      memo((this_cur, that_cur)) = ret
-      return ret
-    }
-
-    var min:Option[Pair[W, List[Operation]]] = None
-    def update_min(p: Pair[W, List[Operation]]) {
-      min = Some(if (min.isEmpty) {
-        p
-      } else {
-        List(min.get, p).min(Ordering.by[(W, List[Operation]), W](_._1))
-      })
-    }
-    def memoise(i:Int, j:Int, value:Pair[W, List[Operation]]) {
-      memo((i, j)) = value
-    }
-
-    for ( i <- this.prev_nodes(this_cur) ) {
-      //println("looking for deletes at " + i + "," + that_cur)
-      val (score,ops) = this.align_(that, weight, id, memo, i, that_cur)(num)
-      val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
-      update_min((s, ops ++ List(Operation(this_cur, that_cur, OpDelete))))
-    }
-    for ( i <- that.prev_nodes(that_cur) ) {
-      //println("looking for inserts at " + List(this_cur, that_cur, i).mkString(",")  + " " + that.nodes + that.edges)
-      val (score,ops) = this.align_(that, weight, id, memo, this_cur, i)(num)
-      val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
-      update_min((s, ops ++ List(Operation(this_cur, that_cur, OpInsert))))
-    }
-    for ( i <- this.prev_nodes(this_cur);
-         j <- that.prev_nodes(that_cur) ) yield {
-              //println("looking for replaces at " + i + "," + j)
-           val (score,ops) = this.align_(that, weight, id, memo, i, j)(num)
-           val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
-           update_min((s, ops ++
-                       List(Operation(this_cur, that_cur,
-                                      if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
-                                        OpEqual
-                                      } else {
-                                        OpReplace
-                                      }))))
-         }
-    val ret = min.get
-    //println(memo)//!
-
-    memoise(this_cur, that_cur, ret)
-    return ret
   }
 
   def trace[S](seq: Seq[S], id: T=>String = x=>x.toString)(implicit id2:S=>String=id): Option[List[Int]] = {
