@@ -266,8 +266,10 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     List("}")
 
   def compact(concat: (T,T)=>T): Dag[T] = {
+    val visited = new mutable.HashSet[Int]
     def compactable_edges(root: Int, buff: List[Int], acc: Set[List[Int]]): Set[List[Int]] = {
       val prevs = prev_nodes(root)
+      visited += root
       if ( buff.size == 0 ) {
         compactable_edges(root, root :: buff, acc)
       } else if ( prevs.size == 0 ) {
@@ -287,6 +289,8 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
                             List(),
                             acc + buff)
         }
+      } else if ( visited contains 1 ) {
+        acc
       } else {
         Set(buff) ++ (prevs.foldLeft(Set[List[Int]]())((s,x) =>
           s ++ compactable_edges(x, List(), acc)))
