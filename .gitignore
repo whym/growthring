@@ -1,3 +1,5 @@
+project/target
+target
 *.pyc
 *.class
 \#*
