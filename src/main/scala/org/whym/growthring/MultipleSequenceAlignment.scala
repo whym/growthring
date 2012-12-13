@@ -91,6 +91,11 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
   import Dag._
   import Dag.Operation._
 
+  val _prev_nodes = edges.groupBy{x => x._2}.map{x => (x._1, x._2.map(_._1))}
+  val _next_nodes = edges.groupBy{x => x._1}.map{x => (x._1, x._2.map(_._2))}
+  val prev_nodes = Array.tabulate(nodes.size){ i => _prev_nodes.getOrElse(i, Set()) }
+  val next_nodes = Array.tabulate(nodes.size){ i => _next_nodes.getOrElse(i, Set()) }
+
   def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString)
   (implicit num: Numeric[W]): Dag[T] = {
 
@@ -326,12 +331,6 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
                              jtrans(itrans(x._2)._1))).filter(x => x._1 != x._2)
     Dag(nn.toIndexedSeq, ee)
   }
-
-  //! インデックスして速くする
-  def prev_nodes(node: Int): Set[Int] =
-    this.edges.filter(x => x._2 == node).map(x => x._1)
-  def next_nodes(node: Int): Set[Int] =
-    this.edges.filter(x => x._1 == node).map(x => x._2)
 }
 
 object Main {
