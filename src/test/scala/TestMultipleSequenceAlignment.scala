@@ -209,6 +209,17 @@ class TestMultipleSequenceAlignment extends FunSuite {
     }
   }
 
+  test("test compact: shortcut") {
+    expect(Dag(Vector("^", "1", "23","45", "$"),
+               Set((0,1), (1,4), (0,2), (2,3), (0,3), (3,4)))) {
+      Dag("^12345$".toIndexedSeq.map({x: Char => x.toString}),
+          Set((0,1), (1,6),
+              (0,2), (2,3), (3,4),
+              (0,4), (4,5), (5,6)
+            )).compact((x,y) => x+y)
+    }
+  }
+
   test("test compact: start") {
     expect(Dag(Vector("^ab", "CDE","c", "$"),
                Set((0,1), (1,3),

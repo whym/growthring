@@ -22,10 +22,10 @@ object MultipleSequenceAlignment {
     override def toString = this.label.toString + "@%X".format(this.body.hashCode)
     
     def concat(that: Node[T]): Node[T] = {
-      if ( this.body.slice(this.end, this.end + that.label.size) == that.label ) {
-        Node(this.body, this.start, this.end + that.label.size)
-      } else if ( that.body.slice(that.start - this.label.size, that.start) == this.label ) {
-        Node(that.body, that.start - this.label.size, that.end)
+      if ( this.body.slice(this.end, this.end + that.label.size) == that.label && this.freq == that.freq ) {
+        Node(this.body, this.start, this.end + that.label.size, this.freq)
+      } else if ( that.body.slice(that.start - this.label.size, that.start) == this.label && this.freq == that.freq) {
+        Node(that.body, that.start - this.label.size, that.end, that.freq)
       } else {
         throw new RuntimeException("cannot concat: " + this + that)  //! Option にする
       }
@@ -280,7 +280,6 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     val visited = new mutable.HashSet[Int]
     def compactable_edges(root: Int, buff: List[Int], acc: Set[List[Int]]): Set[List[Int]] = {
       val prevs = prev_nodes(root)
-      visited += root
       if ( buff.size == 0 ) {
         compactable_edges(root, root :: buff, acc)
       } else if ( prevs.size == 0 ) {
@@ -300,11 +299,14 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
                             List(),
                             acc + buff)
         }
-      } else if ( visited contains 1 ) {
-        acc
       } else {
         Set(buff) ++ (prevs.foldLeft(Set[List[Int]]())((s,x) =>
-          s ++ compactable_edges(x, List(), acc)))
+          s ++ (if (visited contains x) {
+            acc
+          } else {
+            visited += x
+            compactable_edges(x, List(), acc)
+          })))
       }
     }
 
