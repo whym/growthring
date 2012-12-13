@@ -8,8 +8,7 @@
 package org.whym.growthring
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.collection.immutable
+import scala.collection.{mutable, immutable}
 
 /**
  * DESCRIBE THIS CLASS HERE
@@ -91,8 +90,8 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
   import Dag._
   import Dag.Operation._
 
-  val _prev_nodes = edges.groupBy{x => x._2}.map{x => (x._1, x._2.map(_._1))}
-  val _next_nodes = edges.groupBy{x => x._1}.map{x => (x._1, x._2.map(_._2))}
+  private val _prev_nodes = edges.groupBy{x => x._2}.map{x => (x._1, x._2.map(_._1))}
+  private val _next_nodes = edges.groupBy{x => x._1}.map{x => (x._1, x._2.map(_._2))}
   val prev_nodes = Array.tabulate(nodes.size){ i => _prev_nodes.getOrElse(i, Set()) }
   val next_nodes = Array.tabulate(nodes.size){ i => _next_nodes.getOrElse(i, Set()) }
 
@@ -109,12 +108,12 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
       val that_prevs = that.prev_nodes(that_cur)
         
       if ( this_prevs.size == 0 && that_prevs.size == 0 ) {
-            (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
-             (if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
-               Operation(this_cur, that_cur, OpEqual)
-             } else {
-               Operation(this_cur, that_cur, OpReplace)
-             }), -1, -1)
+        (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
+         (if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
+           Operation(this_cur, that_cur, OpEqual)
+         } else {
+           Operation(this_cur, that_cur, OpReplace)
+         }), -1, -1)
       } else {
         var min: Option[(W, Operation, Int, Int)] = None
         def update_min(p: (W, Operation, Int, Int)) {
@@ -127,19 +126,19 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
 
         for ( i <- this_prevs ) {
           //println("looking for deletes at " + i + "," + that_cur)
-          val (score,ops,_,_):(W, Operation, Int, Int) = table(i)(that_cur)
+          val (score,ops,_,_) = table(i)(that_cur)
           val s = num.plus(score, weight(None, Some(that.nodes(that_cur))))
           update_min((s, Operation(this_cur, that_cur, OpDelete), i, that_cur))
         }
         for ( i <- that_prevs ) {
           //println("looking for inserts at " + List(this_cur, that_cur, i).mkString(",")  + " " + that.nodes + that.edges)
-          val (score,ops,_,_):(W, Operation, Int, Int) = table(this_cur)(i)
+          val (score,ops,_,_) = table(this_cur)(i)
           val s = num.plus(score, weight(Some(this.nodes(this_cur)), None))
           update_min((s, Operation(this_cur, that_cur, OpInsert), this_cur, i))
         }
         for ( i <- this_prevs; j <- that_prevs ) {
           //println("looking for replaces at " + i + "," + j)
-          val (score,ops,_,_):(W, Operation, Int, Int) = table(i)(j)
+          val (score,ops,_,_) = table(i)(j)
           val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
           update_min((s,
                       Operation(this_cur, that_cur,
