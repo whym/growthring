@@ -17,7 +17,7 @@ import scala.collection.{mutable, immutable}
  */
 
 object MultipleSequenceAlignment {
-  case class Node[T](body: immutable.IndexedSeq[T], start: Int, end: Int) {
+  case class Node[T](body: immutable.IndexedSeq[T], start: Int, end: Int, freq: Int = 1) {
     def label = body.slice(start, end)
     override def toString = this.label.toString + "@%X".format(this.body.hashCode)
     
@@ -63,11 +63,15 @@ class MultipleSequenceAlignment[T](strings: List[immutable.IndexedSeq[T]]) {
     } else if ( ls.size == 1 ) {
       return ls(0)
     } else if ( ls.size == 2 ) {
-      return ls(0).align(ls(1), this.weight(), x => x.label.toString)
+      return ls(0).align(ls(1),
+                         this.weight(),
+                         x => x.label.toString,
+                         (x,y) => Node(x.body, x.start, x.end, x.freq + y.freq))
     } else {
       return this.align(ls.slice(0, ls.size/2)).align(this.align(ls.slice(ls.size/2, ls.size)),
                                                       this.weight(),
-                                                      x => x.label.toString)
+                                                      x => x.label.toString,
+                                                      (x,y) => Node(x.body, x.start, x.end, x.freq + y.freq))
     }
   }
 }
@@ -95,7 +99,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
   val prev_nodes = Array.tabulate(nodes.size){ i => _prev_nodes.getOrElse(i, Set()) }
   val next_nodes = Array.tabulate(nodes.size){ i => _next_nodes.getOrElse(i, Set()) }
 
-  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString)
+  def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString, merge: (T,T)=>T = (x,y)=>x)
   (implicit num: Numeric[W]): Dag[T] = {
 
     val maxValue = num.fromInt(Int.MaxValue)
@@ -221,9 +225,12 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
       n(j) = this.nodes(i)
     }
     for ( (i, j) <- that_trans ) {
-      n(j) = that.nodes(i)
+      if ( n(j) != this.nodes(0) ) {
+        n(j) = merge(n(j), that.nodes(i))
+      } else {
+        n(j) = that.nodes(i)
+      }
     }
-
     val e = (for ( (i,j) <- this.edges ) yield {
       Pair(this_trans(i), this_trans(j))
     }) ++ (for ( (i,j) <- that.edges ) yield {
@@ -260,11 +267,11 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     }
   }
 
-  def dot(id:T=>String = x=>x.toString): List[String] =
+  def dot(nodeformat:(Int,T)=>String = (i,x)=>"N_%d[label=\"%s\"];".format(i, x.toString)): List[String] =
     List("digraph g {",
          "  rankdir = LR;") ++
     (for ((x,i) <- nodes.zipWithIndex) yield {
-      "  N_%d[label=\"%s\"];".format(i, id(x).replace("\\","\\\\").replace("\"", "\\\""))
+      " " + nodeformat(i, x)
     }) ++
     edges.map(x => "  N_%d -> N_%d;".format(x._1, x._2)).toList.sorted ++
     List("}")
@@ -338,7 +345,12 @@ object Main {
     val strings = args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
     val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^"+x+"$").toCharArray.toIndexedSeq))
     val dag = msa.align.compact((x,y) => x.concat(y))
-    for ( line <- dag.dot(_.label.map(_.toString).mkString) ) {
+    def nodeformat(i: Int, x: MultipleSequenceAlignment.Node[Char]): String = {
+      def escape(x: String) = x.replace("\\","\\\\").replace("\"", "\\\"")
+      "  N_%d[label=\"%s\",fontsize=%f];".format(i, escape(x.label.map(_.toString).mkString),
+                                       10 + scala.math.log(x.freq) * 3)
+    }
+    for ( line <- dag.dot(nodeformat) ) {
       println(line)
     }
   }
