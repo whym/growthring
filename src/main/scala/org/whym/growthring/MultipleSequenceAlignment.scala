@@ -225,7 +225,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
       n(j) = this.nodes(i)
     }
     for ( (i, j) <- that_trans ) {
-      if ( n(j) != this.nodes(0) ) {
+      if ( n(j) != this.nodes(0)  ||  i == 0 ) {
         n(j) = merge(n(j), that.nodes(i))
       } else {
         n(j) = that.nodes(i)
@@ -283,30 +283,26 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
       if ( buff.size == 0 ) {
         compactable_edges(root, root :: buff, acc)
       } else if ( prevs.size == 0 ) {
-        if ( buff.size > 1 ) {
-          acc + buff
-        } else {
-          acc
-        }
+        acc + buff
       } else if ( prevs.size == 1 ) {
         val p = prevs.head
-        if ( next_nodes(p).size == 1 ) {
+        val nx = next_nodes(p)
+        if ( nx.size == 1 ) {
           compactable_edges(p,
                             p :: buff,
                             acc)
+        } else if ( visited contains p ) {
+          acc + buff
         } else {
+          visited += p
           compactable_edges(p,
                             List(),
                             acc + buff)
         }
       } else {
         Set(buff) ++ (prevs.foldLeft(Set[List[Int]]())((s,x) =>
-          s ++ (if (visited contains x) {
-            acc
-          } else {
-            visited += x
-            compactable_edges(x, List(), acc)
-          })))
+          s ++ compactable_edges(x, List(), acc)
+          ))
       }
     }
 
