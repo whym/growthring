@@ -119,13 +119,11 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
            Operation(this_cur, that_cur, OpReplace)
          }), -1, -1)
       } else {
-        var min: Option[(W, Operation, Int, Int)] = None
+        var min: (W, Operation, Int, Int) = (maxValue, Operation(-1,-1,OpNone), -1, -1)
         def update_min(p: (W, Operation, Int, Int)) {
-          min = Some(if (min.isEmpty || num.lt(p._1, min.get._1) ) {
-            p
-          } else {
-            min.get
-          })
+          if ( num.lt(p._1, min._1) ) {
+            min = p
+          }
         }
 
         for ( i <- this_prevs ) {
@@ -154,7 +152,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
                       i, j))
         }
 
-        min.get
+        min
       }
     }}
 
