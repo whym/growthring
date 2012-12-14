@@ -19,7 +19,7 @@ import scala.collection.{mutable, immutable}
 object MultipleSequenceAlignment {
   case class Node[T](body: immutable.IndexedSeq[T], start: Int, end: Int, freq: Int = 1) {
     def label = body.slice(start, end)
-    override def toString = this.label.toString + "@%X".format(this.body.hashCode)
+    override def toString = "Node(" + List(this.label.toString + "@%X".format(this.body.hashCode), start, end, freq).mkString(", ") + ")"
     
     def concat(that: Node[T]): Node[T] = {
       if ( this.body.slice(this.end, this.end + that.label.size) == that.label && this.freq == that.freq ) {
@@ -346,7 +346,7 @@ object Main {
     def nodeformat(i: Int, x: MultipleSequenceAlignment.Node[Char]): String = {
       def escape(x: String) = x.replace("\\","\\\\").replace("\"", "\\\"")
       "  N_%d[label=\"%s\",fontsize=%f];".format(i, escape(x.label.map(_.toString).mkString),
-                                       10 + scala.math.log(x.freq) * 3)
+                                       10 + scala.math.log(x.freq) * 4)
     }
     for ( line <- dag.dot(nodeformat) ) {
       println(line)
