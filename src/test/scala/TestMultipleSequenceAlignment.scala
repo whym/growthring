@@ -160,6 +160,11 @@ class TestMultipleSequenceAlignment extends FunSuite {
       linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("o".toIndexedSeq)
     }
   }
+  test("test trace: same letters") {
+    expect(Some(List(4,5,6,7))) {
+      linear_dag("$aaaxxbbb$").trace("xxbb".toIndexedSeq)
+    }
+  }
 
   test("test dot") {
     expect(List("digraph g {",
@@ -255,6 +260,10 @@ class TestMultipleSequenceAlignment extends FunSuite {
     }
     expect(Some(List(0,2,3,4,6))) {
       align.trace("^xbc$".toIndexedSeq,
+                    x => x.label.head.toString)(_.toString)
+    }
+    expect(Some(List(0,3,4,5,6))) {
+      align.trace("^bcd$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
     expect(Some(List(0,3,4,5,6))) {

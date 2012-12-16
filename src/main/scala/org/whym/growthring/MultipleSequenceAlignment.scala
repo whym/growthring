@@ -238,12 +238,13 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
   }
 
   def trace[S](seq: Seq[S], id: T=>String = x=>x.toString)(implicit id2:S=>String=id): Option[List[Int]] = {
-    def _trace(rseq: Seq[Int], acc: List[Int]): Option[List[Int]] =
+    //! TODO: visited で重複訪問を防ぐ
+    def _trace(rseq: Seq[String], acc: List[Int]): Option[List[Int]] =
       if (rseq.size == 0) {
         Some(acc)
       } else {
         val (h, hh) = (acc.head, rseq.head)
-        val p = prev_nodes(h).filter(x => x == hh)
+        val p = prev_nodes(h).filter(x => id(nodes(x)) == hh)
         if ( p.size > 0 ) {
           _trace(rseq.tail, p.head :: acc)
         } else {
@@ -253,14 +254,16 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     if (seq.size == 0) {
       Some(List())
     } else {
-      val map = Map(nodes.map(id).zipWithIndex: _*)
-      //! TODO: おなじ文字が2回以上ある時に対応
-      if ( seq.filter(x => map.get(id2(x)).isEmpty).size > 0 ) {
-        None
-      } else {
-        val rseq = seq.reverse.map(x => map(id2(x)))
-        _trace(rseq.tail, List(rseq.head))
+      val rseq = seq.reverse.map(x => id2(x))
+      for ( i <- 0.until(nodes.size) ) {
+        if ( rseq.head == id(nodes(i)) ) {
+          val r = _trace(rseq.tail, List(i))
+          if ( r != None ) {
+            return r
+          }
+        }
       }
+      return None
     }
   }
 
