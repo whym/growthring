@@ -134,6 +134,14 @@ class TestMultipleSequenceAlignment extends FunSuite {
     }
   }
 
+  test("linear align: recurring letters") {
+    expect(Dag("^baba$".toIndexedSeq,
+               Set((0,1), (1,2), (2,3), (3,5),
+                   (0,2), (3,4), (4,5)))) {
+      linear_dag("^aba$").align(linear_dag("^bab$"), weight())
+    }
+  }
+
   test("linear align: JA") {
     expect(Dag("$色いろは匂にえほどへ散とちりぬるを$".toIndexedSeq,
                Set((0,1), (1,4), (4,5), (5,7), (7,9), (9, 11), (11,14), (14,15), (15,16), (16,17), (17,18),
@@ -253,13 +261,6 @@ class TestMultipleSequenceAlignment extends FunSuite {
       align.trace("^bcd$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-  }
-
-  test("test msa: recurring letters") {
-    val m = new MSA(List("^aba$".toIndexedSeq,
-                         "^bab$".toIndexedSeq))
-    val align = m.align
-    println(align) //! TODO: real test
   }
 
   test("test msa: empty sequence") {
