@@ -107,7 +107,6 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     lazy val table: Stream[Stream[(W, Operation, Int, Int)]] = Stream.tabulate(this.nodes.size, that.nodes.size) { (this_cur, that_cur) => {
       //println(this_cur, that_cur, this.prev_nodes(this_cur), that.prev_nodes(that_cur)) //!
 
-      //! edge の頻度（くっつけたことがあればその回数、なければ1）をカウントする
       val this_prevs = this.prev_nodes(this_cur)
       val that_prevs = that.prev_nodes(that_cur)
         
