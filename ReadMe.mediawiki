@@ -1,3 +1,4 @@
+__NOTOC__
 = GrowthRing =
 ''This software is heavily under development.''
 
@@ -13,5 +14,6 @@ It contains:
 # exit
 # java -Xss50M -jar target/scala-2.9.2/growthring_2.9.2-0.1-one-jar.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf
 
-== Author ==
-* Yusuke Matsubara <whym@whym.org>
+== Credits ==
+* Yusuke Matsubara <nowiki><whym@whym.org></nowiki>
+* See [http://meta.wikimedia.org/wiki/Talk:Vision/ja meta:Talk:Vision/ja] for credits of the texts in sample_input.txt
