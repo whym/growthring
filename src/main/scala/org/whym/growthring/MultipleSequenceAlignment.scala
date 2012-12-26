@@ -337,10 +337,65 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
   }
 }
 
+class ExtremalSubstrings(str: String) {
+  import ExtremalSubstrings._
+
+  import org.{jsuffixarrays => JSA}
+  val dsf = new JSA.DivSufSort()
+  val arr = stringToUnsigneds(str)
+  val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, dsf)
+  val sa  = sadata.getSuffixArray
+  val lcp = sadata.getLCP ++ Array(0)
+
+  def minUniques: Seq[(Int, Int)] = {
+    val mu = mutable.ArrayBuffer.fill(arr.size + 1)(-1)
+    for ( i <- 0 until arr.size ) {
+      val l = lcp(i) max lcp(i + 1)
+      mu(sa(i) + l) = mu(sa(i) + l) max sa(i)
+    } 
+    return mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= arr.size - 1).map{
+      x =>
+        ((x._1 - (x._1 & 1)) / 2,
+         (x._2 + (x._2 & 1)) / 2)
+    }
+  }
+
+  def maxRepeats: Seq[(Int, Int)] = {
+    val mr = mutable.ArrayBuffer.fill(arr.size)(arr.size)
+    for ( i <- 0 until arr.size ) {
+      val l = lcp(i) max lcp(i + 1)
+      if ( sa(i) + l >= 1 ) {
+        mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
+      }
+    }
+    return mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2).map{
+      x =>
+        ((x._1 + (x._1 & 1)) / 2,
+         (x._2 - (x._2 & 1)) / 2)
+    }.filter(x => x._1 <= x._2)         // necessary because the rounding above sometimes creates this flipped interval
+  }
+}
+
+object ExtremalSubstrings {
+  def stringToUnsigneds(str: String): Array[Int] =
+    str.toCharArray.map(x => List((x & 0xFF),
+                                  (x >>> 8))).reduce((s,x) => s ++ x).toArray
+}
+
 object Main {
+
   def main(args: Array[String]) {
     import scala.io
     val strings = args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
+    val es = new ExtremalSubstrings(strings.mkString("\n"))
+    for ( x <- es.maxRepeats ) {
+      System.err.println("r " + new String(strings.mkString("\n").slice(x._1, x._2 + 1))) //!
+    }
+    for ( x <- es.minUniques ) {
+      System.err.println("u " + new String(strings.mkString("\n").slice(x._1, x._2 + 1))) //!
+    }
+    System.err.println("--") //!
+    System.err.flush //!
     val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^"+x+"$").toCharArray.toIndexedSeq))
     val dag = msa.align.compact((x,y) => x.concat(y))
     def nodeformat(i: Int, x: MultipleSequenceAlignment.Node[Char]): String = {

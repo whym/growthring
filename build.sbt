@@ -12,6 +12,8 @@ scalacOptions ++= Seq("-deprecation",
                       "-g:source")
 
 libraryDependencies ++= Seq(
+  "com.carrotsearch" % "jsuffixarrays" % "0.1.0",
+  //"it.unimi.dsi" % "sux4j" % "3.0.5",
   "org.scalatest" %% "scalatest" % "1.8" % "test",
   "junit" % "junit" % "4.8.1" % "test"
 )
