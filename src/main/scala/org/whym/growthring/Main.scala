@@ -18,7 +18,7 @@ object Main {
     import scala.io
     val strings = args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
     val es = new ExtremalSubstrings(strings.mkString("\n"))
-    for ( x <- es.maxRepeats ) {
+    for ( x <- es.maxRepeats3 ) {
       System.err.println("r " + new String(strings.mkString("\n").slice(x._1, x._2 + 1))) //!
     }
     for ( x <- es.minUniques ) {

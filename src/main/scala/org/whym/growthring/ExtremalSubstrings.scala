@@ -29,12 +29,13 @@ class ExtremalSubstrings(str: String) {
   val arr = stringToUnsigneds(str)
   val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, dsf)
   val sa  = sadata.getSuffixArray
-  val lcp = sadata.getLCP ++ Array(0)
+  val lcp_ = sadata.getLCP
 
-  def minUniques: Seq[(Int, Int)] = {
+  def minUniques(): Seq[(Int, Int)] = {
     val mu = mutable.ArrayBuffer.fill(arr.size + 1)(-1)
-    for ( i <- 0 until arr.size ) {
-      val l = lcp(i) max lcp(i + 1)
+    val lcp = lcp_ ++ Array.fill(2)(-1)
+    for ( i <- 0 until arr.size;
+          l = lcp(i) max lcp(i+1)) {
       mu(sa(i) + l) = mu(sa(i) + l) max sa(i)
     } 
     return mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= arr.size - 1).map{
@@ -44,18 +45,40 @@ class ExtremalSubstrings(str: String) {
     }
   }
 
-  def maxRepeats: Seq[(Int, Int)] = {
-    val mr = mutable.ArrayBuffer.fill(arr.size)(arr.size)
-    for ( i <- 0 until arr.size ) {
-      val l = lcp(i) max lcp(i + 1)
-      if ( sa(i) + l >= 1 ) {
+  def maxRepeats(): Seq[(Int, Int)] = {
+    val mr = mutable.ArrayBuffer.fill(arr.size + 2)(arr.size)
+    val lcp = lcp_ ++ Array.fill(2)(-1)
+    for ( i <- 0 until arr.size;
+          l = lcp(i) max lcp(i+1)) {
+      if ( l >= 1 ) {
         mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
       }
     }
-    return mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2).map{
+    return mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map{
       x =>
         ((x._1 + (x._1 & 1)) / 2,
          (x._2 - (x._2 & 1)) / 2)
-    }.filter(x => x._1 <= x._2)         // necessary because the rounding above sometimes creates this flipped interval
+    }
+  }
+
+  def maxRepeats3(): Seq[(Int, Int)] = {
+    val mr = mutable.ArrayBuffer.fill(arr.size + 2)(arr.size)
+    val lcp = lcp_ ++ Array.fill(2)(-1)
+    //! 毎回 max min の組み合わせをやるよりも、補助配列をつくったほうがいい
+    for ( (i,l) <- List((0, lcp(1) min lcp(2))) ++
+                  (1 until arr.size).map{i => (i,
+                                               (lcp(i-1) min lcp(i))
+                                               max (lcp(i) min lcp(i+1))
+                                               max (lcp(i+1) min lcp(i+2)))} ) {
+      if ( l >= 1 ) {
+        mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
+      }
+    }
+    println(mr.zipWithIndex)
+    return mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map{
+      x =>
+        ((x._1 + (x._1 & 1)) / 2,
+         (x._2 - (x._2 & 1)) / 2)
+    }
   }
 }

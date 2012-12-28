@@ -48,5 +48,22 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
-}
+  test("repeats(3): aaa") {
+    expect(Seq((0,0), (1,1), (2,2))){
+      new ES("aaa").maxRepeats3
+    }
+  }
 
+  test("repeats(3): banana") {
+    expect(Seq((1,1), (3,3), (5,5))){
+      new ES("banana").maxRepeats3
+    }
+  }
+
+  test("repeats(3): bananan") {
+    expect(Seq((1,2), (3,4), (5,6))){
+      new ES("bananan").maxRepeats3
+    }
+  }
+
+}
