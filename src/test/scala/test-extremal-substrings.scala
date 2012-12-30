@@ -72,4 +72,16 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
+  test("uniques(2): banana") {
+    expect(Seq((0,0), (2,2), (4,4))){
+      new ES("banana").minUniques2
+    }
+  }
+
+  test("uniques(2): banananana") {
+    expect(Seq((0,0), (2,4), (4,6))){
+      new ES("bananana").minUniques2
+    }
+  }
+
 }
