@@ -18,6 +18,12 @@ import org.junit.runner.RunWith
 class TestExtremalSubstrings extends FunSuite {
   import org.whym.growthring.{ExtremalSubstrings => ES}
 
+  test("string to unsigne: abc") {
+    expect(List(0x61,0,0x62,0,0x63,0)) {
+      ES.stringToUnsigneds("abc").toList
+    }
+  }
+
   test("uniques: abaababa") {
     expect(Seq((2,3), (4,6))){
       new ES("abaababa").minUniques
