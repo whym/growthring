@@ -16,9 +16,10 @@ object Main {
 
   def main(args: Array[String]) {
     import scala.io
+    import scala.util.Properties
     val strings = args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
     val es = new ExtremalSubstrings(strings.mkString("\n"))
-    for ( x <- es.maxRepeats3 ) {
+    for ( x <- es.maxRepeats(Properties.propOrElse("maxRepeats", "3").toInt) ) {
       System.err.println("r " + new String(strings.mkString("\n").slice(x._1, x._2 + 1))) //!
     }
     for ( x <- es.minUniques ) {
