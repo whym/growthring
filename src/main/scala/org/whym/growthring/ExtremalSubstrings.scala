@@ -82,17 +82,14 @@ class ExtremalSubstrings(str: String) {
   def maxRepeats3(): Seq[(Int, Int)] = {
     val mr = mutable.ArrayBuffer.fill(arr.size + 2)(arr.size)
     val lcp = lcp_ ++ Array.fill(2)(-1)
-    //! 毎回 max min の組み合わせをやるよりも、補助配列をつくったほうがいい
-    for ( (i,l) <- List((0, lcp(1) min lcp(2))) ++
-                  (1 until arr.size).map{i => (i,
-                                               (lcp(i-1) min lcp(i))
-                                               max (lcp(i) min lcp(i+1))
-                                               max (lcp(i+1) min lcp(i+2)))} ) {
+    val lcpm_padded = Array(-1) ++ (0 until (lcp.size - 1)).map{i => lcp(i) min lcp(i+1)}
+    def lcpm(i: Int) = lcpm_padded(i+1)
+    for ( i <- 0 until arr.size;
+          l = lcpm(i-1) max lcpm(i) max lcpm(i+1) ) {
       if ( l >= 1 ) {
         mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
       }
     }
-    println(mr.zipWithIndex)
     return mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map{
       x =>
         ((x._1 + (x._1 & 1)) / 2,
