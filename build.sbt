@@ -15,8 +15,11 @@ scalacOptions ++= Seq("-deprecation",
 
 libraryDependencies ++= Seq(
   "com.carrotsearch" % "jsuffixarrays" % "0.1.0",
+  "javax.servlet" % "servlet-api" % "2.5",
   //"it.unimi.dsi" % "sux4j" % "3.0.5",
   "org.scalatest" %% "scalatest" % "1.8" % "test",
+  //"org.scalamock" % "scalamock-scalatest-support_2.9.2" % "2.4" % "test",
+  "org.mockito" % "mockito-core" % "1.9.0" % "test",
   "junit" % "junit" % "4.8.1" % "test"
 )
 
