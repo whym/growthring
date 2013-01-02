@@ -30,8 +30,9 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
-  test("repeats: abaababa") {
+  test("repeats(2): abaababa") {
     expect(Seq((0,2), (3,5), (5,7))){
+      new ES("abaababa").maxRepeats2
       new ES("abaababa").maxRepeats
     }
   }
@@ -42,13 +43,13 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
-  test("repeats: banana") {
+  test("repeats(2): banana") {
     expect(Seq((1,3), (3,5))){
       new ES("banana").maxRepeats
     }
   }
 
-  test("repeats: アブラカダブラ") {
+  test("repeats(2): アブラカダブラ") {
     expect(Seq((1,2), (5,6))){
       new ES("アブラカダブラ").maxRepeats
     }
@@ -69,6 +70,18 @@ class TestExtremalSubstrings extends FunSuite {
   test("repeats(3): bananan") {
     expect(Seq((1,2), (3,4), (5,6))){
       new ES("bananan").maxRepeats3
+    }
+  }
+
+  test("repeats(4): bananan") {
+    expect(Seq()){
+      new ES("bananan").maxRepeats(4)
+    }
+  }
+
+  test("repeats(4): bananan ban") {
+    expect(Seq((1,2), (3,4), (5,6), (9,10))){
+      new ES("bananan ban").maxRepeats(4)
     }
   }
 

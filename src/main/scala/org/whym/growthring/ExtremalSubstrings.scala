@@ -63,14 +63,15 @@ class ExtremalSubstrings(str: String) {
     }
   }
 
-  def maxRepeats(): Seq[(Int, Int)] = {
+  def maxRepeats(): Seq[(Int, Int)] = maxRepeats(2)
+
+  def maxRepeats2(): Seq[(Int, Int)] = {
     val mr = mutable.ArrayBuffer.fill(arr.size + 1)(arr.size)
     val lcp = lcp_ ++ Array.fill(1)(-1)
     for ( i <- 0 until arr.size;
-          l = lcp(i) max lcp(i+1)) {
-      if ( l >= 1 ) {
-        mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
-      }
+          l = lcp(i) max lcp(i+1); 
+          if l >= 1 ) {
+      mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
     }
     return mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map{
       x =>
@@ -82,15 +83,14 @@ class ExtremalSubstrings(str: String) {
   def maxRepeats3: Seq[(Int, Int)] = maxRepeats(3)
 
   def maxRepeats(n: Int =2): Seq[(Int, Int)] = {
-    val mr = mutable.ArrayBuffer.fill(arr.size + (n-1))(arr.size)
+    val mr = mutable.ArrayBuffer.fill(arr.size + n + 1)(arr.size)
     val lcp = lcp_ ++ Array.fill(n)(-1)
-    val lcpm_padded = Array.fill(n/2)(-1) ++ (0 until (lcp.size - n + 1)).map{i => lcp.slice(i, i+n-1).min}
-    def lcpm(i: Int) = lcpm_padded(i + n/2)
+    val lcpm_padded = Array.fill(n)(-1) ++ (0 until (lcp.size - n + 2)).map{i => lcp.slice(i, i+n-1).min}
+    def lcpm(i: Int) = lcpm_padded(i + n)
     for ( i <- 0 until arr.size;
-          l = ((i - n/2) until (i + (n+1)/2)).map(lcpm).max  ) {
-      if ( l >= 1 ) {
-        mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
-      }
+          l = ((i - n + 2) until (i + 2)).map(lcpm).max;
+          if l >= 1 ) {
+      mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
     }
     return mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map{
       x =>
