@@ -1,4 +1,6 @@
 // -*- mode: scala -*-
+organization := "org.whym"
+
 name    := "growthring"
 
 version := "0.1"
@@ -23,3 +25,7 @@ seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 mainClass in (Compile, run) := Some("org.whym.growthring.Main")
 
 mainClass in oneJar := Some("org.whym.growthring.Main")
+
+publishMavenStyle := true
+
+publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
