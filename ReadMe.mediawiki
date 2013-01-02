@@ -9,9 +9,7 @@ It contains:
 == How to use ==
 
 === Using the multiple sequence aligner ===
-# sbt
-# one-jar
-# exit
+# sbt one-jar
 # java -Xss50M -jar target/scala-2.9.2/growthring_2.9.2-0.1-one-jar.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf
 
 == Credits ==
