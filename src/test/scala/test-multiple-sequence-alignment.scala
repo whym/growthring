@@ -7,14 +7,11 @@
 import org.whym.growthring._
 
 import scala.collection.JavaConverters._
-import org.scalatest.junit.JUnitRunner
 import org.scalatest.FunSuite
-import org.junit.runner.RunWith
 
 /**
  * @author Yusuke Matsubara <whym@whym.org>
  */
-@RunWith(classOf[JUnitRunner])
 class TestMultipleSequenceAlignment extends FunSuite {
   import org.whym.growthring.{MultipleSequenceAlignment => MSA}
 
