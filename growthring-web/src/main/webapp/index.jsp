@@ -33,37 +33,43 @@ function get_time() {
 
 function update() {
   // ask the servlet, retrieve the result, and update the placeholder of the reuslt
-  var data;
   var query = $('#edit').val();
-  $('#busy').css({visibility: 'visible'});
-  $.getJSON('find-repeats', {q: query}, function(data_){
-    data = data_;
-    changes.updateTime = get_time();
-
-    // set the result
-    $('#result').val(JSON.stringify(data));
-
-    // update the permalink
-    var url = document.location.href.split('?')[0] + '?q=' + query;
-    $('#permalink').attr('href', url);
-    $('#permalinkbox').val(url);
-
-    $('#busy').css({visibility: 'hidden'});
+  $('#busy').show();
+  state.updating = true;
+  $.ajax({
+    url: 'find-repeats',
+    type: 'GET',
+    dataType: 'json',
+    data: {q: query, format: 'json'},
+    success: function(json){
+      // set the result
+      $('#result').val(json.raw);
+       // update the permalink
+      var url = document.location.href.split('?')[0] + '?q=' + query;
+      $('#permalink').attr('href', url);
+      $('#permalinkbox').val(url);
+    },
+    complete: function(){
+      state.updateTime = get_time();
+      state.updating = false;
+      $('#busy').hide();
+    }
   });
 }
 
 // initialization
 
-  var changes = {
+  var state = {
     enterTime:  get_time(),
-    updateTime: get_time()
+    updateTime: get_time(),
+    updating: false
   };
-  $('#submit').css({visibility: 'hidden'});
-  $('#busy').css({visibility: 'hidden'});
+  $('#submit').hide();
+  $('#busy').hide();
   $('#busy').css({top: '1em'});
-  $('#edit').bind('keypress click focus', function(){
+  $('#edit').bind('keypress click', function(){
     $('#editc').text($('#edit').val().length);
-    changes.enterTime = get_time();
+    state.enterTime = get_time();
   });
   $('#edit').focus();
 
@@ -74,14 +80,14 @@ function update() {
 // periodic execution
 
   window.setInterval(function(){
-    if ( $('#busy').css('visibility') == 'hidden' && changes.updateTime <= changes.enterTime && get_time() - changes.updateTime >= 150 ) {
+    if ( !state.updating && state.updateTime <= state.enterTime && get_time() - state.updateTime >= 150 ) {
       update();
     }
   }, 50);
 });
 </script>
 <style type="text/css">
-#busy { visibility: hidden; position: fixed; right: 1em; top: -100%; }
+#busy { position: fixed; right: 1em; top: -100%; }
 h1 { text-align: center; }
 body { background-color: #EEE; color: #444; }
 #body { margin: 3em auto; }

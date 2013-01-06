@@ -19,14 +19,26 @@ import org.scalatest.mock.MockitoSugar
  */
 class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   test("find repeats 1") {
-    expect("{\"max_repeats\": [[1, 3], [3, 5]]}\n") {
+    expect("""   b
+ **a
+  *n
+ **a
+  *n
+ **a
+    
+   w
+ **a
+  *n
+ **a
+""") {
       val response = mock[HttpServletResponse]
       val request = mock[HttpServletRequest]
       val stringWriter = new StringWriter
       val printWriter = new PrintWriter(stringWriter)
       
       when(response.getWriter()).thenReturn(printWriter)
-      when(request.getParameter("q")).thenReturn("banana")
+      when(request.getParameter("q")).thenReturn("banana wana")
+      when(request.getParameter("format")).thenReturn("raw")
       
       new FindRepeatsServlet().doGet(request, response)
       stringWriter.toString
