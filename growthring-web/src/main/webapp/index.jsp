@@ -67,9 +67,9 @@ function update() {
   $('#submit').hide();
   $('#busy').hide();
   $('#busy').css({top: '1em'});
-  $('#edit').bind('keypress click', function(){
-    $('#editc').text($('#edit').val().length);
+  $('#edit').bind('keyup click', function(){
     state.enterTime = get_time();
+    $('#editc').text($('#edit').val().length);
   });
   $('#edit').focus();
 
@@ -80,7 +80,7 @@ function update() {
 // periodic execution
 
   window.setInterval(function(){
-    if ( !state.updating && state.updateTime <= state.enterTime && get_time() - state.updateTime >= 150 ) {
+    if ( !state.updating && state.updateTime <= state.enterTime && get_time() - state.enterTime > 300 ) {
       update();
     }
   }, 50);
