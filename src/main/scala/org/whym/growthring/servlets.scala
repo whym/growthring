@@ -31,7 +31,7 @@ class FindRepeatsServlet extends HttpServlet {
     }
     val threshold: Seq[Int] = req.getParameter("n") match {
       case null => Seq(2, 4, 8)
-      case x => x.split(",").map(_.toInt)
+      case x => x.split(",").map(_.toInt).filter(_ >= 2)
     }
     val es = new ExtremalSubstrings(str)
 

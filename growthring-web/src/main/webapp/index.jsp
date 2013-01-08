@@ -40,7 +40,7 @@ function update() {
     url: 'find-repeats',
     type: 'GET',
     dataType: 'json',
-    data: {q: query, format: 'json'},
+    data: {q: query, format: 'json', n: '2,3,4,5,6,7,8'},
     success: function(json){
       // set the result
       $('#result').val(json.raw);
