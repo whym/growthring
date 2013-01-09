@@ -18,7 +18,7 @@ import org.scalatest.mock.MockitoSugar
  * @author Yusuke Matsubara <whym@whym.org>
  */
 class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
-  test("find repeats 1") {
+  test("find repeats (chart)") {
     expect("""   b
  **a
   *n
@@ -38,7 +38,8 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
       
       when(response.getWriter()).thenReturn(printWriter)
       when(request.getParameter("q")).thenReturn("banana wana")
-      when(request.getParameter("format")).thenReturn("raw")
+      when(request.getParameter("n")).thenReturn("2,4,8")
+      when(request.getParameter("format")).thenReturn("plain")
       
       new FindRepeatsServlet().doGet(request, response)
       stringWriter.toString

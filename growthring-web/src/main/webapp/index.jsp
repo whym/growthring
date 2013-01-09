@@ -3,8 +3,19 @@
 <%
    String str = request.getParameter("q");
    if ( str == null ) { str = ""; }
+
    String snippet = str.length() < 24 ? str : str.substring(0, Math.min(22, str.length())) + "...";
-   String queryURL = "find-repeats" + "?format=raw&q=" + java.net.URLEncoder.encode(str, "UTF-8");
+
+   String threshold = request.getParameter("n");
+   if ( threshold == null ) { threshold = "1,2"; }
+
+   String min_len = request.getParameter("min");
+   if ( min_len == null ) { min_len = "1"; }
+
+   String method = request.getParameter("reqm");
+   if ( method == null ) { method = "GET"; }
+
+   String queryURL = "find-repeats" + "?format=plain&n=" + threshold + "&q=" + java.net.URLEncoder.encode(str, "UTF-8");
  %>
 <%
    String thisURL = request.getServletPath().toString() + "?" + request.getQueryString();
@@ -27,6 +38,17 @@
 <script type="text/javascript">
 $(function(){
 
+String.prototype.hashCode = function(){
+    var hash = 0, i, char;
+    if (this.length == 0) return hash;
+    for (i = 0; i < this.length; i++) {
+        char = this.charCodeAt(i);
+        hash = ((hash<<5)-hash)+char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+};
+
 function get_time() {
   return new Date().getTime();
 }
@@ -34,25 +56,44 @@ function get_time() {
 function update() {
   // ask the servlet, retrieve the result, and update the placeholder of the reuslt
   var query = $('#edit').val();
+  var before_query = get_time();
+  var failed = undefined;
+  if ( query.hashCode() == state.lastQueryHash ) {
+    return;
+  }
   $('#busy').show();
   state.updating = true;
+  $('#resultmessage').text('...');
   $.ajax({
     url: 'find-repeats',
-    type: 'GET',
+    type: '<%=method%>',
     dataType: 'json',
-    data: {q: query, format: 'json', n: '2,3,4,5,6,7,8'},
+    data: {
+      q: query,
+      format: 'json',
+      min: '<%=min_len%>',
+      n: '<%=threshold%>'
+    },
     success: function(json){
       // set the result
-      $('#result').val(json.raw);
+      $('#result').val(json.plain);
        // update the permalink
       var url = document.location.href.split('?')[0] + '?q=' + query;
       $('#permalink').attr('href', url);
       $('#permalinkbox').val(url);
+      $('#resultmessage').text((get_time() - before_query) + " msecs");
+      state.lastQueryHash = query.hashCode();
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      failed = 'Failed: ' + jqXHR + ': ' + textStatus + ': ' + errorThrown;
     },
     complete: function(){
       state.updateTime = get_time();
       state.updating = false;
       $('#busy').hide();
+      if ( failed != undefined ) {
+        $('#resultmessage').text(failed);
+      }
     }
   });
 }
@@ -62,22 +103,27 @@ function update() {
   var state = {
     enterTime:  get_time(),
     updateTime: get_time(),
-    updating: false
+    updating: false,
+    lastQueryHash: 0
   };
   $('#submit').hide();
   $('#busy').hide();
-  $('#busy').css({top: '1em'});
+  $('#busy').css({top: '1em'}).append(
+    $('<img/>').attr({
+       'src': 'resources/images/Ajax-loader.gif',
+       'alt': 'busy'}
+    )
+  );
   $('#edit').bind('keyup click', function(){
     state.enterTime = get_time();
-    $('#editc').text($('#edit').val().length);
-  });
-  $('#edit').focus();
+    $('#editcount').text($('#edit').val().length);
+  }).focus();
 
   if ( /q=.+/.exec(location.href) ) {
     update();
   }
 
-// periodic execution
+  // periodic execution
 
   window.setInterval(function(){
     if ( !state.updating && state.updateTime <= state.enterTime && get_time() - state.enterTime > 300 ) {
@@ -115,7 +161,7 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 <p>↓ここにテキストを入力してください。</p>
 <textarea rows="4" cols="20" id="edit" name="q">
 <%=str%></textarea>
-<label class="counter" id="editc" for="edit"><%=str.length()%></label>
+<label class="counter" id="editcount" for="edit"><%=str.length()%></label>
 </div>
 
 <div class="mode">
@@ -124,6 +170,7 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 
 <div class="box">
 <textarea rows="4" cols="20" id="result" readonly="readonly"><jsp:include page="<%=queryURL%>" /></textarea>
+<label id="resultmessage" for="edit"></label>
 </div>
 
 <input id="submit" type="submit" />
@@ -136,7 +183,7 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 <input id="permalinkbox" type="text" size="50" readonly="readonly" value="<%=thisURL%>" />
 </p>
 
-<p id="busy"><img src="resources/images/Ajax-loader.gif" alt="busy" /></p>
+<p id="busy"></p>
 
 <address>
 運営 <a href="http://twitter.com/whym">@whym</a>
