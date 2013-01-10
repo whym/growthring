@@ -5,12 +5,18 @@ __NOTOC__
 '''GrowthRing''' visualizes how a document grows over revisions.
 It contains:
 * a multiple sequence alignment tool for texts, written in Scala.
+* an interactive demo, deployable at Google App Engine or other servlet-compatible environment.
 
 == How to use ==
 
 === Using the multiple sequence aligner ===
-# sbt one-jar
+# sbt one-jar # use sbt 0.12
 # java -Xss50M -jar target/scala-2.9.2/growthring_2.9.2-0.1-one-jar.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf
+
+=== Using the anonymizer ===
+# sbt publish # use sbt 0.12
+# cd growthring-web && mvn package && sh dev_appserver.sh target/growthring-web-0.1 # use maven 3
+# xdg-open http://localhost:8080
 
 == Credits ==
 * Yusuke Matsubara <nowiki><whym@whym.org></nowiki>
