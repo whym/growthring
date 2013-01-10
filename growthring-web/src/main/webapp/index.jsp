@@ -34,7 +34,6 @@
 <title>growthring<%= str.equals("") ? "": " - " + snippet%></title>
 
 <script type="text/javascript" src="resources/jquery.js"></script>
-<script type="text/javascript" src="resources/jquery-ui.js"></script>
 <script type="text/javascript">
 $(function(){
 
