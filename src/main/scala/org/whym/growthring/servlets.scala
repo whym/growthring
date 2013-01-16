@@ -9,7 +9,7 @@ package org.whym.growthring
 import scala.collection.JavaConverters._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import javax.servlet.ServletConfig
-import net.liftweb.json.{JObject, JField, JArray, JInt, JValue, JString, JsonAST, Printer}
+import net.liftweb.json.{JObject, JField, JArray, JValue, JsonAST, Printer}
 import net.liftweb.json.JsonDSL._
 
 /**
@@ -85,20 +85,21 @@ class FindRepeatsServlet extends HttpServlet {
     req.getParameter("format") match {
       case "plain" => {
         resp.setContentType("text/plain")
-        writer.print(chart)
+        writer.print(masked_plain)
       }
       case _ => {
         resp.setContentType("application/json")
         writer.println(
           Printer.pretty(JsonAST.render(
             JObject(List(JField("plain", masked_plain),
+                         JField("chart", chart),
                          JField("html", masked_html),
                          JField("max_repeats",
                                 threshold.map(t =>
                                   JArray(List[JValue](
-                                    JInt(t),
+                                    t,
                                     es.maxRepeats(t).map(
-                                      x => JArray(List(JInt(x._1), JInt(x._2)))))))))))))
+                                      x => JArray(List(x._1, x._2))))))))))))
       }
     }
   }
