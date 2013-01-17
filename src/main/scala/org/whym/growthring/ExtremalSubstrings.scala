@@ -80,8 +80,6 @@ class ExtremalSubstrings(str: String) {
     }
   }
 
-  def maxRepeats3: Seq[(Int, Int)] = maxRepeats(3)
-
   def maxRepeats(n: Int =2): Seq[(Int, Int)] = {
     val mr = mutable.ArrayBuffer.fill(arr.size + n + 1)(arr.size)
     val lcp = lcp_ ++ Array.fill(n)(-1)
