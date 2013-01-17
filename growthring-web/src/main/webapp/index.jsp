@@ -7,10 +7,10 @@
    String snippet = str.length() < 24 ? str : str.substring(0, Math.min(22, str.length())) + "...";
 
    String threshold = request.getParameter("n");
-   if ( threshold == null ) { threshold = "1,2"; }
+   if ( threshold == null ) { threshold = "2"; }
 
    String min_len = request.getParameter("min");
-   if ( min_len == null ) { min_len = "1"; }
+   if ( min_len == null ) { min_len = "2"; }
 
    String method = request.getParameter("reqm");
    if ( method == null ) { method = "GET"; }
@@ -32,7 +32,7 @@
 <link rev="made" href="http://whym.org" />
 <link rel="INDEX" href="." />
 <title>growthring<%= str.equals("") ? "": " - " + snippet%></title>
-
+<!-- q=<%=str%> threshold=<%=threshold%> min=<%=min_len%> method=<%=method%> -->
 <script type="text/javascript" src="resources/jquery.js"></script>
 <script type="text/javascript">
 $(function(){
@@ -76,6 +76,7 @@ function update() {
     success: function(json){
       // set the result
       $('#result').val(json.plain);
+      $('#resulthtml').html(json.html);
        // update the permalink
       var url = document.location.href.split('?')[0] + '?q=' + query;
       $('#permalink').attr('href', url);
@@ -147,6 +148,9 @@ textarea { display: inline-block; width: 78%; margin: 0 0 0 10%; height: auto; f
 #permalinkbox { font-family: monospace; }
 h1 a img {border: none;}
 input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em; }
+
+#resulthtml { color: #CCC; font-size: 130%; margin: 0 0 0 10%; }
+#resulthtml span { color: #000; display: inline-block; border-bottom: 2px solid #AAE; margin-bottom: 2px; }
 </style>
 </head>
 <body>
@@ -170,6 +174,7 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 <div class="box">
 <textarea rows="4" cols="20" id="result" readonly="readonly"><jsp:include page="<%=queryURL%>" /></textarea>
 <label id="resultmessage" for="edit"></label>
+<div id="resulthtml"></div>
 </div>
 
 <input id="submit" type="submit" />

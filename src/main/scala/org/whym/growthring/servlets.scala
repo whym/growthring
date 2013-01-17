@@ -57,7 +57,6 @@ class FindRepeatsServlet extends HttpServlet {
         ).mkString + x._1
     ).mkString("\n") + "\n"
 
-    val tags: Array[Option[(Boolean, Int, String)]] = Array.fill(str.length + 1)(None)
     val repeats_deepest = {
       val a = repeats.filter(_.regions.length > 0)
       if ( a.length > 0 ) {
@@ -66,15 +65,22 @@ class FindRepeatsServlet extends HttpServlet {
         repeats.last
       }
     }
+    abstract sealed class Tag(){}
+    case class Begin(threshold: Int, s: String) extends Tag
+    case class End(threshold: Int, s: String) extends Tag
+    case object NoTag extends Tag
+    val tags: Array[Tag] = Array.fill(str.length + 1)(NoTag)
     for ( r <- repeats_deepest.regions ) {
-      tags(r._1)     = Some((true,  repeats_deepest.threshold, str.slice(r._1, r._2 + 1)))
-      tags(r._2 + 1) = Some((false, repeats_deepest.threshold, str.slice(r._1, r._2 + 1)))
+      tags(r._1)     = Begin(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
+      tags(r._2 + 1) = End(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
     }
     val masked_html = str.zip(tags).map{
-      case (char, Some((start, threshold, label))) =>
-        (if (start) {"<span class=\"R" + threshold + "\">" + char}
-         else {"</span>" + char})
-      case (char, None) => "" + char
+      case (char, Begin(threshold, label)) =>
+        "<span class=\"R" + threshold + "\">" + char
+      case (char, End(threshold, label)) =>
+         "</span>" + char
+      case (char, NoTag) =>
+        "" + char
     }.reduce(_+_)
     val masked_plain = str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
       case (char, true)  => "" + char
@@ -95,11 +101,10 @@ class FindRepeatsServlet extends HttpServlet {
                          JField("chart", chart),
                          JField("html", masked_html),
                          JField("max_repeats",
-                                threshold.map(t =>
-                                  JArray(List[JValue](
-                                    t,
-                                    es.maxRepeats(t).map(
-                                      x => JArray(List(x._1, x._2))))))))))))
+                                repeats.map{rp => JArray(List[JValue](
+                                  rp.threshold,
+                                  rp.regions.map(x => JArray(List(x._1, x._2)))
+                                ))}))))))
       }
     }
   }
