@@ -44,8 +44,7 @@ class FindRepeatsServlet extends HttpServlet {
     case class Repeats(threshold: Int, regions: Seq[(Int, Int)], flags: Set[Int])
     val repeats = threshold.map(x => {
       val rp = es.maxRepeats(x).filter(x => (x._2 - x._1 + 1) >= min_len)
-      val s = rp.map(x => (x._1 to x._2).toList).foldLeft(Set[Int]())(_++_).toSet
-      Repeats(x, rp, s)
+      Repeats(x, rp, ExtremalSubstrings.coveredCells(rp))
     })
     val flags = Array.tabulate(str.length)(i => {
       repeats.foldLeft(Set[Int]())((s,x) => if ( x.flags(i) ){s + x.threshold} else {s})
