@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
 import scala.collection.{mutable, immutable}
 
 /**
- * DESCRIBE THIS CLASS HERE
+ * Maximal repeats and minimal unique substrings
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */
@@ -19,8 +19,6 @@ object ExtremalSubstrings {
   def stringToUnsigneds(str: String): Array[Int] =
     str.toCharArray.map(x => List((x & 0xFF),
                                   (x >>> 8))).reduce((s,x) => s ++ x).toArray
-  def coveredCells(rp: Seq[(Int,Int)]): Set[Int] =
-    rp.map(x => (x._1 to x._2).toList).foldLeft(Set[Int]())(_++_).toSet
 }
 
 class ExtremalSubstrings(str: String) {

@@ -46,8 +46,8 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
  **a
   *n
  **a
-  *n
- **a
+   n
+ * a
     
    w
  **a

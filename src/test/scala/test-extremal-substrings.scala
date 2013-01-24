@@ -73,12 +73,6 @@ class TestExtremalSubstrings extends FunSuite {
 
   import org.whym.growthring.{ExtremalSubstrings => ES}
 
-  test("covered") {
-    expect(Set(0,1,4,5,6,7)) {
-      ES.coveredCells(List((0,1), (4,6), (5,7)))
-    }
-  }
-
   test("string to unsigned: abc") {
     expect(List(0x61,0,0x62,0,0x63,0)) {
       ES.stringToUnsigneds("abc").toList
