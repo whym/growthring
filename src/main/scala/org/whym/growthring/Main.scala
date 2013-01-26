@@ -41,10 +41,10 @@ object Main {
         val str = strings.mkString("\n")
         val es = new ExtremalSubstrings(str)
         for ( x <- es.maxRepeats(Properties.propOrElse("repeats", "2").toInt) ) {
-          println("r " + x._1 + " " + x._2 + " " + new String(str.slice(x._1, x._2 + 1))) //!
+          println("r %d %d %s".format(x._1, x._2, new String(str.slice(x._1, x._2 + 1)))) //!
         }
         for ( x <- es.minUniques ) {
-          println("u " + x._1 + " " + x._2 + " " + new String(str.slice(x._1, x._2 + 1))) //!
+          println("u %d %d %s".format(x._1, x._2, new String(str.slice(x._1, x._2 + 1)))) //!
         }
       }
       case _ => {
