@@ -31,17 +31,20 @@ object Main {
         val es = new ExtremalSubstrings(str)
         val covered = for ( (s, e) <- es.maxRepeats(Properties.propOrElse("repeats", "2").toInt)
                            if e - s >= min_len ) yield (s, e)
-        val flags = Covering.greedy(covered)
+        val flags = Properties.propOrElse("cover", "greedySliced") match {
+          case "greedy" => Covering.greedy(covered)
+          case _        => Covering.greedySliced(covered)
+        }
         println(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => '_'}).mkString)
       }
       case "repeats" => {
         val str = strings.mkString("\n")
         val es = new ExtremalSubstrings(str)
         for ( x <- es.maxRepeats(Properties.propOrElse("repeats", "2").toInt) ) {
-          println("r " + new String(str.slice(x._1, x._2 + 1))) //!
+          println("r " + x._1 + " " + x._2 + " " + new String(str.slice(x._1, x._2 + 1))) //!
         }
         for ( x <- es.minUniques ) {
-          println("u " + new String(str.slice(x._1, x._2 + 1))) //!
+          println("u " + x._1 + " " + x._2 + " " + new String(str.slice(x._1, x._2 + 1))) //!
         }
       }
       case _ => {
