@@ -33,7 +33,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   def linear_dag(str: String): Dag[Char] = Dag((str).toIndexedSeq,
                                                Range(0, str.length-1).map(x => (x,x+1)).toSet)
   test("linear align: simple replace") {
-    expect(Dag(("abBc$").toIndexedSeq,
+    expectResult(Dag(("abBc$").toIndexedSeq,
            Set((0,1), (1,3),
                (0,2), (2,3),
                (3,4)))) {
@@ -42,7 +42,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: many vs one replace") {
-    expect(Dag("aBzbc$".toIndexedSeq,
+    expectResult(Dag("aBzbc$".toIndexedSeq,
                Set((0,1), (1,4),
                    (0,2), (2,3), (3,4),
                    (4,5)))) {
@@ -51,7 +51,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: deletions") {
-    expect(Dag("abzzc$".toIndexedSeq,
+    expectResult(Dag("abzzc$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4),
                    (1,4),
                    (4,5)))) {
@@ -60,7 +60,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: insertion + deletion") {
-    expect(Dag("$abcz$".toIndexedSeq,
+    expectResult(Dag("$abcz$".toIndexedSeq,
                Set((0,1), (1,2), (2,3),
                    (0,2), (2,3),
                    (3,4), (3,5),
@@ -78,13 +78,13 @@ class TestMultipleSequenceAlignment extends FunSuite {
                        (2, 3))
                    )
     //! これは複数パスでアラインする実装ができるまでは通らない
-    // expect(dag1) {
+    // expectResult(dag1) {
     //   dag1.align(dag1, weight())
     // }
-    expect(dag1) {
+    expectResult(dag1) {
       dag1.align(linear_dag("$b$"), weight())
     }
-    expect(dag1) {
+    expectResult(dag1) {
       dag1.align(linear_dag("$B$"), weight())
     }
   }
@@ -102,7 +102,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
                        (1, 3),
                        (2, 3))
                    )
-    expect(Dag("$bBA$".toIndexedSeq,
+    expectResult(Dag("$bBA$".toIndexedSeq,
                Set((0, 1),
                    (0, 2),
                    (0, 3),
@@ -115,7 +115,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: insertions") {
-    expect(Dag("azbzzc$".toIndexedSeq,
+    expectResult(Dag("azbzzc$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4), (4,5),
                    (0,2), (2,5),
                    (5,6)))) {
@@ -124,7 +124,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: simple insertions") {
-    expect(Dag("$zbxx$".toIndexedSeq,
+    expectResult(Dag("$zbxx$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4), (4,5),
                    (0,2), (2,5)))) {
       linear_dag("$b$").align(linear_dag("$zbxx$"), weight())
@@ -132,7 +132,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: recurring letters") {
-    expect(Dag("^baba$".toIndexedSeq,
+    expectResult(Dag("^baba$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,5),
                    (0,2), (3,4), (4,5)))) {
       linear_dag("^aba$").align(linear_dag("^bab$"), weight())
@@ -140,7 +140,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: JA") {
-    expect(Dag("$色いろは匂にえほどへ散とちりぬるを$".toIndexedSeq,
+    expectResult(Dag("$色いろは匂にえほどへ散とちりぬるを$".toIndexedSeq,
                Set((0,1), (1,4), (4,5), (5,7), (7,9), (9, 11), (11,14), (14,15), (15,16), (16,17), (17,18),
                    (0,2), (2,3), (3,4), (4, 6), (6,8), (8,10), (10,12), (12,13), (13,14)))) {
       linear_dag("$色は匂えど散りぬるを$").align(linear_dag("$いろはにほへとちりぬるを$"), weight())
@@ -148,23 +148,23 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test trace: 1") {
-    expect(Some(List(2))) {
+    expectResult(Some(List(2))) {
       linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("b".toIndexedSeq)
     }
   }
   test("test trace: fail") {
-    expect(None) {
+    expectResult(None) {
       linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("o".toIndexedSeq)
     }
   }
   test("test trace: same letters") {
-    expect(Some(List(4,5,6,7))) {
+    expectResult(Some(List(4,5,6,7))) {
       linear_dag("$aaaxxbbb$").trace("xxbb".toIndexedSeq)
     }
   }
 
   test("test dot") {
-    expect(List("digraph g {",
+    expectResult(List("digraph g {",
                 "  rankdir = LR;",
                 "  N_0[label=\"^\"];",
                 "  N_1[label=\"a\"];",
@@ -186,7 +186,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: one path") {
-    expect(Dag(Vector("^", "abc", "A", "$"),
+    expectResult(Dag(Vector("^", "abc", "A", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
       Dag("^abcA$".toIndexedSeq.map({x: Char => x.toString}),
@@ -196,7 +196,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: twin") {
-    expect(Dag(Vector("^", "ab", "AB", "$"),
+    expectResult(Dag(Vector("^", "ab", "AB", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
       Dag("^abAB$".toIndexedSeq.map({x: Char => x.toString}),
@@ -206,7 +206,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: multiple") {
-    expect(Dag(Vector("^", "ab", "AB", "CDE","c", "$"),
+    expectResult(Dag(Vector("^", "ab", "AB", "CDE","c", "$"),
                Set((0,1), (1,3), (3,5),
                    (2,5),
                    (0,4), (4,5),
@@ -220,7 +220,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: shortcut") {
-    expect(Dag(Vector("^", "1", "23","45", "$"),
+    expectResult(Dag(Vector("^", "1", "23","45", "$"),
                Set((0,1), (1,4), (0,2), (2,3), (0,3), (3,4)))) {
       Dag("^12345$".toIndexedSeq.map({x: Char => x.toString}),
           Set((0,1), (1,6),
@@ -231,7 +231,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: start") {
-    expect(Dag(Vector("^ab", "CDE","c", "$"),
+    expectResult(Dag(Vector("^ab", "CDE","c", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
       Dag("^abCDEc$".toIndexedSeq.map({x: Char => x.toString}),
@@ -241,7 +241,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test node concat") {
-    expect(MSA.Node("abcdef".toIndexedSeq, 0, 4)) {
+    expectResult(MSA.Node("abcdef".toIndexedSeq, 0, 4)) {
       MSA.Node("abcdef".toIndexedSeq, 0, 2) concat MSA.Node("cdef".toIndexedSeq, 0, 2)
     }
   }
@@ -251,19 +251,19 @@ class TestMultipleSequenceAlignment extends FunSuite {
                          "^xbc$".toIndexedSeq,
                          "^bcd$".toIndexedSeq))
     val align = m.align
-    expect(Some(List(0,1,3,4,6))) {
+    expectResult(Some(List(0,1,3,4,6))) {
       align.trace("^abc$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-    expect(Some(List(0,2,3,4,6))) {
+    expectResult(Some(List(0,2,3,4,6))) {
       align.trace("^xbc$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-    expect(Some(List(0,3,4,5,6))) {
+    expectResult(Some(List(0,3,4,5,6))) {
       align.trace("^bcd$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-    expect(Some(List(0,3,4,5,6))) {
+    expectResult(Some(List(0,3,4,5,6))) {
       align.trace("^bcd$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
@@ -273,11 +273,11 @@ class TestMultipleSequenceAlignment extends FunSuite {
     val m = new MSA(List("^$".toIndexedSeq,
                          "^ac$".toIndexedSeq,
                          "^xb$".toIndexedSeq))
-    expect(Some(List(0,2,4,5))) {
+    expectResult(Some(List(0,2,4,5))) {
       m.align.trace("^xb$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-    expect(Some(List(0,1,3,5))) {
+    expectResult(Some(List(0,1,3,5))) {
       m.align.trace("^ac$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
