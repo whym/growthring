@@ -11,15 +11,15 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 /**
- * Given spans, fill the parent sequence with some of the spans so that no overwrap nor concatenation happens
+ * Given spans, fill the parent sequence with some of the spans so that no overlap nor concatenation happens
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */
 object Covering {
-  def any(rp: Seq[(Int,Int)]): Set[Int] = // Note: this violates the definition above by possibly concatenating two or more spans
+  def any[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = // Note: this violates the definition above by possibly concatenating two or more spans
     rp.map(x => (x._1 to x._2).toList).foldLeft(Set[Int]())(_++_).toSet
 
-  def greedy(rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedy[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val max = (rp.map(_._2) ++ Seq(0)).max
     val flags = mutable.ArrayBuffer.fill(max + 2)(false)
     for ( (s,e) <- rp.sortBy(x => ((x._1 - x._2), x._1, x._2)) ) {
@@ -32,7 +32,7 @@ object Covering {
     return flags.zipWithIndex.filter(_._1).map(_._2).toSet
   }
 
-  def greedySliced(rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedySliced[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     import scala.collection.mutable.PriorityQueue
     val max = (rp.map(_._2) ++ Seq(0)).max
     val flags = mutable.ArrayBuffer.fill(max + 2)(false)
