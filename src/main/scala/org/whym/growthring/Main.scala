@@ -32,8 +32,9 @@ object Main {
         val covered = for ( (s, e) <- es.maxRepeats(Properties.propOrElse("repeats", "2").toInt)
                            if e - s >= min_len ) yield (s, e)
         val flags = Properties.propOrElse("cover", "greedySliced") match {
-          case "greedy" => Covering.greedy(str.toCharArray, covered)
-          case _        => Covering.greedySliced(str.toCharArray, covered)
+          case "greedy" =>             Covering.greedy(str.toCharArray, covered)
+          case "greedyConservative" => Covering.greedyConservative(str.toCharArray, covered)
+          case _        =>             Covering.greedySliced(str.toCharArray, covered)
         }
         println(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => '_'}).mkString)
       }

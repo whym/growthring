@@ -16,7 +16,7 @@ import scala.collection.mutable
  * @author Yusuke Matsubara <whym@whym.org>
  */
 object Covering {
-  def any[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = // Note: this violates the definition above by possibly concatenating two or more spans
+  def any[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = // Note: this violates the definition above by possibly concatenating two or more spans
     rp.map(x => (x._1 to x._2).toList).foldLeft(Set[Int]())(_++_).toSet
 
   def greedy[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
@@ -32,7 +32,27 @@ object Covering {
     return flags.zipWithIndex.filter(_._1).map(_._2).toSet
   }
 
-  def greedySliced[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedyConservative[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
+    val max = (rp.map(_._2) ++ Seq(0)).max
+    val flags = mutable.ArrayBuffer.fill(max + 2)(false)
+    val invalidated = new mutable.HashMap[IndexedSeq[T], Int]{ override def default(x:IndexedSeq[T]) = 0 }
+    val groups = rp.groupBy(x => body.slice(x._1, x._2+1).toIndexedSeq)
+    val min_freq = groups.map(_._2.size).min
+    for ( (seg, ls) <- groups.toList.sortBy(x => (- x._1.size, x._2.size)) ) {
+      val checks = for ( (s,e) <- ls ) yield ( ( (s == 0) || flags(s-1) == false ) && flags(e+1) == false )
+      if ( checks.reduce(_ && _)  &&  ls.size - invalidated(seg) >= min_freq ) {
+        for ( (s,e) <- ls; i <- s to e ) {
+          flags(i) = true
+        }
+        for ( i <- 0 until seg.size; j <- i + 1 until seg.size ) {
+          invalidated(seg.slice(i,j)) += 1
+        }
+      }
+    }
+    return flags.zipWithIndex.filter(_._1).map(_._2).toSet
+  }
+
+  def greedySliced[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
     import scala.collection.mutable.PriorityQueue
     val max = (rp.map(_._2) ++ Seq(0)).max
     val flags = mutable.ArrayBuffer.fill(max + 2)(false)
