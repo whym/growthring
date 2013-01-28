@@ -30,12 +30,12 @@ if __name__ == '__main__':
     sys.stderr = codecs.getwriter(options.encoding)(sys.stderr)
 
     splitter = re.compile(options.marker + '+')
-    for f in options.inputs:
-        lines = f.read()
-        segments = re.split(splitter, lines)
+    olines = options.inputs[0].read()
+    hlines = options.inputs[1].read()
+    segments = re.split(splitter, hlines)
 
-        random.shuffle(segments)
-        for s in segments[0:options.tests]:
-            n = len([x for x in re.finditer(re.escape(s), lines)])
-            print n, repr(s)
+    random.shuffle(segments)
+    for s in segments[0:options.tests]:
+        n = len([x for x in re.finditer(re.escape(s), olines)])
+        print n, repr(s)
         
