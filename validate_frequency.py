@@ -3,6 +3,17 @@
 
 """ Split input text with the hiding marker ('_' by default), count frequencies of all strings and substrings, and ensure they all above the given the threshold.  By default instead of attempting all substrings, it randomly chooses and tests 1000 substrings. """
 
+def number_of_matches(pattern, text):
+    # return len([x for x in re.finditer(re.escape(pattern), text)])
+    start = -1
+    matches = 0
+    while True:
+        start = text.find(pattern, start + 1)
+        if start < 0:
+            break
+        matches += 1
+    return matches
+
 if __name__ == '__main__':
 
     import sys
@@ -36,6 +47,6 @@ if __name__ == '__main__':
 
     random.shuffle(segments)
     for s in segments[0:options.tests]:
-        n = len([x for x in re.finditer(re.escape(s), olines)])
+        n = number_of_matches(s, olines)
         print n, repr(s)
         
