@@ -1,5 +1,4 @@
 /**
- * DESCRIBE THIS PROGRAM HERE
  *
  * @author Yusuke Matsubara <whym@whym.org>
  *

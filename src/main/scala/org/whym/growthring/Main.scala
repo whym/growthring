@@ -1,5 +1,4 @@
 /**
- * DESCRIBE THIS PROGRAM HERE
  *
  * @author Yusuke Matsubara <whym@whym.org>
  *
@@ -8,7 +7,7 @@
 package org.whym.growthring
 
 /**
- * DESCRIBE THIS CLASS HERE
+ * Main entry point
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */

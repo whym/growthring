@@ -1,5 +1,4 @@
 /**
- * DESCRIBE THIS PROGRAM HERE
  *
  * @author Yusuke Matsubara <whym@whym.org>
  *
@@ -16,10 +15,17 @@ import scala.collection.{mutable, immutable}
  * @author Yusuke Matsubara <whym@whym.org>
  */
 object ExtremalSubstrings {
+
+  /**
+   * Conversion from a string to an array of unsigned integers.  Needed by org.jsuffixarrays.
+   */
   def stringToUnsigneds(str: String): Array[Int] =
     str.toCharArray.map(x => List((x & 0xFF),
                                   (x >>> 8))).reduce((s,x) => s ++ x).toArray
 
+  /**
+   * Removal of overlapping spans (removing longer ones).  Remedy for artifacts caused by the char-unsigned conversion.
+   */
   def subsumeMin(s: Seq[(Int,Int)]): Seq[(Int,Int)] =
     if (s.size == 0) {
       s
@@ -29,6 +35,9 @@ object ExtremalSubstrings {
       }.map{ case (x,_) => x}
     }
 
+  /**
+   * Removal of overlapping spans (removing shorter ones).  Remedy for artifacts caused by the char-unsigned conversion.
+   */
   def subsumeMax(s: Seq[(Int,Int)]): Seq[(Int,Int)] =
     if (s.size == 0) {
       s
@@ -51,11 +60,11 @@ class ExtremalSubstrings(str: String) {
   import ExtremalSubstrings._
 
   import org.{jsuffixarrays => JSA}
-  val dsf = new JSA.DivSufSort()
-  val arr = stringToUnsigneds(str)
-  val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, dsf)
-  val sa  = sadata.getSuffixArray
-  val lcp_ = sadata.getLCP
+  private val dsf = new JSA.DivSufSort()
+  private val arr = stringToUnsigneds(str)
+  private val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, dsf)
+  private val sa  = sadata.getSuffixArray
+  private val lcp_ = sadata.getLCP
 
   def minUniques(): Seq[(Int, Int)] = {
     val mu = mutable.ArrayBuffer.fill(arr.size + 1)(-1)

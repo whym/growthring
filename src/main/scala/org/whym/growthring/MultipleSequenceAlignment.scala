@@ -1,5 +1,4 @@
 /**
- * Partial-order multiple sequence alignment of texts
  *
  * @author Yusuke Matsubara <whym@whym.org>
  *
@@ -11,11 +10,16 @@ import scala.collection.JavaConverters._
 import scala.collection.{mutable, immutable}
 
 /**
- * DESCRIBE THIS CLASS HERE
+ * Helper functions for partial-order multiple sequence alignment
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */
 object MultipleSequenceAlignment {
+
+/**
+ * Unit of alignment
+ *
+ */
   case class Node[T](body: immutable.IndexedSeq[T], start: Int, end: Int, freq: Int = 1) {
     def label = body.slice(start, end)
     override def toString = "Node(" + List(this.label.toString + "@%X".format(this.body.hashCode), start, end, freq).mkString(", ") + ")"
@@ -32,6 +36,11 @@ object MultipleSequenceAlignment {
   }
 }
 
+/**
+ * Partial-order multiple sequence alignment of texts
+ *
+ * @author Yusuke Matsubara <whym@whym.org>
+ */
 class MultipleSequenceAlignment[T](strings: List[immutable.IndexedSeq[T]]) {
   import MultipleSequenceAlignment._
   val dags = for (s <- strings) yield {
