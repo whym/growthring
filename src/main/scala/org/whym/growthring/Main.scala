@@ -16,6 +16,8 @@ object Main {
   def main(args: Array[String]) {
     import scala.io
     import scala.util.Properties
+    import org.apache.commons.lang3.{StringEscapeUtils => SEU}
+
     val strings = (if (args.length > 0) {
       args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
     } else {
@@ -28,6 +30,7 @@ object Main {
         val str = strings.mkString("\n")
         val min_len = Properties.propOrElse("minLen", "2").toInt
         val es = new ExtremalSubstrings(str)
+        val cover_char = Properties.propOrElse("coverChar", "_")(0)
         val covered = for ( (s, e) <- es.maxRepeats(Properties.propOrElse("repeats", "2").toInt)
                            if e - s >= min_len ) yield (s, e)
         val flags = Properties.propOrElse("cover", "greedySliced") match {
@@ -35,16 +38,16 @@ object Main {
           case "greedyConservative" => Covering.greedyConservative(str.toCharArray, covered)
           case _        =>             Covering.greedySliced(str.toCharArray, covered)
         }
-        println(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => '_'}).mkString)
+        println(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString)
       }
       case "repeats" => {
         val str = strings.mkString("\n")
         val es = new ExtremalSubstrings(str)
         for ( x <- es.maxRepeats(Properties.propOrElse("repeats", "2").toInt) ) {
-          println("r %d %d %s".format(x._1, x._2, new String(str.slice(x._1, x._2 + 1)))) //!
+          println("r %d %d %s".format(x._1, x._2, SEU.escapeJava(new String(str.slice(x._1, x._2 + 1))))) //!
         }
         for ( x <- es.minUniques ) {
-          println("u %d %d %s".format(x._1, x._2, new String(str.slice(x._1, x._2 + 1)))) //!
+          println("u %d %d %s".format(x._1, x._2, SEU.escapeJava(new String(str.slice(x._1, x._2 + 1))))) //!
         }
       }
       case _ => {
