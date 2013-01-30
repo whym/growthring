@@ -73,6 +73,15 @@ class TestExtremalSubstrings extends FunSuite {
 
   import org.whym.growthring.{ExtremalSubstrings => ES}
 
+  test("round min") {
+    expectResult((3,3)) {
+      ES.roundMin((5,7))
+    }
+    expectResult((5,5)) {
+      ES.roundMin((10,12))
+    }
+  }
+
   test("string to unsigned: abc") {
     expectResult(List(0x61,0,0x62,0,0x63,0)) {
       ES.stringToUnsigneds("abc").toList
@@ -148,9 +157,15 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
-  test("repeats(5): ACTATGAAGACAGGATCGATGCTA...") {
+  test("repeats(4): ACTATGAAGACAGGATCGATGCTA...") {
     expectResult(myMaxRepeats("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA", 4)){
       new ES("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA").maxRepeats(4)
+    }
+  }
+
+  test("repeats(4): 日本国民は...") {
+    expectResult(myMaxRepeats("日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。そもそも国政は、国民の厳粛な信託によるものであって、その権威は国民に由来し、その権力は国民の代表者がこれを行使し、その福利は国民がこれを享受する。これは人類普遍の原理であり、この憲法は、かかる原理に基くものである。われらは、これに反する一切の憲法、法令及び詔勅を排除する。", 4)){
+      new ES("日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。そもそも国政は、国民の厳粛な信託によるものであって、その権威は国民に由来し、その権力は国民の代表者がこれを行使し、その福利は国民がこれを享受する。これは人類普遍の原理であり、この憲法は、かかる原理に基くものである。われらは、これに反する一切の憲法、法令及び詔勅を排除する。").maxRepeats(4)
     }
   }
 

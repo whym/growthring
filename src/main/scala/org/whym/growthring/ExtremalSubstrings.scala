@@ -48,12 +48,12 @@ object ExtremalSubstrings {
     }
 
   def roundMax(x: (Int,Int)): (Int,Int) =
-      ((x._1 - (x._1 & 1)) / 2,
-       (x._2 + (x._2 & 1)) / 2)
+      ((x._1 - (x._1     & 1)) / 2,
+       (x._2 + ((x._2+1) & 1)) / 2)
 
   def roundMin(x: (Int,Int)): (Int,Int) =
-      ((x._1 + (x._1 & 1)) / 2,
-       (x._2 - (x._2 & 1)) / 2)
+      ((x._1 + (x._1     & 1)) / 2,
+       (x._2 - ((x._2+1) & 1)) / 2)
 }
 
 class ExtremalSubstrings(str: String) {
@@ -100,7 +100,7 @@ class ExtremalSubstrings(str: String) {
           if l >= 1 ) {
       mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
     }
-    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map(roundMin))
+    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1).map(roundMin).filter(x => x._1 <= x._2))
   }
 
   def maxRepeats(n: Int =2): Seq[(Int, Int)] = {
@@ -113,6 +113,6 @@ class ExtremalSubstrings(str: String) {
           if l >= 1 ) {
       mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
     }
-    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map(roundMin))
+    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1).map(roundMin).filter(x => x._1 <= x._2))
   }
 }
