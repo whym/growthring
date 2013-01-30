@@ -5,15 +5,17 @@
  */
 
 package org.whym.growthring
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * Main entry point
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */
-object Main {
+object Main extends Logging {
 
   def main(args: Array[String]) {
+    logger.info("main started.")
     import scala.io
     import scala.util.Properties
     import org.apache.commons.lang3.{StringEscapeUtils => SEU}
@@ -23,11 +25,14 @@ object Main {
     } else {
       io.Source.fromInputStream(System.in).getLines.toList
     })
+    logger.info(f"${strings.size}%d lines.")
+
     Properties.propOrElse("mode", "anonym") match {
       case "anonym" => {
         //! 改行はデフォルトで強制表示
         //! -Dunhide で指定したパターンは強制表示
         val str = strings.mkString("\n")
+        logger.info(f"${str.size}%d characters.")
         val min_len = Properties.propOrElse("minLen", "2").toInt
         val es = new ExtremalSubstrings(str)
         val cover_char = Properties.propOrElse("coverChar", "_")(0)
@@ -44,10 +49,10 @@ object Main {
         val str = strings.mkString("\n")
         val es = new ExtremalSubstrings(str)
         for ( x <- es.maxRepeats(Properties.propOrElse("repeats", "2").toInt) ) {
-          println("r %d %d %s".format(x._1, x._2, SEU.escapeJava(new String(str.slice(x._1, x._2 + 1))))) //!
+          println(f"r ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s")
         }
         for ( x <- es.minUniques ) {
-          println("u %d %d %s".format(x._1, x._2, SEU.escapeJava(new String(str.slice(x._1, x._2 + 1))))) //!
+          println(f"u ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s")
         }
       }
       case _ => {
@@ -63,5 +68,6 @@ object Main {
           }
       }
     }
+    logger.info("main finished.")
   }
 }
