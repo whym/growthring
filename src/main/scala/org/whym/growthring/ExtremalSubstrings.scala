@@ -26,32 +26,32 @@ object ExtremalSubstrings {
   /**
    * Removal of overlapping spans (removing longer ones).  Remedy for artifacts caused by the char-unsigned conversion.
    */
-  def subsumeMin(s: Seq[(Int,Int)]): Seq[(Int,Int)] =
+  def subsumeLonger(s: Seq[(Int,Int)]): Seq[(Int,Int)] =
     if (s.size == 0) {
       s
     } else {
-      s.zip(Seq(Pair(-1,-1)) ++ s.slice(0, s.size-1)).filter{
-        case ((x1,_),(x2,_)) => (x1 != x2)
-      }.map{ case (x,_) => x}
+      s.zip(Pair(-1,-1) +: s.slice(0, s.size-1)).filter{
+        case ((x1,y1),(x2,y2)) => x1 > x2 && y1 > y2
+      }.map(_._1)
     }
 
   /**
    * Removal of overlapping spans (removing shorter ones).  Remedy for artifacts caused by the char-unsigned conversion.
    */
-  def subsumeMax(s: Seq[(Int,Int)]): Seq[(Int,Int)] =
+  def subsumeShorter(s: Seq[(Int,Int)]): Seq[(Int,Int)] =
     if (s.size == 0) {
       s
     } else {
-      s.zip(s.tail ++ Seq(Pair(-1,-1))).filter{
-        case ((x1,_),(x2,_)) => (x1 != x2)
-      }.map{ case (x,_) => x}
+      s.zip(s.tail :+ Pair(Int.MaxValue, Int.MaxValue)).filter{
+        case ((x1,y1),(x2,y2)) => x1 < x2 && y1 < y2
+      }.map(_._1)
     }
 
-  def roundMin(x: (Int,Int)): (Int,Int) =
+  def roundMax(x: (Int,Int)): (Int,Int) =
       ((x._1 - (x._1 & 1)) / 2,
        (x._2 + (x._2 & 1)) / 2)
 
-  def roundMax(x: (Int,Int)): (Int,Int) =
+  def roundMin(x: (Int,Int)): (Int,Int) =
       ((x._1 + (x._1 & 1)) / 2,
        (x._2 - (x._2 & 1)) / 2)
 }
@@ -73,7 +73,7 @@ class ExtremalSubstrings(str: String) {
           l = lcp(i) max lcp(i+1)) {
       mu(sa(i) + l) = mu(sa(i) + l) max sa(i)
     } 
-    return subsumeMin(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= arr.size - 1).map(roundMin))
+    return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= arr.size - 1).map(roundMax))
   }
 
   def minUniques2(): Seq[(Int, Int)] = {
@@ -87,10 +87,10 @@ class ExtremalSubstrings(str: String) {
                                                max (lcp(i+1) min lcp(i+2)))} ) {
       mu(sa(i) + l) = mu(sa(i) + l) max sa(i)
     } 
-    return subsumeMin(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= arr.size - 1).map(roundMin))
+    return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= arr.size - 1).map(roundMax))
   }
 
-  def maxRepeats(): Seq[(Int, Int)] = maxRepeats(2)
+  def maxRepeats(): Seq[(Int, Int)] = maxRepeats2
 
   def maxRepeats2(): Seq[(Int, Int)] = {
     val mr = mutable.ArrayBuffer.fill(arr.size + 1)(arr.size)
@@ -100,7 +100,7 @@ class ExtremalSubstrings(str: String) {
           if l >= 1 ) {
       mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
     }
-    return subsumeMax(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map(roundMax))
+    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map(roundMin))
   }
 
   def maxRepeats(n: Int =2): Seq[(Int, Int)] = {
@@ -113,6 +113,6 @@ class ExtremalSubstrings(str: String) {
           if l >= 1 ) {
       mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
     }
-    return subsumeMax(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map(roundMax))
+    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1 && x._1 <= x._2 - 1).map(roundMin))
   }
 }
