@@ -14,7 +14,7 @@
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>growthring.log</file>
     <encoder>
-      <pattern>%relative\t%date{yyyy-MM-dd HH:mm:ss,SSS Z,UTC}\t[%thread]\t%-5level\t%logger{36}\t%msg%n
+      <pattern>%relative\t%date{yyyy-MM-dd HH:mm:ss,SSS Z,UTC}\t[%thread]\t%-5level\t%logger{50}\t%msg%n
       </pattern>
     </encoder>
   </appender>

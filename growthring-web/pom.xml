@@ -23,7 +23,7 @@
         </dependency>
         <dependency>
             <groupId>org.whym</groupId>
-            <artifactId>growthring_2.9.2</artifactId>
+            <artifactId>growthring_2.10</artifactId>
             <version>0.1</version>
         </dependency>
         <dependency>

@@ -37,11 +37,14 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   }
   val json = get("banana wana", "2,4,8", "1")
   val json2 = get("abracadabra", "2", "2")
-  test("find repeats (chart)") {
+  test("find repeats (plain)") {
 
     expectResult(JString("_a_a_a__a_a")) {
       json \ "plain"
     }
+  }
+
+  test("find repeats (chart)") {
     expectResult(JString("""   b
  **a
   *n
@@ -56,6 +59,8 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
 """)) {
       json \ "chart"
     }
+  }
+  test("find repeats (list)"){
     expectResult(JArray(List(JArray(List(2,
                                    List(List(1, 3),
                                         List(3, 5),
@@ -70,7 +75,9 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
                                    JArray(List())))))) {
       json \ "max_repeats"
     }
-
+  }
+  
+  test("find repeats (plain#2)") {
     expectResult(JString("abra___abra")) {
       json2 \ "plain"
     }
@@ -79,7 +86,10 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
                                         List(7, 10))))))) {
       json2 \ "max_repeats"
     }
-    expectResult(JString("<span class=\"R2\">abra</span>cad<span class=\"R2\">abra")) {
+  }
+
+  test("find repeats (html)") {
+    expectResult(JString("abra<del>c</del><del>a</del><del>d</del>abra")) {
       json2 \ "html"
     }
   }

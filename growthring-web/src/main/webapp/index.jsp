@@ -149,8 +149,8 @@ textarea { display: inline-block; width: 78%; margin: 0 0 0 10%; height: auto; f
 h1 a img {border: none;}
 input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em; }
 
-#resulthtml { color: #CCC; font-size: 130%; margin: 0 0 0 10%; }
-#resulthtml span { color: #000; display: inline-block; border-bottom: 2px solid #AAE; margin-bottom: 2px; }
+#resulthtml { color: #000; font-size: 130%; margin: 0 0 0 10%; }
+#resulthtml del { text-decoration: none; color: #CCC; }
 </style>
 </head>
 <body>

@@ -64,23 +64,19 @@ class FindRepeatsServlet extends HttpServlet {
         repeats.last
       }
     }
-    abstract sealed class Tag(){}
-    case class Begin(threshold: Int, s: String) extends Tag
-    case class End(threshold: Int, s: String) extends Tag
-    case object NoTag extends Tag
-    val tags: Array[Tag] = Array.fill(str.length + 1)(NoTag)
-    for ( r <- repeats_deepest.regions ) {
-      tags(r._1)     = Begin(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
-      tags(r._2 + 1) = End(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
-    }
-    val masked_html = str.zip(tags).map{
-      case (char, Begin(threshold, label)) =>
-        "<span class=\"R" + threshold + "\">" + char
-      case (char, End(threshold, label)) =>
-         "</span>" + char
-      case (char, NoTag) =>
-        "" + char
+    // abstract sealed class Tag(){}
+    // case class Begin(threshold: Int, s: String) extends Tag
+    // case class End(threshold: Int, s: String) extends Tag
+    // case object NoTag extends Tag
+    // for ( r <- repeats_deepest.regions ) {
+    //   tags(r._1)     = Begin(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
+    //   tags(r._2 + 1) = End(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
+    // }
+    val masked_html = str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
+      case (char, true)  => char.toString
+      case (char, false) => f"<del>${char}</del>"
     }.reduce(_+_)
+
     val masked_plain = str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
       case (char, true)  => "" + char
       case (char, false) => (if (0x00 <= char && char <= 0xFF) {"_"} else {"__"})
