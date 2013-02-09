@@ -60,9 +60,9 @@ class ExtremalSubstrings(str: String) {
   import ExtremalSubstrings._
 
   import org.{jsuffixarrays => JSA}
-  private val dsf = new JSA.DivSufSort()
+  private val builder = new JSA.SAIS()
   private val arr = stringToUnsigneds(str)
-  private val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, dsf)
+  private val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, builder)
   private val sa  = sadata.getSuffixArray
   private val lcp_ = sadata.getLCP
 

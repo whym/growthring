@@ -18,10 +18,11 @@ object Main extends Logging {
     //! 改行はデフォルトで強制表示
     //! -Dunhide で指定したパターンは強制表示
     val str = strings.mkString("\n")
-    logger.debug(f"${str.size}%d characters.")
+    logger.debug(f"${str.size}%d characters, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length, covering type '${covering}'.")
     val es = new ExtremalSubstrings(str)
     val covered = for ( (s, e) <- es.maxRepeats(freq)
                        if e - s >= min_len ) yield (s, e)
+    logger.debug(f"${covered.size}%d coverings.")
     val flags = covering match {
       case "greedy" =>             Covering.greedy(str.toCharArray, covered)
       case "greedyConservative" => Covering.greedyConservative(str.toCharArray, covered)
@@ -45,7 +46,7 @@ object Main extends Logging {
   }
 
   def main(args: Array[String]) {
-    logger.info("main started.")
+    logger.info("**** main begin ****")
     import scala.io
     import scala.util.Properties
 
@@ -67,7 +68,7 @@ object Main extends Logging {
         }
       case "repeats" =>
         for ( s <- findRepeats(strings, Properties.propOrElse("repeats", "2").toInt) ) {
-        println(s)
+          println(s)
         }
       case _ => {
         val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^"+x+"$").toCharArray.toIndexedSeq))
@@ -82,6 +83,6 @@ object Main extends Logging {
         }
       }
     }
-    logger.info("main finished.")
+    logger.info("**** main end   ****")
   }
 }
