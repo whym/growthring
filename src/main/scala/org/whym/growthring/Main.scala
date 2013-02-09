@@ -49,6 +49,7 @@ object Main extends Logging {
     logger.info("**** main begin ****")
     import scala.io
     import scala.util.Properties
+    import scala.xml.parsing.XhtmlParser
 
     val strings = (if (args.length > 0) {
       args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
@@ -58,6 +59,10 @@ object Main extends Logging {
     logger.debug(f"${strings.size}%d lines.")
 
     Properties.propOrElse("mode", "anonym") match {
+      case "multiple-anonym" =>
+        for ( config <- XhtmlParser(io.Source.fromFile(Properties.propOrElse("configFile", "config.xml"))) \\ "config" ) {
+          println((config \ "file").text)
+        }
       case "anonym" =>
         for ( s <- anonymize(strings,
                              Properties.propOrElse("minLen", "2").toInt,
