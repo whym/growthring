@@ -13,7 +13,7 @@
    if ( min_len == null ) { min_len = "2"; }
 
    String method = request.getParameter("reqm");
-   if ( method == null ) { method = "GET"; }
+   if ( method == null ) { method = "POST"; }
 
    String queryURL = "find-repeats" + "?format=plain&n=" + threshold + "&q=" + java.net.URLEncoder.encode(str, "UTF-8");
  %>
