@@ -54,17 +54,41 @@ object ExtremalSubstrings {
   def roundMin(x: (Int,Int)): (Int,Int) =
       ((x._1 + (x._1     & 1)) / 2,
        (x._2 - ((x._2+1) & 1)) / 2)
+
+  def getHeight(text: Array[Int], pos: Array[Int]): Array[Int] = {
+    val n = text.size
+    val height = Array.fill(n)(0)
+    val rank = Array.fill(n)(0)
+    for ( i <- 0 until n ) {
+      rank(pos(i)) = i
+    }
+    var h = 0
+    for ( i <- 0 until n; if rank(i) > 0) {
+      val j = pos(rank(i) - 1)
+      while ( i + h < n && j + h < n && text(i + h) == text(j + h) ) {
+        h += 1
+      }
+      height(rank(i)) = h
+      if ( h > 0 ) {
+        h -= 1
+      }
+    }
+    height
+  }
 }
 
 class ExtremalSubstrings(str: String) {
   import ExtremalSubstrings._
 
   import org.{jsuffixarrays => JSA}
-  private val builder = new JSA.SAIS()
   private val arr = stringToUnsigneds(str)
-  private val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, builder)
-  private val sa  = sadata.getSuffixArray
-  private val lcp_ = sadata.getLCP
+  private val (sa, lcp_) = {
+    val builder = new JSA.SAIS()
+    val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, builder)
+    (sadata.getSuffixArray, sadata.getLCP)
+    // val sa = sadata.getSuffixArray
+    // (sa, getHeight(arr, sa))
+  }
 
   def minUniques(): Seq[(Int, Int)] = {
     val mu = mutable.ArrayBuffer.fill(arr.size + 1)(-1)
