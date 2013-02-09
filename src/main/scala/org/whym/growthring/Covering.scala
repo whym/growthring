@@ -20,7 +20,7 @@ object Covering {
 
   def greedy[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val max = (rp.map(_._2) ++ Seq(0)).max
-    val flags = mutable.ArrayBuffer.fill(max + 2)(false)
+    val flags = Array.fill(max + 2)(false)
     for ( (s,e) <- rp.sortBy(x => ((x._1 - x._2), x._1, x._2)) ) {
       if ( ( (s == 0) || flags(s-1) == false ) && flags(e+1) == false ) {
         for ( i <- s to e ) {
@@ -33,7 +33,7 @@ object Covering {
 
   def greedyConservative[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val max = (rp.map(_._2) ++ Seq(0)).max
-    val flags = mutable.ArrayBuffer.fill(max + 2)(false)
+    val flags = Array.fill(max + 2)(false)
     val invalidated = new mutable.HashMap[IndexedSeq[T], Int]{ override def default(x:IndexedSeq[T]) = 0 }
     val groups = rp.groupBy(x => body.slice(x._1, x._2+1).toIndexedSeq)
     val min_freq = groups.map(_._2.size).min
@@ -54,7 +54,7 @@ object Covering {
   def greedySliced[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
     import scala.collection.mutable.PriorityQueue
     val max = (rp.map(_._2) ++ Seq(0)).max
-    val flags = mutable.ArrayBuffer.fill(max + 2)(false)
+    val flags = Array.fill(max + 2)(false)
     val queue = new PriorityQueue[(Int,Int)]()(Ordering.by[(Int,Int),Int](x => x._2 - x._1))
     for ( x <- rp ) {
       queue.enqueue(x)

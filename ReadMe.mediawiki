@@ -18,6 +18,11 @@ It contains:
 # cd growthring-web && mvn package && sh dev_appserver.sh target/growthring-web-0.1 # use maven 3
 # xdg-open http://localhost:8080
 
+=== Combining with SAIS ===
+# Use the command below to get the shared library version of SAIS.
+ gcc -shared sais.o -o libsais.so 
+# Put libsais.so into anywhere written in LD_LIBRARY_PATH.
+
 == Credits ==
 * Yusuke Matsubara <nowiki><whym@whym.org></nowiki>
 * See [http://meta.wikimedia.org/wiki/Talk:Vision/ja meta:Talk:Vision/ja] for credits of the texts in sample_input.txt

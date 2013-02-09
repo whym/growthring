@@ -11,16 +11,17 @@ scalacOptions ++= Seq("-deprecation",
                       "-unchecked",
                       "-optimise",
                       "-explaintypes",
-                      "-g:source")
+                      "-g:line")
 
 libraryDependencies ++= Seq(
   "com.carrotsearch"   % "jsuffixarrays" % "0.1.0",
+  "net.java.dev.jna"   % "jna"           % "3.2.2",
   "org.apache.commons" % "commons-lang3" % "3.1",
   "javax.servlet"      % "servlet-api"   % "2.5",
   "net.liftweb"       %% "lift-json"     % "2.5-M4",
   "org.scalatest"     %% "scalatest"     % "1.9" % "test",
   "com.typesafe"      %% "scalalogging-slf4j" % "1.0.1",
-  "org.slf4j" % "slf4j-api" % "1.7.1",
+  "org.slf4j"          % "slf4j-api"     % "1.7.1",
   "ch.qos.logback"     % "logback-classic" % "1.0.7",
   "org.mockito"        % "mockito-core"  % "1.9.0" % "test",
   "junit"              % "junit"         % "4.8.1" % "test"

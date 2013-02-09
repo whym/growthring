@@ -14,12 +14,12 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 object Main extends Logging {
 
-  def anonymize(strings: Seq[String], min_len: Int, cover_char: Char, freq: Int, covering: String): Seq[String] = {
+  def anonymize(method: String, strings: Seq[String], min_len: Int, cover_char: Char, freq: Int, covering: String): Seq[String] = {
     //! 改行はデフォルトで強制表示
     //! -Dunhide で指定したパターンは強制表示
     val str = strings.mkString("\n")
-    logger.debug(f"${str.size}%d characters, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length, covering type '${covering}'.")
-    val es = new ExtremalSubstrings(str)
+    logger.debug(f"${str.size}%d characters, ${method}, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length, covering type '${covering}'.")
+    val es = new ExtremalSubstrings(str, method)
     val covered = for ( (s, e) <- es.maxRepeats(freq)
                        if e - s >= min_len ) yield (s, e)
     logger.debug(f"${covered.size}%d coverings.")
@@ -32,10 +32,10 @@ object Main extends Logging {
     Seq(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString)
   }
 
-  def findRepeats(strings: Seq[String], freq: Int): Seq[String] = {
+  def findRepeats(method: String, strings: Seq[String], freq: Int): Seq[String] = {
     import org.apache.commons.lang3.{StringEscapeUtils => SEU}
     val str = strings.mkString("\n")
-    val es = new ExtremalSubstrings(str)
+    val es = new ExtremalSubstrings(str, method)
     es.maxRepeats(freq).map{
       x =>
         f"r ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s"
@@ -64,7 +64,8 @@ object Main extends Logging {
           println((config \ "file").text)
         }
       case "anonym" =>
-        for ( s <- anonymize(strings,
+        for ( s <- anonymize(Properties.propOrElse("sufMethod", "jsuffixarrays"),
+                             strings,
                              Properties.propOrElse("minLen", "2").toInt,
                              Properties.propOrElse("coverChar", "_")(0),
                              Properties.propOrElse("repeats", "2").toInt,
@@ -72,7 +73,8 @@ object Main extends Logging {
           println(s)
         }
       case "repeats" =>
-        for ( s <- findRepeats(strings, Properties.propOrElse("repeats", "2").toInt) ) {
+        for ( s <- findRepeats(Properties.propOrElse("sufMethod", "jsuffixarrays"),
+                               strings, Properties.propOrElse("repeats", "2").toInt) ) {
           println(s)
         }
       case _ => {
