@@ -5,24 +5,26 @@ __NOTOC__
 '''GrowthRing''' visualizes how a document grows over revisions.
 It contains:
 * a multiple sequence alignment tool for texts, written in Scala.
-* an interactive demo, deployable at Google App Engine or other servlet-compatible environment.
+* an interactive demo of text de-identification.
 
 == How to use ==
 
 === Using the multiple sequence aligner ===
-# sbt one-jar # use sbt 0.12
-# java -Xss50M -jar target/scala-2.9.2/growthring_2.9.2-0.1-one-jar.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf
+[http://www.scala-sbt.org/ sbt 0.12] and Java Development Kit 1.6.0 will be required.
+# sbt one-jar
+# java -Xss50M -jar target/scala-2.9.2/growthring_2.10-0.1-one-jar.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf
 
 === Using the anonymizer ===
-# sbt publish # use sbt 0.12
-# cd growthring-web && mvn package && sh dev_appserver.sh target/growthring-web-0.1 # use maven 3
-# xdg-open http://localhost:8080
+[http://www.scala-sbt.org/ sbt 0.12], [https://maven.apache.org/ maven 3] and Java Development Kit 1.6.0 will be required.
+# sbt publish
+# cd growthring-web && mvn package && sh dev_appserver.sh target/growthring-web-0.1
+# xdg-open http://localhost:8080 # open http://localhost:8080
 
 === Combining with SAIS ===
-# Use the command below to get the shared library version of SAIS.
- gcc -shared sais.o -o libsais.so 
-# Put libsais.so into anywhere written in LD_LIBRARY_PATH.
+# Use the command below to get the shared library version of [https://sites.google.com/site/yuta256/sais SAIS].
+ make && ld -shared sais.o -o libsais.so
+# Put libsais.so into any directory included by LD_LIBRARY_PATH.
 
 == Credits ==
 * Yusuke Matsubara <nowiki><whym@whym.org></nowiki>
-* See [http://meta.wikimedia.org/wiki/Talk:Vision/ja meta:Talk:Vision/ja] for credits of the texts in sample_input.txt
+* See [http://meta.wikimedia.org/wiki/Talk:Vision/ja meta:Talk:Vision/ja?action=history] for credits of the texts in sample_input.txt
