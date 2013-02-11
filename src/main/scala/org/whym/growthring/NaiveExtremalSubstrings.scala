@@ -16,18 +16,20 @@ import scala.collection.{mutable, immutable}
  */
 object NaiveExtremalSubstrings {
 
-  case class Substring(parent: String, start: Int, end: Int, slice: String) {
+  case class Substring(parent: String, start: Int, end: Int) {
     def length = end - start
-    def head_removed  = Substring(parent, start+1, end, parent.slice(start+1, end))
-    def last_removed  = Substring(parent, start, end-1, parent.slice(start, end-1))
+    def head_removed  = Substring(parent, start+1, end)
+    def last_removed  = Substring(parent, start, end-1)
     override def equals(x: Any) = x.isInstanceOf[Substring] && slice == x.asInstanceOf[Substring].slice
-    override def hashCode = slice.hashCode
+    private def slice = parent.substring(start, end)
+    private val _hash = slice.hashCode
+    override def hashCode = _hash
   }
 
   def substrings(str: String): Seq[Substring] =
     for ( i <- 0 to str.length;
           j <- (i+1) to str.length ) yield {
-            Substring(str, i, j, str.slice(i,j))
+            Substring(str, i, j)
          }
 
   def count[T](seq: Seq[T]): Map[T,List[T]] = {
@@ -36,6 +38,23 @@ object NaiveExtremalSubstrings {
     }
     for ( s <- seq ) {
       counts(s) = s :: counts(s)
+    }
+    return counts.toMap
+  }
+
+  def countBounded[T](seq: Seq[T], bound: Int): Map[T,List[T]] = {
+    val counts = new mutable.HashMap[T,List[T]] {
+      override def default(x:T) = List[T]()
+    }
+    val overflown = new mutable.HashSet[T]
+    for ( s <- seq ) {
+      if ( !(overflown contains s) ) {
+        counts(s) = s :: counts(s)
+        if ( counts(s).size > bound ) {
+          counts.remove(s)
+          overflown += s
+        }
+      }
     }
     return counts.toMap
   }
@@ -59,7 +78,7 @@ object NaiveExtremalSubstrings {
     })
 
   def minUniques(str: String, threshold: Int=1) = {
-    val counts = count(substrings(str)).filter(x => x._2.size <= threshold)
+    val counts = countBounded(substrings(str), threshold)
     //minimals(counts.keySet).map(counts).reduce(_++_).map(x => (x.start, x.end - 1)).toList.sorted
     minimals(counts.values.reduce(_++_).map(x => (x.start, x.end - 1)).toSet).toList.sorted
   }
