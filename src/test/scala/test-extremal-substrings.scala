@@ -10,66 +10,11 @@ import scala.collection.JavaConverters._
 import org.scalatest.FunSuite
 import scala.collection.mutable
 
-object TestExtremalSubstrings {
-  case class Substring(parent: String, start: Int, end: Int, slice: String) {
-    def length = end - start
-    def head_removed  = Substring(parent, start+1, end, parent.slice(start+1, end))
-    def last_removed  = Substring(parent, start, end-1, parent.slice(start, end-1))
-    override def equals(x: Any) = x.isInstanceOf[Substring] && slice == x.asInstanceOf[Substring].slice
-    override def hashCode = slice.hashCode
-  }
-}
-
 /**
  * @author Yusuke Matsubara <whym@whym.org>
  */
 class TestExtremalSubstrings extends FunSuite {
-  import TestExtremalSubstrings._
-
-  def substrings(str: String): Seq[Substring] =
-    for ( i <- 0 to str.length;
-          j <- (i+1) to str.length ) yield {
-            Substring(str, i, j, str.slice(i,j))
-         }
-
-  def count[T](seq: Seq[T]): Map[T,List[T]] = {
-    val counts = new mutable.HashMap[T,List[T]] {
-      override def default(x:T) = List[T]()
-    }
-    for ( s <- seq ) {
-      counts(s) = s :: counts(s)
-    }
-    return counts.toMap
-  }
-
-  // def minimals(set: Set[Substring]): Set[Substring] =
-  //   set.filter(str => {
-  //     ( str.length <= 1 || !(set contains str.head_removed) ) &&
-  //     ( str.length <= 1 || !(set contains str.last_removed) )
-  //   })
-
-  def minimals(set: Set[(Int,Int)]): Set[(Int,Int)] =
-    set.filter(self => {
-      !(set contains Pair(self._1+1, self._2)) &&
-      !(set contains Pair(self._1,   self._2-1))
-    })
-
-  def maximals(set: Set[(Int,Int)]): Set[(Int,Int)] =
-    set.filter(self => {
-      !(set contains Pair(self._1-1, self._2)) &&
-      !(set contains Pair(self._1,   self._2+1))
-    })
-
-  def myMinUniques(str: String, threshold: Int=1) = {
-    val counts = count(substrings(str)).filter(x => x._2.size <= threshold)
-    //minimals(counts.keySet).map(counts).reduce(_++_).map(x => (x.start, x.end - 1)).toList.sorted
-    minimals(counts.values.reduce(_++_).map(x => (x.start, x.end - 1)).toSet).toList.sorted
-  }
-
-  def myMaxRepeats(str: String, threshold: Int=2) = {
-    val counts = count(substrings(str)).filter(x => x._2.size >= threshold)
-    maximals(counts.values.reduce(_++_).map(x => (x.start, x.end - 1)).toSet).toList.sorted
-  }
+  import org.whym.growthring.{NaiveExtremalSubstrings => NES}
 
   import org.whym.growthring.{ExtremalSubstrings => ES}
 
@@ -89,7 +34,7 @@ class TestExtremalSubstrings extends FunSuite {
   }
 
   test("uniques: abaababa") {
-    expectResult(myMinUniques("abaababa")){
+    expectResult(NES.minUniques("abaababa")){
       new ES("abaababa").minUniques
     }
   }
@@ -110,13 +55,13 @@ class TestExtremalSubstrings extends FunSuite {
   }
 
   test("repeats(2): banana") {
-    expectResult(myMaxRepeats("banana")) {
+    expectResult(NES.maxRepeats("banana")) {
       new ES("banana").maxRepeats
     }
   }
 
   test("repeats(2): アブラカダブラ") {
-    expectResult(myMaxRepeats("アブラカダブラ")) {
+    expectResult(NES.maxRepeats("アブラカダブラ")) {
       new ES("アブラカダブラ").maxRepeats
     }
   }
@@ -152,37 +97,37 @@ class TestExtremalSubstrings extends FunSuite {
   }
 
   test("repeats(4): bananan ban") {
-    expectResult(myMaxRepeats("bananan ban", 4)){
+    expectResult(NES.maxRepeats("bananan ban", 4)){
       new ES("bananan ban").maxRepeats(4)
     }
   }
 
   test("repeats(4): ACTATGAAGACAGGATCGATGCTA...") {
-    expectResult(myMaxRepeats("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA", 4)){
+    expectResult(NES.maxRepeats("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA", 4)){
       new ES("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA").maxRepeats(4)
     }
   }
 
   test("repeats(4): 日本国民は...") {
-    expectResult(myMaxRepeats("日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。そもそも国政は、国民の厳粛な信託によるものであって、その権威は国民に由来し、その権力は国民の代表者がこれを行使し、その福利は国民がこれを享受する。これは人類普遍の原理であり、この憲法は、かかる原理に基くものである。われらは、これに反する一切の憲法、法令及び詔勅を排除する。", 4)){
+    expectResult(NES.maxRepeats("日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。そもそも国政は、国民の厳粛な信託によるものであって、その権威は国民に由来し、その権力は国民の代表者がこれを行使し、その福利は国民がこれを享受する。これは人類普遍の原理であり、この憲法は、かかる原理に基くものである。われらは、これに反する一切の憲法、法令及び詔勅を排除する。", 4)){
       new ES("日本国民は、正当に選挙された国会における代表者を通じて行動し、われらとわれらの子孫のために、諸国民との協和による成果と、わが国全土にわたって自由のもたらす恵沢を確保し、政府の行為によって再び戦争の惨禍が起ることのないやうにすることを決意し、ここに主権が国民に存することを宣言し、この憲法を確定する。そもそも国政は、国民の厳粛な信託によるものであって、その権威は国民に由来し、その権力は国民の代表者がこれを行使し、その福利は国民がこれを享受する。これは人類普遍の原理であり、この憲法は、かかる原理に基くものである。われらは、これに反する一切の憲法、法令及び詔勅を排除する。").maxRepeats(4)
     }
   }
 
   test("uniques(2): banana") {
-    expectResult(myMinUniques("banana", 2)){
+    expectResult(NES.minUniques("banana", 2)){
       new ES("banana").minUniques2
     }
   }
 
   test("uniques(2): bananana") {
-    expectResult(myMinUniques("bananana", 2)){
+    expectResult(NES.minUniques("bananana", 2)){
       new ES("bananana").minUniques2
     }
   }
 
   test("uniques(2): ACTATGAAGACAGGATCGATGCTA...") {
-    expectResult(myMinUniques("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA", 2)){
+    expectResult(NES.minUniques("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA", 2)){
       new ES("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA").minUniques2
     }
   }

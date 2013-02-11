@@ -19,9 +19,18 @@ object Main extends Logging {
     //! -Dunhide で指定したパターンは強制表示
     val str = strings.mkString("\n")
     logger.debug(f"${str.size}%d characters, ${method}, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length, covering type '${covering}'.")
-    val es = new ExtremalSubstrings(str, method)
-    val covered = for ( (s, e) <- es.maxRepeats(freq)
-                       if e - s >= min_len ) yield (s, e)
+    val covered = method match {
+      case "naive" => {
+        import org.whym.growthring.{NaiveExtremalSubstrings => NES}
+        for ( (s, e) <- NES.maxRepeats(str, freq)
+             if e - s >= min_len ) yield (s, e)
+      }
+      case x => {
+        val es = new ExtremalSubstrings(str, method)
+        for ( (s, e) <- es.maxRepeats(freq)
+             if e - s >= min_len ) yield (s, e)
+      }
+    }
     logger.debug(f"${covered.size}%d coverings.")
     val flags = covering match {
       case "greedy" =>             Covering.greedy(str.toCharArray, covered)
