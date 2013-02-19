@@ -19,9 +19,15 @@ object Covering {
     rp.map(x => (x._1 to x._2).toList).foldLeft(Set[Int]())(_++_).toSet
 
   def greedy[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
-    val max = (rp.map(_._2) ++ Seq(0)).max
-    val flags = Array.fill(max + 2)(false)
-    for ( (s,e) <- rp.sortBy(x => ((x._1 - x._2), x._1, x._2)) ) {
+    val sorted = new mutable.HashMap[Int,mutable.Set[(Int,Int)]] with mutable.MultiMap[Int, (Int,Int)]
+    for ( ent <- rp ) {
+      sorted.addBinding(ent._1 - ent._2, ent)
+    }
+    val flags = Array.fill(body.size + 2)(false)
+    if ( sorted.size == 0 ) {
+      return Set()
+    }
+    for ( (s,e) <- sorted.keySet.toList.sorted.map(sorted(_).toList).reduce(_++_) ) {
       if ( ( (s == 0) || flags(s-1) == false ) && flags(e+1) == false ) {
         for ( i <- s to e ) {
           flags(i) = true
@@ -32,8 +38,7 @@ object Covering {
   }
 
   def greedyConservative[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
-    val max = (rp.map(_._2) ++ Seq(0)).max
-    val flags = Array.fill(max + 2)(false)
+    val flags = Array.fill(body.size + 2)(false)
     val invalidated = new mutable.HashMap[IndexedSeq[T], Int]{ override def default(x:IndexedSeq[T]) = 0 }
     val groups = rp.groupBy(x => body.slice(x._1, x._2+1).toIndexedSeq)
     val min_freq = groups.map(_._2.size).min
@@ -53,8 +58,7 @@ object Covering {
 
   def greedySliced[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
     import scala.collection.mutable.PriorityQueue
-    val max = (rp.map(_._2) ++ Seq(0)).max
-    val flags = Array.fill(max + 2)(false)
+    val flags = Array.fill(body.size + 2)(false)
     val queue = new PriorityQueue[(Int,Int)]()(Ordering.by[(Int,Int),Int](x => x._2 - x._1))
     for ( x <- rp ) {
       queue.enqueue(x)
