@@ -35,13 +35,13 @@ object Main extends Logging {
              if e - s >= min_len ) yield (s, e)
       }
     }
-    logger.debug(f"${covered.size}%d coverings.")
+    logger.debug(f"${covered.size}%d repeats.")
     val flags = covering match {
       case "greedy" =>             Covering.greedy(str.toCharArray, covered)
       case "greedyConservative" => Covering.greedyConservative(str.toCharArray, covered)
       case _        =>             Covering.greedySliced(str.toCharArray, covered)
         }
-    
+    logger.debug(f"${flags.size} characters unsuppressed.")
     Seq(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString)
   }
 
