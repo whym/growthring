@@ -21,8 +21,12 @@ object Main extends Logging {
     logger.debug(f"${str.size}%d characters, ${method}, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length, covering type '${covering}'.")
     val covered = method match {
       case "naive" => {
-        import org.whym.growthring.{NaiveExtremalSubstrings => NES}
-        for ( (s, e) <- NES.maxRepeats(str, freq)
+        for ( (s, e) <- NaiveExtremalSubstrings.maxRepeats(str, freq)
+             if e - s >= min_len ) yield (s, e)
+      }
+      case "ngram" => {
+        val ng = new NgramRepeats(scala.util.Properties.propOrElse("ngramSize", "3").toInt) //! あとで yield(s,e) な部分は anonymize のそとにだす
+        for ( (s, e) <- ng.repeats(str, freq, min_len)
              if e - s >= min_len ) yield (s, e)
       }
       case x => {
