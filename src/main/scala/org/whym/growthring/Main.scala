@@ -19,27 +19,22 @@ object Main extends Logging {
     //! -Dunhide で指定したパターンは強制表示
     val str = strings.mkString("\n")
     logger.debug(f"${str.size}%d characters, ${method}, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length, covering type '${covering}'.")
-    val covered = method match {
+    val covered = for ( (s,e) <- (method match {
       case "naive" => {
-        for ( (s, e) <- NaiveExtremalSubstrings.maxRepeats(str, freq)
-             if e - s >= min_len ) yield (s, e)
+        NaiveExtremalSubstrings.maxRepeats(str, freq)
       }
       case "ngram" => {
-        val ng = new NgramRepeats(scala.util.Properties.propOrElse("ngramSize", "3").toInt) //! あとで yield(s,e) な部分は anonymize のそとにだす
-        for ( (s, e) <- ng.repeats(str, freq, min_len)
-             if e - s >= min_len ) yield (s, e)
+        val n = scala.util.Properties.propOrElse("ngramSize", "3").toInt
+        new NgramRepeats(n).repeats(str, freq, min_len)
       }
       case "word" => {
-        val wd = new WordRepeats() //! あとで yield(s,e) な部分は anonymize のそとにだす
-        for ( (s, e) <- wd.repeats(str, freq, min_len)
-             if e - s >= min_len ) yield (s, e)
+        new WordRepeats().repeats(str, freq, min_len)
       }
       case x => {
-        val es = new ExtremalSubstrings(str, method)
-        for ( (s, e) <- es.maxRepeats(freq)
-             if e - s >= min_len ) yield (s, e)
+        new ExtremalSubstrings(str, method).maxRepeats(freq)
       }
-    }
+    }); if e - s >= min_len ) yield (s,e)
+
     logger.debug(f"${covered.size}%d repeats.")
     val flags = covering match {
       case "greedy" =>             Covering.greedy(str.toCharArray, covered)
