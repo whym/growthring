@@ -18,9 +18,9 @@ import com.typesafe.scalalogging.slf4j.Logging
 object ExtremalSubstrings {
 
   /**
-   * Conversion from a string to an array of unsigned integers.  Needed by org.jsuffixarrays.
+   * Conversion from a string to an array of unsigned chars (in int array).  Needed by org.jsuffixarrays.
    */
-  def stringToUnsigneds(str: String): Array[Int] = {
+  def stringToUchars(str: String): Array[Int] = {
     val array = Array.fill(str.size * 2)(0)
     for ( (x,i) <- str.toCharArray.zipWithIndex ) {
       array(i * 2) = x & 0xFF
@@ -30,7 +30,7 @@ object ExtremalSubstrings {
   }
 
   /**
-   * Removal of overlapping spans (removing longer ones).  Remedy for artifacts caused by the char-unsigned conversion.
+   * Removal of overlapping spans (removing longer ones).  Remedy for artifacts caused by the char-uchar conversion.
    */
   def subsumeLonger(s: Seq[(Int,Int)]): Seq[(Int,Int)] =
     if (s.size == 0) {
@@ -42,7 +42,7 @@ object ExtremalSubstrings {
     }
 
   /**
-   * Removal of overlapping spans (removing shorter ones).  Remedy for artifacts caused by the char-unsigned conversion.
+   * Removal of overlapping spans (removing shorter ones).  Remedy for artifacts caused by the char-uchar conversion.
    */
   def subsumeShorter(s: Seq[(Int,Int)]): Seq[(Int,Int)] =
     if (s.size == 0) {
@@ -86,21 +86,23 @@ object ExtremalSubstrings {
 class ExtremalSubstrings(str: String, method: String = "jsuffixarrays") extends Logging {
   import ExtremalSubstrings._
   logger.info("start extremal substrings")
-  private val arr = stringToUnsigneds(str)
+  private val arr = stringToUchars(str)
   private val (sa, lcp_) = method match {
     case "sais" => {
+      // TODO: 関数にして単体テスト
       import com.sun.jna.{Library, Native, Memory, Pointer}
       trait SAIS extends Library {
-        def sais(s: String, p: Pointer, n: Int): Int
-        def sais_int(s: Pointer, p: Pointer, n: Int, k: Int): Int
+        def sais(s: Pointer, p: Pointer, n: Int): Int
+        //def sais_int(s: Pointer, p: Pointer, n: Int, k: Int): Int
       }
       logger.info("load sais")
       val sais = Native.loadLibrary("sais", classOf[SAIS]).asInstanceOf[SAIS]
-      val mem1 = new Memory(str.size * 4 * 2) //TODO: str.size * 2 に節約
+      val mem1 = new Memory(str.size * 2)
       val mem2 = new Memory(str.size * 4 * 2)
-      mem1.write(0, arr, 0, arr.size)
+      mem1.write(0, arr.map(_.asInstanceOf[Byte]), 0, arr.size)
       logger.info("start sais")
-      sais.sais_int(mem1, mem2, arr.size, 256)
+      sais.sais(mem1, mem2, arr.size)
+      //sais.sais_int(mem1, mem2, arr.size, 256)
       val sa = Array.tabulate(arr.size)(i => mem2.getInt(i * 4))
       logger.info("start lcp")
       (sa, getHeight(arr, sa))

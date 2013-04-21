@@ -27,9 +27,9 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
-  test("string to unsigned: abc") {
+  test("string to uchar: abc") {
     expectResult(List(0x61,0,0x62,0,0x63,0)) {
-      ES.stringToUnsigneds("abc").toList
+      ES.stringToUchars("abc").toList
     }
   }
 
