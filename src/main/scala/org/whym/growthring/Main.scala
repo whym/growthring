@@ -29,6 +29,11 @@ object Main extends Logging {
         for ( (s, e) <- ng.repeats(str, freq, min_len)
              if e - s >= min_len ) yield (s, e)
       }
+      case "word" => {
+        val wd = new WordRepeats() //! あとで yield(s,e) な部分は anonymize のそとにだす
+        for ( (s, e) <- wd.repeats(str, freq, min_len)
+             if e - s >= min_len ) yield (s, e)
+      }
       case x => {
         val es = new ExtremalSubstrings(str, method)
         for ( (s, e) <- es.maxRepeats(freq)
