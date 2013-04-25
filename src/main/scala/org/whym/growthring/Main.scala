@@ -36,12 +36,12 @@ object Main extends Logging {
 
     logger.debug(f"${covered.size}%d repeats.")
     val flags = covering match {
-      case "greedy" =>             Covering.greedy(str.toCharArray, covered, unhide_char)
-      case "greedyConservative" => Covering.greedyConservative(str.toCharArray, covered, unhide_char)
-      case _        =>             Covering.greedySliced(str.toCharArray, covered, unhide_char)
+      case "greedy" =>             Covering.greedy(str.toCharArray, covered)
+      case "greedyConservative" => Covering.greedyConservative(str.toCharArray, covered)
+      case _        =>             Covering.greedySliced(str.toCharArray, covered)
         }
     logger.debug(f"${flags.size} characters unsuppressed.")
-    Seq(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString)
+    Seq(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => if (c == unhide_char) {c} else {cover_char}}).mkString)
   }
 
   def findRepeats(method: String, strings: Seq[String], freq: Int): Seq[String] = {

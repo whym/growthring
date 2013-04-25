@@ -17,40 +17,28 @@ class TestCovering extends FunSuite {
   test("covering greedy") {
     expectResult(Set(0,1,5,6,7,8)) {
       Covering.greedy("abcdefghi".toCharArray,
-                      List((0,1), (3,5), (5,8)),
-                      '\n')
-    }
-  }
-
-  test("covering greedy unhide") {
-    expectResult(Set(0,1,3,4,5)) {
-      Covering.greedy("abcd\nfghi".toCharArray,
-                      List((0,1), (3,5), (5,8)),
-                      '\n')
+                      List((0,1), (3,5), (5,8)))
     }
   }
 
   test("covering greedy conserv") {
     expectResult(Set(0,1,5,6,7,8,10,11)) {
       Covering.greedyConservative("abcdefghi abcdef".toCharArray,
-                                  List((0,1), (3,5), (5,8), (10,11), (13,15)),
-                                  '\n')
+                                  List((0,1), (3,5), (5,8), (10,11), (13,15)))
     }
   }
 
   test("covering greedySliced") {
     expectResult(Set(0,1,3,4,6,7,8,9,10)) {
       Covering.greedySliced("abcdefghijk".toCharArray,
-                            List((0,1), (3,6), (6,10)),
-                            '\n')
+                            List((0,1), (3,6), (6,10)))
     }
   }
 
   test("covering greedySliced 2") {
     expectResult(List(0,1,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18).sorted) {
       Covering.greedySliced("abcdefghijklmnopqrs".toCharArray,
-                            List((0,4), (3,10), (10,18)),
-                            '\n').toList.sorted
+                            List((0,4), (3,10), (10,18))).toList.sorted
     }
   }
 

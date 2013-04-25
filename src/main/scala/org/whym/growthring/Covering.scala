@@ -15,21 +15,13 @@ import scala.collection.mutable
  * @author Yusuke Matsubara <whym@whym.org>
  */
 object Covering {
-  def findElement[T](body: Seq[T], div: T): Seq[Int] = body.zipWithIndex.collect{ case (x,i) if x == div => i }
-  def splitRepeats(rp: Seq[(Int,Int)], ins: Seq[Int]): Seq[(Int,Int)] = {
-    // insertRepeats
-    rp ++ ins.map(x => (x,x))
-  }
 
-  def greedy[T](body: Array[T], rp: Seq[(Int,Int)], unhide: T): Set[Int] = {
+  def greedy[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val sorted = new mutable.HashMap[Int,mutable.Set[(Int,Int)]] with mutable.MultiMap[Int, (Int,Int)]
     for ( ent <- rp ) {
       sorted.addBinding(ent._1 - ent._2, ent)
     }
     val flags = Array.fill(body.size + 2)(false)
-    for ( i <- findElement(body, unhide) ) {
-      flags(i) = true
-    }
     if ( sorted.size == 0 ) {
       return Set()
     }
@@ -43,12 +35,9 @@ object Covering {
     return flags.zipWithIndex.filter(_._1).map(_._2).toSet
   }
 
-  def greedyConservative[T](body: IndexedSeq[T], rp: Seq[(Int,Int)], unhide: T): Set[Int] = {
+  def greedyConservative[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val flags = Array.fill(body.size + 2)(false)
     val invalidated = new mutable.HashMap[IndexedSeq[T], Int]{ override def default(x:IndexedSeq[T]) = 0 }
-    for ( i <- findElement(body, unhide) ) {
-      flags(i) = true
-    }
     val groups = rp.groupBy(x => body.slice(x._1, x._2+1).toIndexedSeq)
     val min_freq = groups.map(_._2.size).min
     for ( (seg, ls) <- groups.toList.sortBy(x => (- x._1.size, x._2.size)) ) {
@@ -65,12 +54,9 @@ object Covering {
     return flags.zipWithIndex.filter(_._1).map(_._2).toSet
   }
 
-  def greedySliced[T](body: IndexedSeq[T], rp: Seq[(Int,Int)], unhide: T): Set[Int] = {
+  def greedySliced[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
     import scala.collection.mutable.PriorityQueue
     val flags = Array.fill(body.size + 2)(false)
-    for ( (c,i) <- body.zipWithIndex; if c == unhide ) {
-      flags(i) = true
-    }
     val queue = new PriorityQueue[(Int,Int)]()(Ordering.by[(Int,Int),Int](x => x._2 - x._1))
     for ( x <- rp ) {
       queue.enqueue(x)
