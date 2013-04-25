@@ -15,8 +15,9 @@ import com.typesafe.scalalogging.slf4j.Logging
 object Main extends Logging {
 
   def anonymize(method: String, strings: Seq[String], min_len: Int, cover_char: Char, freq: Int, covering: String): Seq[String] = {
+    import scala.util.matching.Regex
     val str = strings.mkString("\n")
-    val unhide_char = scala.util.Properties.propOrElse("unhide", "\n")(0)
+    val unhide_pattern = scala.util.Properties.propOrElse("unhide", "[ \t\n]")
     logger.debug(f"${str.size}%d characters, ${method}, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length, covering type '${covering}'.")
     val covered = for ( (s,e) <- (method match {
       case "naive" => {
@@ -41,7 +42,9 @@ object Main extends Logging {
       case _        =>             Covering.greedySliced(str.toCharArray, covered)
         }
     logger.debug(f"${flags.size} characters unsuppressed.")
-    Seq(str.zip(Array.tabulate(str.length)(i => flags(i))).map(_ match {case (c,true) => c; case (c,false) => if (c == unhide_char) {c} else {cover_char}}).mkString)
+    val unhides = (new Regex(unhide_pattern) findAllMatchIn str).map(x => Range(x.start,x.end).toList).reduce(_++_).toSet
+    val mflags = flags ++ unhides
+    Seq(str.zip(Array.tabulate(str.length)(i => mflags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString)
   }
 
   def findRepeats(method: String, strings: Seq[String], freq: Int): Seq[String] = {
