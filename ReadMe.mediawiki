@@ -2,8 +2,8 @@ __NOTOC__
 = GrowthRing =
 ''This software is heavily under development.''
 
-'''GrowthRing''' visualizes how a document grows over revisions.
-It contains:
+'''GrowthRing''' is a collections of attempts to visualize how a
+document grows over revisions. It contains:
 * a multiple sequence alignment tool for texts, written in Scala.
 * an interactive demo of text de-identification.
 
@@ -27,4 +27,4 @@ It contains:
 
 == Credits ==
 * Yusuke Matsubara <nowiki><whym@whym.org></nowiki>
-* See [http://meta.wikimedia.org/wiki/Talk:Vision/ja meta:Talk:Vision/ja?action=history] for credits of the texts in sample_input.txt
+* See [http://meta.wikimedia.org/wiki/Talk:Vision/ja meta:Talk:Vision/ja?action=history] for credits of the texts contained in sample_input.txt
