@@ -4,7 +4,6 @@
 """ Split input text with the hiding marker ('_' by default), count frequencies of all strings and substrings, and ensure they all above the given the threshold.  By default instead of attempting all substrings, it randomly chooses and tests 1000 substrings. """
 
 def number_of_matches(pattern, text):
-    # return len([x for x in re.finditer(re.escape(pattern), text)])
     start = -1
     matches = 0
     while True:
