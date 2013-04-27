@@ -17,9 +17,11 @@ class TestWordRepeats extends FunSuite {
 
   test("word repeats") {
     expectResult(List((0, 3),
-                      (11,14))) {
+                      (11,14),
+                      (16, 16),
+                      (20, 20))) {
       import org.whym.growthring.{WordRepeats => WR}
-      new WR().repeats("abra  cad  abra", 2).sorted
+      new WR().repeats("abra  cad  abra :\nx\n:\n", 2).sorted
     }
   }
 

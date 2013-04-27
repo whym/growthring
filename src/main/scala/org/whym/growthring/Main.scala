@@ -28,12 +28,12 @@ object Main extends Logging {
         new NgramRepeats(n).repeats(str, freq, min_len)
       }
       case "word" => {
-        new WordRepeats().repeats(str, freq, min_len)
+        new WordRepeats().repeats(str, freq)
       }
       case x => {
         new ExtremalSubstrings(str, method).maxRepeats(freq)
       }
-    }); if e - s >= min_len ) yield (s,e)
+    }); if e - s + 1 >= min_len ) yield (s,e)
 
     logger.debug(f"${covered.size}%d repeats.")
     val flags = covering match {
