@@ -7,7 +7,13 @@ import re
 import sys
 from collections import defaultdict
 
-def load(st):
+def load_unlabeled(st):
+    for line in st:
+        a = line.split("\t", 2)
+        a = a[0].strip()
+        yield a
+
+def load_labeled(st):
     for line in st:
         a = [x.strip() for x in line.split("\t", 2)]
         if len(a) == 0:
@@ -44,10 +50,16 @@ def mcnemar_significance(contig):
     return significant
 
 def fmeasure_precition_recall(flags):
-    print flags
     p = float(flags[(True,True)]) / (flags[(False,True)] + flags[(True,True)])
     r = float(flags[(True,True)]) / (flags[(True,True)] + flags[(True,False)])
     return (2.0 / ( ( 1.0 / p ) + ( 1.0 / r ) ), p, r)
+
+def convert(system, tag='PHI', ratio=0.5, suppchar='_'):
+    from validate_frequency import number_of_matches
+    for line in system:
+        line = line.strip()
+        n = number_of_matches(suppchar, line)
+        yield (line, tag if float(n) / len(line) >= ratio else '')
 
 if __name__ == '__main__':
     import argparse
@@ -55,20 +67,37 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--wildcard',
                         dest='wildcard', type=str, default='_',
                         help='')
+    parser.add_argument('-r', '--ratio',
+                        dest='ratio', type=lambda x: [float(y) for y in x.split(',')], default=[0.5],
+                        help='')
+    parser.add_argument('-t', '--tag',
+                        dest='tag', type=str, default='PHI',
+                        help='')
     parser.add_argument('-o', '--output', metavar='FILE',
                         dest='output', type=lambda x: open(x, 'w'), default=sys.stdout,
+                        help='')
+    parser.add_argument('-d', '--detail-output', metavar='FILE',
+                        dest='doutput', type=lambda x: open(x, 'w'), default=sys.stdout,
                         help='')
     parser.add_argument('-v', '--verbose',
                         dest='verbose', action='store_true', default=False,
                         help='turn on verbose message output')
     parser.add_argument('expect')
-    parser.add_argument('system')
+    parser.add_argument('system', nargs='+')
     options = parser.parse_args()
     
-    contig = defaultdict(int)
-    for (stoken,slabel,etoken,elabel,res) in evaluate(load(open(options.expect)), load(open(options.system)), options.wildcard):
-        print >>options.output, '%s\t%s\t%s\t%s\t%s' % (stoken,slabel,etoken,elabel,res)
-        contig[(elabel != '', slabel != '')] += 1
+    import csv
+    writer = csv.writer(options.output)
+    writer.writerow(['# filename', 'threshold', 'total', 'tp', 'tn', 'fp', 'fn', 'sig', 'fmeas', 'prec', 'reca'])
+    for system in options.system:
+        for ratio in options.ratio:
+            contig = defaultdict(int)
+            for (stoken,slabel,etoken,elabel,res) in evaluate(load_labeled(open(options.expect)),
+                                                              convert(load_unlabeled(open(system)), options.tag, ratio, options.wildcard),
+                                                              options.wildcard):
+                print >>options.doutput, '# %s\t%s\t%s\t%s\t%s' % (stoken,slabel,etoken,elabel,res)
+                contig[(elabel != '', slabel != '')] += 1
 
-    print >>sys.stderr, 'mcnemar significance: %s' % ('yes' if mcnemar_significance(contig) else 'no')
-    print >>sys.stderr, 'f measure: %.3f (p %.3f, r %.3f)' % fmeasure_precition_recall(contig)
+            writer.writerow([system, ratio, sum(contig.values()), contig[(True,True)], contig[(False,False)], contig[(True,False)], contig[(False, True)], ('yes' if mcnemar_significance(contig) else 'no')] + \
+                                ['%.4f' % x for x in fmeasure_precition_recall(contig)])
+

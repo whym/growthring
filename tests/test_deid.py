@@ -24,18 +24,19 @@ GF	PHI
                                           [('A__D', 'PHI'),
                                            ('ABCD', ''),
                                            ('G', '')]))
-        self.assertEqual([('A__D', 'PHI','PHI','TP'),
-                          ('ABCD', '','','TN'),
-                          ('G', '','PHI','FP')], res)
+        self.assertEqual([('A__D', 'PHI', 'ABCD', 'PHI','TP'),
+                          ('ABCD', '', 'ABCD', '', 'TN'),
+                          ('G', '', 'G', 'PHI','FP')], res)
 
     def test_ratio(self):
         inp = StringIO('''A__D	
 ABCD
 _
 ''')
-        res = list(ratio_deid.convert(inp))
+        res = list(evaluate_deid.convert(inp, ratio=0.5))
         self.assertEqual([('A__D', 'PHI'),
-                          ('ABCD', '')],
+                          ('ABCD', ''),
+                          ('_', 'PHI')],
                          res)
 
     def test_convert(self):
