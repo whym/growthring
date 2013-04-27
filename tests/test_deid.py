@@ -31,6 +31,7 @@ GF	PHI
     def test_ratio(self):
         inp = StringIO('''A__D	
 ABCD
+_
 ''')
         res = list(ratio_deid.convert(inp))
         self.assertEqual([('A__D', 'PHI'),

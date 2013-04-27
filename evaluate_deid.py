@@ -5,6 +5,7 @@
 
 import re
 import sys
+from collections import defaultdict
 
 def load(st):
     for line in st:
@@ -31,7 +32,22 @@ def evaluate(expect, system, suppchar='_'):
         if not match(stoken,etoken,suppchar):
             print >>sys.stderr, 'error: %s vs %s' % (etoken,stoken)
             next
-        yield (stoken,slabel,elabel, ('T' if slabel == elabel else 'F') + ('N' if elabel == '' else 'P'))
+        yield (stoken,slabel,etoken,elabel, ('T' if slabel == elabel else 'F') + ('N' if elabel == '' else 'P'))
+
+def mcnemar_significance(contig):
+    import mcnemar
+    significant = not mcnemar.mcnemar(contig[(True,True)],
+                                      contig[(True,False)],
+                                      contig[(False,True)],
+                                      contig[(False,False)],
+                                      alpha = 0.05, verbose=False)
+    return significant
+
+def fmeasure_precition_recall(flags):
+    print flags
+    p = float(flags[(True,True)]) / (flags[(False,True)] + flags[(True,True)])
+    r = float(flags[(True,True)]) / (flags[(True,True)] + flags[(True,False)])
+    return (2.0 / ( ( 1.0 / p ) + ( 1.0 / r ) ), p, r)
 
 if __name__ == '__main__':
     import argparse
@@ -49,5 +65,10 @@ if __name__ == '__main__':
     parser.add_argument('system')
     options = parser.parse_args()
     
-    for (stoken,slabel,elabel,res) in evaluate(load(open(options.expect)), load(open(options.system)), options.wildcard):
-        print '%s\t%s\t%s\t%s' % (stoken,slabel,elabel,res)
+    contig = defaultdict(int)
+    for (stoken,slabel,etoken,elabel,res) in evaluate(load(open(options.expect)), load(open(options.system)), options.wildcard):
+        print >>options.output, '%s\t%s\t%s\t%s\t%s' % (stoken,slabel,etoken,elabel,res)
+        contig[(elabel != '', slabel != '')] += 1
+
+    print >>sys.stderr, 'mcnemar significance: %s' % ('yes' if mcnemar_significance(contig) else 'no')
+    print >>sys.stderr, 'f measure: %.3f (p %.3f, r %.3f)' % fmeasure_precition_recall(contig)
