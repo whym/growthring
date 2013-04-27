@@ -42,7 +42,14 @@ object Main extends Logging {
       case _        =>             Covering.greedySliced(str.toCharArray, covered)
         }
     logger.debug(f"${flags.size} characters unsuppressed.")
-    val unhides = (new Regex(unhide_pattern) findAllMatchIn str).map(x => Range(x.start,x.end).toList).reduce(_++_).toSet
+    import scala.collection.mutable
+    val unhides = new mutable.HashSet[Int]
+    for ( x <- (new Regex(unhide_pattern) findAllMatchIn str) ) {
+      for ( i <- Range(x.start,x.end) ) {
+        unhides(i) = true
+      }
+    }
+    logger.debug(f"${unhides.size} matched to regex ${unhide_pattern}.")
     val mflags = flags ++ unhides
     Seq(str.zip(Array.tabulate(str.length)(i => mflags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString)
   }
@@ -72,6 +79,11 @@ object Main extends Logging {
       io.Source.fromInputStream(System.in).getLines.toList
     })
     logger.debug(f"${strings.size}%d lines.")
+
+    import scala.sys
+    sys.addShutdownHook {
+      logger.info("**** shutdown ****")
+    }
 
     Properties.propOrElse("mode", "anonym") match {
       case "multiple-anonym" =>
