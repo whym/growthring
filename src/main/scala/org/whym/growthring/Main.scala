@@ -37,10 +37,14 @@ object Main extends Logging {
 
     logger.debug(f"${covered.size}%d repeats.")
     val flags = covering match {
-      case "greedy" =>             Covering.greedy(str.toCharArray, covered)
+      case "greedyLength" =>       Covering.greedyLength(str.toCharArray, covered)
       case "greedyConservative" => Covering.greedyConservative(str.toCharArray, covered)
-      case _        =>             Covering.greedySliced(str.toCharArray, covered)
-        }
+      case "greedySliced" =>       Covering.greedySliced(str.toCharArray, covered)
+      case _        =>             {
+        logger.debug("using default covering algorithm")
+        Covering.greedyLengthFreq(str.toCharArray, covered)
+      }
+    }
     logger.debug(f"${flags.size} characters unsuppressed.")
     import scala.collection.mutable
     val unhides = new mutable.HashSet[Int]

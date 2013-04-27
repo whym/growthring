@@ -16,16 +16,35 @@ import scala.collection.mutable
  */
 object Covering {
 
-  def greedy[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedyLength[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val sorted = new mutable.HashMap[Int,mutable.Set[(Int,Int)]] with mutable.MultiMap[Int, (Int,Int)]
-    for ( ent <- rp ) {
+     for ( ent <- rp ) {
       sorted.addBinding(ent._1 - ent._2, ent)
+     }
+     val flags = Array.fill(body.size + 2)(false)
+     if ( sorted.size == 0 ) {
+       return Set()
+     }
+    for ( (s,e) <- sorted.keySet.toList.sorted.map(sorted(_).toList).reduce(_++_) ) {
+      if ( ( (s == 0) || flags(s-1) == false ) && flags(e+1) == false ) {
+        for ( i <- s to e ) {
+          flags(i) = true
+        }
+      }
+    }
+    return flags.zipWithIndex.filter(_._1).map(_._2).toSet
+  }
+
+  def greedyLengthFreq[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+    val sorted = new mutable.HashMap[Seq[T],mutable.Set[(Int,Int)]] with mutable.MultiMap[Seq[T], (Int,Int)]
+    for ( ent <- rp ) {
+      sorted.addBinding(body.slice(ent._1, ent._2+1), ent)
     }
     val flags = Array.fill(body.size + 2)(false)
     if ( sorted.size == 0 ) {
       return Set()
     }
-    for ( (s,e) <- sorted.keySet.toList.sorted.map(sorted(_).toList).reduce(_++_) ) {
+    for ( (s,e) <- sorted.keySet.toList.sortBy(x => (-sorted(x).size, -x.size)).map(sorted(_).toList).reduce(_++_) ) {
       if ( ( (s == 0) || flags(s-1) == false ) && flags(e+1) == false ) {
         for ( i <- s to e ) {
           flags(i) = true

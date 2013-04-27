@@ -37,7 +37,7 @@ class TestWordRepeats extends FunSuite {
     expectResult(List(0, 1, 2, 3, 9, 10, 11, 12)) {
       import org.whym.growthring.{WordRepeats => WR}
       val r = new WR().repeats("abra cad abra", 2)
-      Covering.greedy("abra cad abra".toCharArray, r).toList.sorted
+      Covering.greedyLength("abra cad abra".toCharArray, r).toList.sorted
     }
   }
 }

@@ -14,10 +14,17 @@ import org.scalatest.FunSuite
  */
 class TestCovering extends FunSuite {
 
-  test("covering greedy") {
+  test("covering greedy length") {
     expectResult(Set(0,1,5,6,7,8)) {
-      Covering.greedy("abcdefghi".toCharArray,
-                      List((0,1), (3,5), (5,8)))
+      Covering.greedyLength("abcdefghi".toCharArray,
+                            List((0,1), (3,5), (5,8)))
+    }
+  }
+
+  test("covering greedy length and size") {
+    expectResult(Set(0,1,5,6,7,8)) {
+      Covering.greedyLengthFreq("abcdefghi".toCharArray,
+                                List((0,1), (3,5), (5,8)))
     }
   }
 

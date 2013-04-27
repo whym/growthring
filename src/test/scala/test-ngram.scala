@@ -51,7 +51,7 @@ class TestNgramRepeats extends FunSuite {
     expectResult(List(0, 1, 2, 5, 7, 8, 9)) {
       import org.whym.growthring.{NgramRepeats => NR}
       val r = new NR(3).repeats("abracadabra", 2)
-      Covering.greedy("abracadabra".toCharArray, r).toList.sorted
+      Covering.greedyLength("abracadabra".toCharArray, r).toList.sorted
     }
   }
 }
