@@ -51,7 +51,7 @@ def mcnemar_significance(contig):
 
 def fmeasure_precition_recall(flags):
     p = float(flags[(True,True)]) / (flags[(False,True)] + flags[(True,True)])
-    r = float(flags[(True,True)]) / (flags[(True,True)] + flags[(True,False)])
+    r = float(flags[(True,True)]) / (flags[(True,False)] + flags[(True,True)])
     return (2.0 / ( ( 1.0 / p ) + ( 1.0 / r ) ), p, r)
 
 def convert(system, tag='PHI', ratio=0.5, suppchar='_'):
@@ -98,6 +98,13 @@ if __name__ == '__main__':
                 print >>options.doutput, '# %s\t%s\t%s\t%s\t%s' % (stoken,slabel,etoken,elabel,res)
                 contig[(elabel != '', slabel != '')] += 1
 
-            writer.writerow([system, ratio, sum(contig.values()), contig[(True,True)], contig[(False,False)], contig[(True,False)], contig[(False, True)], ('yes' if mcnemar_significance(contig) else 'no')] + \
+            writer.writerow([system,
+                             ratio,
+                             sum(contig.values()),
+                             contig[(True,True)],
+                             contig[(False,False)],
+                             contig[(False, True)],
+                             contig[(True,False)],
+                             ('yes' if mcnemar_significance(contig) else 'no')] + \
                                 ['%.4f' % x for x in fmeasure_precition_recall(contig)])
 
