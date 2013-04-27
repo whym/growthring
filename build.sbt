@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
   "net.liftweb"       %% "lift-json"     % "2.5-M4",
   "org.scalatest"     %% "scalatest"     % "2.0.M5b" % "test",
   "com.typesafe"      %% "scalalogging-slf4j" % "1.0.1",
+  "com.typesafe"       % "config" % "1.0.0",
   "org.slf4j"          % "slf4j-api"     % "1.7.1",
   "ch.qos.logback"     % "logback-classic" % "1.0.7",
   "org.mockito"        % "mockito-core"  % "1.9.0" % "test",

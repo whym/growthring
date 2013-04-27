@@ -14,17 +14,20 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 object Main extends Logging {
 
+  import com.typesafe.config.ConfigFactory
+  val config = ConfigFactory.load()
+
   def anonymize(method: String, strings: Seq[String], min_len: Int, cover_char: Char, freq: Int, covering: String): Seq[String] = {
     import scala.util.matching.Regex
     val str = strings.mkString("\n")
-    val unhide_pattern = scala.util.Properties.propOrElse("unhide", "[ \t\n]")
+    val unhide_pattern = config.getString("unhide")
     logger.debug(f"${str.size}%d characters, ${method}, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length, covering type '${covering}'.")
     val covered = for ( (s,e) <- (method match {
       case "naive" => {
         NaiveExtremalSubstrings.maxRepeats(str, freq)
       }
       case "ngram" => {
-        val n = scala.util.Properties.propOrElse("ngramSize", "3").toInt
+        val n = config.getInt("ngramSize")
         new NgramRepeats(n).repeats(str, freq, min_len)
       }
       case "word" => {
@@ -74,7 +77,6 @@ object Main extends Logging {
   def main(args: Array[String]) {
     logger.info("**** main begin ****")
     import scala.io
-    import scala.util.Properties
     import scala.xml.parsing.XhtmlParser
 
     val strings = (if (args.length > 0) {
@@ -89,23 +91,25 @@ object Main extends Logging {
       logger.info("**** shutdown ****")
     }
 
-    Properties.propOrElse("mode", "anonym") match {
+    config.getString("mode") match {
       case "multiple-anonym" =>
-        for ( config <- XhtmlParser(io.Source.fromFile(Properties.propOrElse("configFile", "config.xml"))) \\ "config" ) {
+        logger.debug("multiple-anonym is not implemented")
+        for ( config <- XhtmlParser(io.Source.fromFile(config.getString("configFile"))) \\ "config" ) {
           println((config \ "file").text)
         }
       case "anonym" =>
-        for ( s <- anonymize(Properties.propOrElse("sufMethod", "jsuffixarrays"),
+        for ( s <- anonymize(config.getString("sufMethod"),
                              strings,
-                             Properties.propOrElse("minLen", "2").toInt,
-                             Properties.propOrElse("coverChar", "_")(0),
-                             Properties.propOrElse("repeats", "2").toInt,
-                             Properties.propOrElse("cover", "greedySliced")) ) {
+                             config.getInt("minLen").toInt,
+                             config.getString("coverChar")(0),
+                             config.getInt("repeats").toInt,
+                             config.getString("cover")) ) {
           println(s)
         }
       case "repeats" =>
-        for ( s <- findRepeats(Properties.propOrElse("sufMethod", "jsuffixarrays"),
-                               strings, Properties.propOrElse("repeats", "2").toInt) ) {
+        for ( s <- findRepeats(config.getString("sufMethod"),
+                               strings,
+                               config.getInt("repeats").toInt) ) {
           println(s)
         }
       case _ => {
