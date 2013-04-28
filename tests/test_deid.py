@@ -5,7 +5,7 @@ import unittest
 import convert_deid, evaluate_deid, ratio_deid
 from StringIO import StringIO
 
-class TesttDeid(unittest.TestCase):
+class TestDeid(unittest.TestCase):
     def setUp(self):
         None
 
