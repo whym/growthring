@@ -17,7 +17,9 @@ class TestMain extends FunSuite {
 
   test("anonymize") {
     expectResult(List("a bc __\nbc a")) {
-                        Main.anonymize("word", Seq("a bc aa", "bc a"), 1, '_', 2, "greedy")
+                        Main.anonymize(new WordRepeats().repeats,
+                                       Covering.greedyLengthFreq,
+                                       Seq("a bc aa", "bc a"), 1, '_', 2, "[ \\n]")
     }
   }
 }

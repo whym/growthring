@@ -54,7 +54,7 @@ object Covering {
     return flags.zipWithIndex.filter(_._1).map(_._2).toSet
   }
 
-  def greedyConservative[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedyConservative[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val flags = Array.fill(body.size + 2)(false)
     val invalidated = new mutable.HashMap[IndexedSeq[T], Int]{ override def default(x:IndexedSeq[T]) = 0 }
     val groups = rp.groupBy(x => body.slice(x._1, x._2+1).toIndexedSeq)
@@ -73,7 +73,7 @@ object Covering {
     return flags.zipWithIndex.filter(_._1).map(_._2).toSet
   }
 
-  def greedySliced[T](body: IndexedSeq[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedySliced[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     import scala.collection.mutable.PriorityQueue
     val flags = Array.fill(body.size + 2)(false)
     val queue = new PriorityQueue[(Int,Int)]()(Ordering.by[(Int,Int),Int](x => x._2 - x._1))
