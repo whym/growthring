@@ -80,8 +80,8 @@ object Main extends Logging {
       case "anonym" => {
         val rmethodstr = config.getString("repeatsMethod")
         val cmethodstr = config.getString("coveringMethod")
-        logger.debug("repeats type '${rmethodstr}'")
-        logger.debug("covering type '${cmethodstr}'")
+        logger.debug(f"repeats type '${rmethodstr}'")
+        logger.debug(f"covering type '${cmethodstr}'")
         val rmethod: (String,Int)=>Seq[(Int,Int)] = config.getString("repeatsMethod") match {
           case "naive" =>  NaiveExtremalSubstrings.maxRepeats
           case "word"  =>  new WordRepeats().repeats
