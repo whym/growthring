@@ -79,6 +79,9 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--detail-output', metavar='FILE',
                         dest='doutput', type=lambda x: open(x, 'w'), default=sys.stdout,
                         help='')
+    parser.add_argument('-s', '--skip-significance',
+                        dest='skipsig', action='store_true', default=False,
+                        help='turn on verbose message output')
     parser.add_argument('-v', '--verbose',
                         dest='verbose', action='store_true', default=False,
                         help='turn on verbose message output')
@@ -98,6 +101,12 @@ if __name__ == '__main__':
                 print >>options.doutput, '# %s\t%s\t%s\t%s\t%s' % (stoken,slabel,etoken,elabel,res)
                 contig[(elabel != '', slabel != '')] += 1
 
+            sig = 'unknown'
+            fm = ['nan','nan','nan']
+            if len(contig.values()) > 0 and min(contig.values()) > 0:
+                if not options.skipsig:
+                    sig = 'yes' if mcnemar_significance(contig) else 'no'
+                fm = ['%.4f' % x for x in fmeasure_precition_recall(contig)]
             writer.writerow([system,
                              ratio,
                              sum(contig.values()),
@@ -105,6 +114,5 @@ if __name__ == '__main__':
                              contig[(False,False)],
                              contig[(False, True)],
                              contig[(True,False)],
-                             ('yes' if mcnemar_significance(contig) else 'no')] + \
-                                ['%.4f' % x for x in fmeasure_precition_recall(contig)])
+                             sig] + fm)
 
