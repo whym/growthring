@@ -28,7 +28,7 @@ object Covering {
     //TODO: spans(x._1) = x._2 なる配列を使ったほうが速そう
   }
 
-  def exhaustive(rp: Seq[(Int,Int)]): Set[Int] =
+  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
     rp.toSet.subsets.max(Ordering.by[Set[(Int,Int)],Int](x =>
       (if (hasOverlap(x)) { Int.MinValue } else { x.map(y => (1 + y._2 - y._1)).sum }))).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
 

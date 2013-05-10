@@ -17,14 +17,22 @@ object Main extends Logging {
   def anonymize(rmethod: (String,Int)=>Seq[(Int,Int)],
                 cmethod: (Array[Char], Seq[(Int,Int)]) => Set[Int],
                 strings: Seq[String],
-                min_len: Int, cover_char: Char, freq: Int, unhide_pattern: String=""): Seq[String] = {
+                min_len: Int,
+                cover_char: Char,
+                freq: Int,
+                unhide_pattern: String="",
+                _start: Int,
+                _end: Int): Seq[String] = {
     import scala.util.matching.Regex
     val str = strings.mkString("\n")
     logger.debug(f"${str.size}%d characters, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length.")
     val covered = for ( (s,e) <- rmethod(str, freq); if e - s + 1 >= min_len ) yield (s,e)
 
-    logger.debug(f"${covered.size}%d repeats.")
-    val flags = cmethod(str.toCharArray, covered)
+    val start = if (_start >= 0) {_start} else {0}
+    val end = if (_end > 0) {_end} else {str.length}
+    val coveredFiltered = covered.filter(x => (start <= x._1  && x._1 < end) || (start <= x._2 && x._2 < end))
+    logger.debug(f"${coveredFiltered.size}%d / ${covered.size}%d repeats from ${start}%d to ${end}%d.")
+    val flags = cmethod(str.toCharArray, coveredFiltered)
     logger.debug(f"${flags.size} characters unsuppressed.")
     import scala.collection.mutable
     val unhides = new mutable.HashSet[Int]
@@ -35,7 +43,7 @@ object Main extends Logging {
     }
     logger.debug(f"${unhides.size} matched to regex ${unhide_pattern}.")
     val mflags = flags ++ unhides
-    Seq(str.zip(Array.tabulate(str.length)(i => mflags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString)
+    str.zip(Array.tabulate(str.length)(i => mflags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString.slice(start, end).split('\n').toSeq
   }
 
   def findRepeats(method: String, strings: Seq[String], freq: Int): Seq[String] = {
@@ -93,6 +101,7 @@ object Main extends Logging {
           case "greedyLength" =>       Covering.greedyLength
           case "greedyConservative" => Covering.greedyConservative
           case "greedySliced" =>       Covering.greedySliced
+          case "exhaustive" =>         Covering.exhaustive
           case _        =>             {
             logger.debug("using default covering algorithm")
             Covering.greedyLengthFreq
@@ -104,7 +113,9 @@ object Main extends Logging {
                              config.getInt("minLen").toInt,
                              config.getString("coverChar")(0),
                              config.getInt("repeats").toInt,
-                             config.getString("unhide")) ) {
+                             config.getString("unhide"),
+                             config.getInt("start"),
+                             config.getInt("end")) ) {
           println(s)
         }
       }

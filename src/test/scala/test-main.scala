@@ -16,10 +16,11 @@ import scala.collection.mutable
 class TestMain extends FunSuite {
 
   test("anonymize") {
-    expectResult(List("a bc __\nbc a")) {
+    expectResult(List("a bc __","bc a")) {
                         Main.anonymize(new WordRepeats().repeats,
                                        Covering.greedyLengthFreq,
-                                       Seq("a bc aa", "bc a"), 1, '_', 2, "[ \\n]")
+                                       Seq("a bc aa", "bc a"), 1, '_', 2, "[ \\n]",
+                                       0, -1).toList
     }
   }
 }
