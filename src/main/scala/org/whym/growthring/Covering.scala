@@ -16,46 +16,37 @@ import scala.collection.mutable
  */
 object Covering {
 
-  def hasOverlap(rp: Set[(Int,Int)]): Boolean = {
-    for ( x <- rp ) {
-      for ( y <- rp ) {
-        if (x != y && ( (x._2 - y._1 + 2) * (x._1 - y._2 - 2) < 0 )) {
-          return true
-        }
-      }
+  def overlaps(x: (Int,Int), y: (Int,Int)) =
+    (x != y && ( (x._2 - y._1 + 2) * (x._1 - y._2 - 2) < 0 ))
+
+  def hasOverlap(xx: Iterable[(Int,Int)], yy: Iterable[(Int,Int)]): Boolean = {
+    for ( x <- xx; y <- yy; if overlaps(x, y) ) {
+      return true
     }
     return false
     //TODO: spans(x._1) = x._2 なる配列を使ったほうが速そう
   }
 
-  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
+  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+    val remains = mutable.ListBuffer(rp)
+    val cands = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
+    cands.append(mutable.ListBuffer(rp.head))
+    cands.append(mutable.ListBuffer(rp.tail.head))
+    for ( r <- rp.tail.tail ) {
+      val cands2 = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
+      for ( s <- cands ) {
+        if ( !overlaps(s.last, r) ) {
+          cands2.append(s :+ r)
+        }
+      }
+      cands.appendAll(cands2)
+    }
+    cands.max(Ordering.by[Iterable[(Int,Int)],Int](x => x.map(y => (1 + y._2 - y._1)).sum)).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
+  }
+
+  def exhaustive2[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
     rp.toSet.subsets.max(Ordering.by[Set[(Int,Int)],Int](x =>
-      (if (hasOverlap(x)) { Int.MinValue } else { x.map(y => (1 + y._2 - y._1)).sum }))).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
-
-  // def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
-  //   val spans =  Array.fill(body.size)(-1)
-  //   for ( r <- rp ) {
-  //     spans(r._1) = r._2 + 1
-  //   }
-  //   def next(b: Int): Seq[Int] = {
-  //     var i = 0
-  //     var e = Int.MaxValue
-  //     val ret = new mutable.ListBuffer[Int]
-  //     while ( i < e ) {
-  //       if ( spans(i) >= 0 ) {
-  //         ret.append(i)
-  //         if ( e == Int.MaxValue ) {
-  //           e = spans(i)
-  //         }
-  //       }
-  //     }
-  //     return ret
-  //   }
-
-    
-
-  //   return Set()
-  // }
+      if (hasOverlap(x, x)) { Int.MinValue } else { x.map(y => (1 + y._2 - y._1)).sum })).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
 
   def greedyLength[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val sorted = new mutable.HashMap[Int,mutable.Set[(Int,Int)]] with mutable.MultiMap[Int, (Int,Int)]
