@@ -27,6 +27,41 @@ object Covering {
     //TODO: spans(x._1) = x._2 なる配列を使ったほうが速そう
   }
 
+  def exhaustive3[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+    val remains = new mutable.ListBuffer[(Int,Int)]
+    remains.appendAll(rp)
+    val cands = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
+    if ( remains.size == 0 ) {
+      return Set.empty[Int]
+    }
+    val h = remains.head
+    remains.drop(1)
+    def withdrawOverlapping(e: Int): Seq[(Int,Int)] = {
+      val ret = new mutable.ListBuffer[(Int,Int)]
+      while ( remains.size > 0  &&  remains.head._1 <= e + 1 ) {
+        ret.append(remains.head)
+        remains.drop(1)
+      }
+      ret
+    }
+    for ( r <- (h +: withdrawOverlapping(h._2)) ) {
+      cands.append(mutable.ListBuffer(r))
+    }
+    while ( remains.size > 0 ) {
+      val h = remains.head
+      val cands2 = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
+      for ( s <- cands ) {
+        if ( !overlaps(s.last, h) ) {
+          for ( r <- (h +: withdrawOverlapping(h._2)) ) {
+            cands2.append(s :+ r)
+          }
+        }
+      }
+      cands.appendAll(cands2)
+    }
+    cands.max(Ordering.by[Iterable[(Int,Int)],Int](x => x.map(y => (1 + y._2 - y._1)).sum)).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
+  }
+
   def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val remains = mutable.ListBuffer(rp)
     val cands = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
