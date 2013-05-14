@@ -18,7 +18,7 @@ def merge_trusting_system1_unhidden(system1, system2, wildcard, ratio=0.8):
 
     for (s1,s2) in zip(system1,system2):
         n = number_of_matches(wildcard, s1)
-        if float(n) / len(s1) >= ratio:
+        if float(n) / len(s1) <= ratio:
             yield s1
         else:
             yield s2

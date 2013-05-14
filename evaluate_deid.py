@@ -38,7 +38,7 @@ def evaluate(expect, system, suppchar='_'):
         if not match(stoken,etoken,suppchar):
             print >>sys.stderr, 'error: %s vs %s' % (etoken,stoken)
             next
-        yield (stoken,slabel,etoken,elabel, ('T' if slabel == elabel else 'F') + ('N' if elabel == '' else 'P'))
+        yield (stoken,slabel,etoken,elabel, ('T' if slabel == elabel else 'F') + ('N' if slabel == '' else 'P'))
 
 def mcnemar_significance(contig):
     import mcnemar
