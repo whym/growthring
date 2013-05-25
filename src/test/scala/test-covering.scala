@@ -51,19 +51,19 @@ class TestCovering extends FunSuite {
 
   
 
-  test("covering exhaustive") {
-    expectResult(List(0,1,2,3,10,11,12,13,14,15,16,17,18)) {
-      Covering.exhaustive("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
-    }
-  }
-  test("covering exhaustive2") {
-    expectResult(List(0,1,2,3,10,11,12,13,14,15,16,17,18)) {
-      Covering.exhaustive2("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
-    }
-  }
-  test("covering exhaustive3") {
-    expectResult(List(0,1,2,3,10,11,12,13,14,15,16,17,18)) {
-      Covering.exhaustive3("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
-    }
-  }
+  // test("covering exhaustive") {
+  //   expectResult(List(0,1,2,3,10,11,12,13,14,15,16,17,18)) {
+  //     Covering.exhaustive("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
+  //   }
+  // }
+  // test("covering exhaustive2") {
+  //   expectResult(List(0,1,2,3,10,11,12,13,14,15,16,17,18)) {
+  //     Covering.exhaustive2("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
+  //   }
+  // }
+  // test("covering exhaustive3") {
+  //   expectResult(List(0,1,2,3,10,11,12,13,14,15,16,17,18)) {
+  //     Covering.exhaustive3("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
+  //   }
+  // }
 }
