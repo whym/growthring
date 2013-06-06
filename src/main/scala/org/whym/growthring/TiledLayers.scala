@@ -16,7 +16,17 @@ import scala.collection.mutable
  */
 object TiledLayers {
 
-  def greedyTiling[T](body: Array[T], rp: Seq[(Int,Int)]): Seq[Set[(Int,Int)]] = {
+  abstract class Cell(id: Int) extends Ordered[Cell] {
+    protected def getId = this.id
+    override def compare(that: Cell) = this.getId - that.getId
+  }
+  case class Begin()   extends Cell(1)
+  case class End()     extends Cell(2)
+  case class Inside()  extends Cell(3)
+  case class Outside() extends Cell(4)
+  case class Single()  extends Cell(5)
+
+  def greedyTilingCore[T](body: Array[T], rp: Seq[(Int,Int)]): Seq[Set[Int]] = {
     val starts = Array.fill(body.size)(-1)
     val ends = Array.fill(body.size)(-1)
     for ( (r,i) <- rp.zipWithIndex ) {
@@ -35,7 +45,7 @@ object TiledLayers {
         if ( res(i) ) {
           cur += i
           res -= i
-          n = rp(i)._2
+          n = rp(i)._2 + 1
         } else {
           n += 1
         }
@@ -43,7 +53,28 @@ object TiledLayers {
       ret.append(cur.toSet)
       cur.clear
     }
-    return ret.map{s => s.map(rp)}
+    ret
+  }
+  def greedyTiling[T](body: Array[T], rp: Seq[(Int,Int)]): Seq[IndexedSeq[Cell]] = {
+    var c = 1
+    val cov = greedyTilingCore(body, rp).map{
+      s => {
+        val ar = Array.fill(body.size)(-1)
+        for ( n <- s;
+             r = rp(n) ) {
+          for ( i <- Range(r._1, r._2+1) ) {
+            ar(i) = c
+          }
+          c += 1
+        }
+        ((-1 +: -1 +: ar), (-1 +: ar :+ -1), (ar :+ -1 :+ -1)).zipped.map{
+          case (_,  -1,  _) => Outside()
+          case (-1, _ , -1) => Single()
+          case (x,  y  , z)  => (if ( x == y && y == z ) { Inside() } else if ( x == y ) { End() } else if ( y == z ) { Begin() } else { Single() })
+        }.slice(1, body.size+1).toIndexedSeq
+      }
+    }.toList
+    return cov
   }
 
 }

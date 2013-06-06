@@ -52,6 +52,10 @@ function get_time() {
   return new Date().getTime();
 }
 
+function make_table(str, trs) {
+  return '<table><thead>' + str.split('').map(function(x){ return '<th>'+x+'</th>';}).join('') + '</thead><tbody>' + trs + '</tbody></table>';
+}
+
 function update() {
   // ask the servlet, retrieve the result, and update the placeholder of the reuslt
   var query = $('#edit').val();
@@ -81,7 +85,7 @@ function update() {
       var url = document.location.href.split('?')[0] + '?q=' + query;
       $('#permalink').attr('href', url);
       $('#permalinkbox').val(url);
-      $('#resultmessage').text((get_time() - before_query) + " msecs");
+      $('#resultmessage').text((get_time() - before_query) + " msecs" + "\n").append(make_table(query, json.layers_html));
       state.lastQueryHash = query.hashCode();
     },
     error: function(jqXHR, textStatus, errorThrown) {

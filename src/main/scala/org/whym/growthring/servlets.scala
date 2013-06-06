@@ -82,6 +82,20 @@ class FindRepeatsServlet extends HttpServlet {
       case (char, false) => (if (0x00 <= char && char <= 0xFF) {"_"} else {"__"})
     }.reduce(_+_)
 
+    val layers_plain = TiledLayers.greedyTiling(str.toCharArray, repeats_deepest.regions)
+    import org.whym.growthring.{TiledLayers => TL}
+    val cell2char: TL.Cell => String = {
+        case TL.Outside() => "O"
+        case TL.Single()  => "S"
+        case TL.Begin()   => "B"
+        case TL.End()     => "E"
+        case TL.Inside()  => "I"
+    }
+    val layers_html = if (layers_plain.size == 0) {""} else {
+      layers_plain.map{
+        s => "<tr>" + s.map(x => "<td>" + cell2char(x) + "</td>").mkString + "</tr>"
+      }.reduce(_+_)
+    }
     val writer = resp.getWriter
     req.getParameter("format") match {
       case "plain" => {
@@ -95,6 +109,8 @@ class FindRepeatsServlet extends HttpServlet {
             JObject(List(JField("plain", masked_plain),
                          JField("chart", chart),
                          JField("html", masked_html),
+                         JField("layers", JArray(List[JValue](layers_plain.map(l => l.map(cell2char))))),
+                         JField("layers_html", layers_html),
                          JField("max_repeats",
                                 repeats.map{rp => JArray(List[JValue](
                                   rp.threshold,

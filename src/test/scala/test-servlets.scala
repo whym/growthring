@@ -62,31 +62,32 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
       json \ "chart"
     }
   }
+
   test("find repeats (list)"){
     expectResult(JArray(List(JArray(List(2,
-                                   List(List(1, 3),
-                                        List(3, 4),
-                                        List(8, 10),
-                                        List(12, 12)))),
-                       JArray(List(4,
-                                   List(List(1, 1),
-                                        List(3, 3),
-                                        List(8, 8),
-                                        List(10, 10),
-                                        List(12, 12)))),
-                       JArray(List((8),
-                                   JArray(List())))))) {
+                                         List(List(1, 3),
+                                              List(3, 4),
+                                              List(8, 10),
+                                              List(12, 12)))),
+                             JArray(List(4,
+                                         List(List(1, 1),
+                                              List(3, 3),
+                                              List(8, 8),
+                                              List(10, 10),
+                                              List(12, 12)))),
+                             JArray(List((8),
+                                         JArray(List())))))) {
       json \ "max_repeats"
     }
   }
-  
+
   test("find repeats (plain#2)") {
     expectResult(JString("abra___abra")) {
       json2 \ "plain"
     }
     expectResult(JArray(List(JArray(List(2,
-                                   List(List(0, 3),
-                                        List(7, 10))))))) {
+                                         List(List(0, 3),
+                                              List(7, 10))))))) {
       json2 \ "max_repeats"
     }
   }
@@ -96,4 +97,17 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
       json2 \ "html"
     }
   }
+
+  test("find repeats (layers)"){
+    expectResult(JArray(List(JArray(List(JArray(List("B", "I", "I", "E", "O", "O", "O", "B", "I", "I", "E"))))))) {
+      json2 \ "layers"
+    }
+  }
+  
+  test("find repeats (layers html)"){
+    expectResult(JString("<tr><td>B</td><td>I</td><td>I</td><td>E</td><td>O</td><td>O</td><td>O</td><td>B</td><td>I</td><td>I</td><td>E</td></tr>")) {
+      json2 \ "layers_html"
+    }
+  }
+
 }
