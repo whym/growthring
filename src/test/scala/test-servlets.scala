@@ -12,8 +12,9 @@ import java.io.{Writer, PrintWriter, StringWriter}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import net.liftweb.json.{JsonParser, JString, JField, JArray, JValue}
-import net.liftweb.json.JsonDSL._
+import org.json4s.{JString, JField, JArray, JValue}
+import org.json4s.native.JsonParser
+import org.json4s.JsonDSL._
 
 /**
  *

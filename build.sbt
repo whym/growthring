@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "net.java.dev.jna"   % "jna"           % "3.2.2",
   "org.apache.commons" % "commons-lang3" % "3.1",
   "javax.servlet"      % "servlet-api"   % "2.5",
-  "net.liftweb"       %% "lift-json"     % "2.5-M4",
+  "org.json4s"        %% "json4s-native" % "3.2.4",
   "org.scalatest"     %% "scalatest"     % "2.0.M5b" % "test",
   "com.typesafe"      %% "scalalogging-slf4j" % "1.0.1",
   "com.typesafe"       % "config" % "1.0.0",

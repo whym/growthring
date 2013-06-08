@@ -9,8 +9,9 @@ package org.whym.growthring
 import scala.collection.JavaConverters._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import javax.servlet.ServletConfig
-import net.liftweb.json.{JObject, JField, JArray, JValue, JsonAST, Printer}
-import net.liftweb.json.JsonDSL._
+import org.json4s.{JObject, JField, JArray, JValue, JsonAST}
+import org.json4s.native.{Printer, JsonMethods}
+import org.json4s.JsonDSL._
 
 /**
  * servlet to receive a pair of strings and returns repeating substrings.
@@ -105,7 +106,7 @@ class FindRepeatsServlet extends HttpServlet {
       case _ => {
         resp.setContentType("application/json")
         writer.println(
-          Printer.pretty(JsonAST.render(
+          Printer.pretty(JsonMethods.render(
             JObject(List(JField("plain", masked_plain),
                          JField("chart", chart),
                          JField("html", masked_html),
