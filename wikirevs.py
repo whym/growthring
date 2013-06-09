@@ -52,7 +52,8 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', type=str, default='-',
                         help='')
     parser.add_argument('-b', '--baseurl', default='http://en.wikipedia.org/w/')
-    parser.add_argument('-f', '--format', choices=['json', 'plain'], default='plain',
+    parser.add_argument('-a', '--attributes', type=lambda x: x.split(','), default=['id', 'text'])
+    parser.add_argument('-f', '--format', choices=['json', 'plain', 'csv'], default='plain',
                         help='')
     parser.add_argument('title')
     options = parser.parse_args()
@@ -68,6 +69,11 @@ if __name__ == '__main__':
     if options.format == 'json':
         import json
         json.dump(revs, options.output)
+    elif options.format == 'csv':
+        import csv
+        writer = csv.writer(options.output)
+        for r in revs:
+            writer.writerow([r[x] for x in options.attributes])
     else:
         for r in revs:
             print >>options.output, repr(r['text'])
