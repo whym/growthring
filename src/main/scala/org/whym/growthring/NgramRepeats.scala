@@ -22,22 +22,3 @@ class NgramRepeats(val n: Int) {
     pos.filter(_._2.size >= k).keys.map(x => pos(x).map(y => (y - x.length + 1, y)).toSet).reduce(_++_).toList
   }
 }
-
-class NgramQueue[T](val minSize: Int, val maxSize: Int) {
-  val queues = (minSize to maxSize).foldLeft(List[SlidingQueue[T]]()) {
-    (list, n) =>
-      new SlidingQueue[T](n) :: list
-  }
-
-  def getNgrams() = queues.filter(q => q.size == q.maxSize)
-  def enqueue(token: T) = queues.foreach(q => q.enqueue(token))
-}
-
-class SlidingQueue[A](val maxSize : Int) extends mutable.Queue[A] {
-  override def enqueue(elems: A*) = {
-    elems.foreach(super.enqueue(_))
-    while (this.size > this.maxSize) {
-      this.dequeue()
-    }
-  }
-}

@@ -15,6 +15,11 @@ import scala.collection.mutable
  */
 class TestNgramRepeats extends FunSuite {
 
+  test("ngram blame") {
+    expectResult(Set((0,3,0), (3,5,1))) {
+      NgramBlame.blameGreedy("abcde", Vector("abcDE", "ABcde"), 3)
+    }
+  }
   test("ngram queue") {
     expectResult(List(List("abc", "d"),
                       List("abc", "d", "e"),
@@ -29,7 +34,7 @@ class TestNgramRepeats extends FunSuite {
       val ng = new NQ[String](2, 4)
       (for ( s <- Seq("abc", "d", "e", "f", "ghi") ) yield {
         ng enqueue s
-        ng.getNgrams.map(_.toList)
+        ng.getNgrams
       }).reduce(_++_)
     }
   }
