@@ -33,3 +33,5 @@ class SlidingQueue[A](val maxSize : Int) extends mutable.Queue[A] {
     }
   }
 }
+
+// TODO: オブジェクトの生成の頻度を抑える（lazy にする）。ハッシュ値を rotate hash の方法で求め、記憶しておく。

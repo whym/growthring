@@ -14,6 +14,15 @@
     <url-pattern>/find-repeats</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>wikiblame</servlet-name>
+    <servlet-class>org.whym.growthring.WikiBlameServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>wikiblame</servlet-name>
+    <url-pattern>/wikiblame</url-pattern>
+  </servlet-mapping>
+
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>

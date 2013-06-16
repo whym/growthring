@@ -1,11 +1,11 @@
 package org.whym.growthring
 
-import java.net.{HttpURLConnection,InetSocketAddress}
+import java.net.{HttpURLConnection,InetSocketAddress,ServerSocket}
 import java.io.IOException
 import com.sun.net.httpserver.{HttpServer,HttpHandler,HttpExchange}
 
 object SimpleHttpServer {
-  class MyHandler(path: String, body: String, ctype: String) extends HttpHandler {
+  class MyHandler(body: String, ctype: String) extends HttpHandler {
     @throws[IOException] override def handle(exchange: HttpExchange) {
       val response = body.getBytes();
       exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK,
@@ -23,15 +23,24 @@ object SimpleHttpServer {
       val ctype = if (body.size > 0 && body(0) == '<') { "text/xml" }
                   else if (body.size > 0 && body(0) == '{') { "application/json" }
                   else { "text/plain" }
-      httpServer.createContext(path, new MyHandler(path, body, ctype))
+      httpServer.createContext(if (path(0) == '/') { path } else {"/"+path}, new MyHandler(body, ctype))
     }
     httpServer
   }
 
+  def findFreeAddress(): InetSocketAddress = {
+    val sock = new ServerSocket(0)
+    val addr = new InetSocketAddress(sock.getLocalPort)
+    sock.close
+    addr
+  }
+
   def main(args: Array[String]) {
     import scala.util.Properties.{propOrElse => p}
-    val s = create(p("host", "localhost"), p("port", "8111").toInt,
-                   Range(1, 10).map(x => (p("path"+x, ""), p("body"+x, ""))).toMap)
+    val addr = findFreeAddress()
+    val s = create(p("host", "localhost"), p("port", addr.getPort.toString).toInt,
+                   Range(1, 10).map(x => (p("path"+x, x.toString), p("body"+x, ""))).toMap)
+    System.err.println(f"host: ${s.getAddress}")
     s.start
   }
 }

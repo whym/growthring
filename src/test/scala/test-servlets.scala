@@ -4,15 +4,14 @@
  *
  */
 
-package org.whym.growthring
-
+import org.whym.growthring._
 import scala.collection.JavaConverters._
 import org.scalatest.FunSuite
 import java.io.{Writer, PrintWriter, StringWriter}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.json4s.{JString, JField, JArray, JValue}
+import org.json4s.{JInt, JString, JField, JArray, JValue}
 import org.json4s.native.JsonParser
 import org.json4s.JsonDSL._
 
@@ -111,4 +110,91 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
     }
   }
 
+}
+
+class TestWikiBlameServlet extends FunSuite with MockitoSugar {
+  def get(): JValue = {
+    val response = mock[HttpServletResponse]
+    val request = mock[HttpServletRequest]
+    val stringWriter = new StringWriter
+    val printWriter = new PrintWriter(stringWriter)
+    
+    val addr = SimpleHttpServer.findFreeAddress()
+    val port = addr.getPort
+
+    when(response.getWriter()).thenReturn(printWriter)
+    when(request.getParameter("base")).thenReturn("http://localhost:" + port)
+    when(request.getParameter("title")).thenReturn("Main_page")
+    when(request.getParameter("n")).thenReturn("3")
+    
+    SimpleHttpServer.create("localhost", port,
+                            Map(("/index.php", <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:
+//www.mediawiki.org/xml/export-0.8/ http://www.mediawiki.org/xml/export-0.8.xsd" version="0.8" xml:lang="ja">
+  <siteinfo>
+    <sitename>MyLocalWiki</sitename>
+    <base></base>
+    <generator>MediaWiki 1.22alpha</generator>
+    <case>case-sensitive</case>
+    <namespaces>
+    </namespaces>
+  </siteinfo>
+  <page>
+    <title>Main Page</title>
+    <ns>0</ns>
+    <id>1</id>
+    <revision>
+      <id>1200</id>
+      <parentid>1199</parentid>
+      <timestamp>2013-06-04T12:00:00Z</timestamp>
+      <contributor>
+        <ip>0:0:0:0:0:0:0:1</ip>
+      </contributor>
+      <text xml:space="preserve" bytes="6">aaaccc</text>
+      <sha1></sha1>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+    </revision>
+    <revision>
+      <id>1201</id>
+      <parentid>1200</parentid>
+      <timestamp>2013-06-04T12:10:00Z</timestamp>
+      <contributor>
+        <ip>0:0:0:0:0:0:0:1</ip>
+      </contributor>
+      <text xml:space="preserve" bytes="6">aaabbb</text>
+      <sha1></sha1>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+    </revision>
+    <revision>
+      <id>1202</id>
+      <parentid>1201</parentid>
+      <timestamp>2013-06-04T12:20:00Z</timestamp>
+      <contributor>
+        <ip>0:0:0:0:0:0:0:1</ip>
+      </contributor>
+      <text xml:space="preserve" bytes="6">bbbccc</text>
+      <sha1></sha1>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+    </revision>
+  </page>
+</mediawiki>.toString))).start
+    TestSimpleHttpServer.waitUntilPrepared(addr, 1000L)
+    new WikiBlameServlet().doGet(request, response)
+    return JsonParser.parse(stringWriter.toString)
+  }
+  val json = get()
+
+  test("wiki blame"){
+    expectResult(JString("Main_page")) {
+      json \ "title"
+    }
+    expectResult(JInt(3)) {
+      json \ "nrevs"
+    }
+    expectResult(JString("""<span class="rev1" title="1201, 2013-06-04T12:10:00Z">aaa</span><span class="rev2" title="1202, 2013-06-04T12:20:00Z">ccc</span>""")) {
+      json \ "html"
+    }
+  }
 }

@@ -12,9 +12,10 @@ import javax.servlet.ServletConfig
 import org.json4s.{JObject, JField, JArray, JValue, JsonAST}
 import org.json4s.native.{Printer, JsonMethods}
 import org.json4s.JsonDSL._
+import scala.io
 
 /**
- * servlet to receive a pair of strings and returns repeating substrings.
+ * a servlet to receive a string and returns and visualizes repeated substrings in it.
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */
@@ -121,3 +122,70 @@ class FindRepeatsServlet extends HttpServlet {
     }
   }
 }
+
+
+/**
+ * a servlet to receive a string and returns and visualizes repeated substrings in it.
+ *
+ * @author Yusuke Matsubara <whym@whym.org>
+ */
+class WikiBlameServlet extends HttpServlet {
+
+  override def init(config: ServletConfig) {
+  }
+
+  override def doPost(req: HttpServletRequest, resp: HttpServletResponse) = doGet(req, resp)
+
+  override def doGet(req: HttpServletRequest, resp: HttpServletResponse) {
+    resp.setCharacterEncoding("UTF-8")
+    val title = req.getParameter("title")
+    val ng    = Option(req.getParameter("n")).getOrElse("30").toInt
+    val mrevs = Option(req.getParameter("max")).getOrElse("100").toInt
+    val base  = Option(req.getParameter("base")).getOrElse("http://en.wikipedia.org/w")
+    val revisions  = WikiBlameServlet.getRevs(title, base, mrevs)
+    val revs = revisions.map(_.body)
+    val spans = NgramBlame.blameGreedy(revs(0), revs.slice(1, revs.size).toIndexedSeq, ng)
+    val starts = spans.map(x => (x._1, x._3+1)).toMap
+    val ends   = spans.map(_._2).toSet
+
+    System.err.println("revs: " + revs) //!
+    System.err.println("spans: " + spans) //!
+    System.err.println("starts: " + starts) //!
+    System.err.println("ends: " + ends) //!
+
+    val html = revs(0).zipWithIndex.map{
+      case (c,i) => {
+        (starts.get(i) match {
+          case Some(x) => f"""<span class="rev${x}%d" title="${revisions(x).id}%d, ${revisions(x).timestamp}%s">""" + c
+          case _ => c.toString
+        }) + (if (ends.contains(i+1)) {
+          "</span>"
+        } else {
+          ""
+        })
+      }
+    }.mkString("")
+
+    // write response
+    val writer = resp.getWriter
+    resp.setContentType("application/json")
+    writer.println(
+      Printer.pretty(JsonMethods.render(
+        JObject(List(JField("title", title),
+                     JField("nrevs", revs.size),
+                     JField("html", html))))))
+  }
+}
+
+object WikiBlameServlet {
+  case class Revision(timestamp: String, id: Int, body: String)
+
+  def getRevs(title: String, base: String, maxRevs: Int): Seq[Revision] = {
+    import scala.xml.parsing.XhtmlParser
+    val url = f"${base}%s/index.php?title=Special:Export&pages=${title}%s&history"
+    (XhtmlParser(io.Source.fromURL(url)) \\ "revision").map{
+      rev => Revision((rev \ "timestamp").text.toString, (rev \ "id").text.toInt, (rev \ "text").text.toString)
+    }.sorted(Ordering.by[Revision,Int](_.id))
+  }
+}
+

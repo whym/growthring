@@ -15,11 +15,6 @@ import scala.collection.mutable
  */
 class TestNgramRepeats extends FunSuite {
 
-  test("ngram blame") {
-    expectResult(Set((0,3,0), (3,5,1))) {
-      NgramBlame.blameGreedy("abcde", Vector("abcDE", "ABcde"), 3)
-    }
-  }
   test("ngram queue") {
     expectResult(List(List("abc", "d"),
                       List("abc", "d", "e"),
