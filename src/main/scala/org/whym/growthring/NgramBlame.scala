@@ -10,6 +10,19 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 object NgramBlame {
+
+  def concat(spans: Seq[(Int,Int,Int)]): Seq[(Int,Int,Int)] = {
+    val ret = new mutable.ArrayBuffer[(Int,Int,Int)]
+    for ( s <- spans ) {
+      if ( ret.size > 0 &&  ret.last._3 == s._3  &&  ret.last._2 == s._1 ) {
+        ret(ret.size-1) = (ret.last._1, s._2, s._3)
+      } else {
+        ret.append(s)
+      }
+    }
+    ret
+  }
+
   def blameGreedy(body: String, revs: IndexedSeq[String], n: Int): Set[(Int, Int, Int)] = {
     val ng = new NgramQueue[Char](n, n)
     val pos = new mutable.HashMap[Seq[Char], Int]
@@ -21,7 +34,7 @@ object NgramBlame {
       }
     }
     var m = -1
-    (for ( i <- 0 to (body.size - n) ) yield {
+    concat((for ( i <- 0 to (body.size - n) ) yield {
       val r = pos.getOrElse(body.slice(i, i+n), -1)
       (i, i+n, r)
     }).filter(_ match {case (_,_,r) => r >= 0}).map{
@@ -31,6 +44,7 @@ object NgramBlame {
         m = m max r._2
         rr
       }
-    }.filter(x => x._1 < x._2).toSet
+    }.filter(x => x._1 < x._2)).toSet
   }
+
 }
