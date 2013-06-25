@@ -148,10 +148,10 @@ class WikiBlameServlet extends HttpServlet {
     val starts = spans.map(x => (x._1, x._3+1)).toMap
     val ends   = spans.map(_._2).toSet
 
-    System.err.println("revs: " + revs) //!
-    System.err.println("spans: " + spans) //!
-    System.err.println("starts: " + starts) //!
-    System.err.println("ends: " + ends) //!
+    // System.err.println("revs: " + revs) //!
+    // System.err.println("spans: " + spans) //!
+    // System.err.println("starts: " + starts) //!
+    // System.err.println("ends: " + ends) //!
 
     val html = revs(0).zipWithIndex.map{
       case (c,i) => {
@@ -173,6 +173,8 @@ class WikiBlameServlet extends HttpServlet {
       Printer.pretty(JsonMethods.render(
         JObject(List(JField("title", title),
                      JField("nrevs", revs.size),
+                     JField("rev_id", revisions(0).id),
+                     JField("timestamp", revisions(0).timestamp),
                      JField("html", html))))))
   }
 }
@@ -185,7 +187,7 @@ object WikiBlameServlet {
     val url = f"${base}%s/index.php?title=Special:Export&pages=${title}%s&history"
     (XhtmlParser(io.Source.fromURL(url)) \\ "revision").map{
       rev => Revision((rev \ "timestamp").text.toString, (rev \ "id").text.toInt, (rev \ "text").text.toString)
-    }.sorted(Ordering.by[Revision,Int](_.id))
+    }.sorted(Ordering.by[Revision,String](_.timestamp)).reverse
   }
 }
 

@@ -193,7 +193,10 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
     expectResult(JInt(3)) {
       json \ "nrevs"
     }
-    expectResult(JString("""<span class="rev1" title="1201, 2013-06-04T12:10:00Z">aaa</span><span class="rev2" title="1202, 2013-06-04T12:20:00Z">ccc</span>""")) {
+    expectResult(JInt(1202)) {
+      json \ "rev_id"
+    }
+    expectResult(JString("""<span class="rev1" title="1201, 2013-06-04T12:10:00Z">bbb</span><span class="rev2" title="1200, 2013-06-04T12:00:00Z">ccc</span>""")) {
       json \ "html"
     }
   }
