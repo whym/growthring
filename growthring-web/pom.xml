@@ -10,7 +10,7 @@
 
     <properties>
         <appengine.app.version>1-develop</appengine.app.version>
-        <appengine.target.version>1.7.4</appengine.target.version>
+        <appengine.target.version>1.8.1.1</appengine.target.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
