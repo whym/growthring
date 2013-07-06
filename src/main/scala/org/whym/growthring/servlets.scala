@@ -143,8 +143,26 @@ class WikiBlameServlet extends HttpServlet {
     val mrevs = Option(req.getParameter("max")).getOrElse("100").toInt
     val base  = Option(req.getParameter("base")).getOrElse("http://en.wikipedia.org/w")
     val revisions  = WikiBlameServlet.getRevs(title, base, mrevs)
+    val html = WikiBlameServlet.getHtml(revisions, ng)
+    // write response
+    val writer = resp.getWriter
+    resp.setContentType("application/json")
+    writer.println(
+      Printer.pretty(JsonMethods.render(
+        JObject(List(JField("title", title),
+                     JField("nrevs", revisions.size),
+                     JField("rev_id", revisions(0).id),
+                     JField("timestamp", revisions(0).timestamp),
+                     JField("html", html))))))
+  }
+}
+
+object WikiBlameServlet {
+  case class Revision(timestamp: String, id: Int, body: String)
+
+  def getHtml(revisions: Seq[Revision], n: Int) = {
     val revs = revisions.map(_.body)
-    val spans = NgramBlame.blameGreedy(revs(0), revs.slice(1, revs.size).toIndexedSeq, ng)
+    val spans = NgramBlame.blameGreedy(revs(0), revs.slice(1, revs.size).toIndexedSeq, n)
     val starts = spans.map(x => (x._1, x._3+1)).toMap
     val ends   = spans.map(_._2).toSet
 
@@ -165,22 +183,8 @@ class WikiBlameServlet extends HttpServlet {
         })
       }
     }.mkString("")
-
-    // write response
-    val writer = resp.getWriter
-    resp.setContentType("application/json")
-    writer.println(
-      Printer.pretty(JsonMethods.render(
-        JObject(List(JField("title", title),
-                     JField("nrevs", revs.size),
-                     JField("rev_id", revisions(0).id),
-                     JField("timestamp", revisions(0).timestamp),
-                     JField("html", html))))))
+    html
   }
-}
-
-object WikiBlameServlet {
-  case class Revision(timestamp: String, id: Int, body: String)
 
   def getRevs(title: String, base: String, maxRevs: Int): Seq[Revision] = {
     import scala.xml.parsing.XhtmlParser

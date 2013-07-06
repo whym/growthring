@@ -1,0 +1,17 @@
+@(title: String, content: String)
+
+@main("wikiblame") {
+  <style type="text/css">
+.rev5 {background: #555;}
+.rev4 {background: #777;}
+.rev3 {background: #999;}
+.rev2 {background: #BBB;}
+.rev1 {background: #DDD;}
+  </style>
+    
+  <h1>WikiBlame - "@title"</h1>
+ 
+  <pre>
+  @Html(content)
+  </pre>
+}
