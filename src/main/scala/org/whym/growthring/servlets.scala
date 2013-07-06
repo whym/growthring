@@ -13,6 +13,7 @@ import org.json4s.{JObject, JField, JArray, JValue, JsonAST}
 import org.json4s.native.{Printer, JsonMethods}
 import org.json4s.JsonDSL._
 import scala.io
+import org.apache.commons.lang3.{StringEscapeUtils => seu}
 
 /**
  * a servlet to receive a string and returns and visualizes repeated substrings in it.
@@ -174,8 +175,8 @@ object WikiBlameServlet {
     val html = revs(0).zipWithIndex.map{
       case (c,i) => {
         (starts.get(i) match {
-          case Some(x) => f"""<span class="rev${x}%d" title="${revisions(x).id}%d, ${revisions(x).timestamp}%s">""" + c
-          case _ => c.toString
+          case Some(x) => f"""<span class="rev${x}%d" title="${revisions(x).id}%d, ${revisions(x).timestamp}%s">""" + seu.escapeHtml4(c.toString)
+          case _ => seu.escapeHtml4(c.toString)
         }) + (if (ends.contains(i+1)) {
           "</span>"
         } else {

@@ -173,7 +173,7 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
       <contributor>
         <ip>0:0:0:0:0:0:0:1</ip>
       </contributor>
-      <text xml:space="preserve" bytes="6">bbbccc</text>
+      <text xml:space="preserve" bytes="7">bbb&lt;ccc</text>
       <sha1></sha1>
       <model>wikitext</model>
       <format>text/x-wiki</format>
@@ -196,7 +196,7 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
     expectResult(JInt(1202)) {
       json \ "rev_id"
     }
-    expectResult(JString("""<span class="rev1" title="1201, 2013-06-04T12:10:00Z">bbb</span><span class="rev2" title="1200, 2013-06-04T12:00:00Z">ccc</span>""")) {
+    expectResult(JString("""<span class="rev1" title="1201, 2013-06-04T12:10:00Z">bbb</span>&lt;<span class="rev2" title="1200, 2013-06-04T12:00:00Z">ccc</span>""")) {
       json \ "html"
     }
   }
