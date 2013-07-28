@@ -6,7 +6,7 @@
 GET     /                           controllers.Application.index
 
 # WikiBlame
-GET     /wikiblame                  controllers.Application.wikiblameFormReq
+GET     /wikiblame                  controllers.Application.wikiblameForm
 POST    /wikiblame                  controllers.Application.wikiblameFormReq
 
 # Map static resources from the /public folder to the /assets URL path

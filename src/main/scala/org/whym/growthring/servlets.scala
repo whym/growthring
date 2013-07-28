@@ -159,18 +159,22 @@ class WikiBlameServlet extends HttpServlet {
 }
 
 object WikiBlameServlet {
-  case class Revision(timestamp: String, id: Int, body: String)
+  case class VersionedString(timestamp: String, id: Int, body: String, depth: Int)
 
-  def getHtml(revisions: Seq[Revision], n: Int) = {
+  def getSpans(revisions: Seq[VersionedString], n: Int): Seq[VersionedString]  = {
+    val revs = revisions.map(_.body)
+    val spans = NgramBlame.blameGreedy(revs(0), revs.slice(1, revs.size).toIndexedSeq, n)
+    spans.toList.sorted(Ordering.by[(Int,Int,Int),Int](_._1)).map {
+      case (s,e,i) => 
+        VersionedString(revisions(i).timestamp, revisions(i).id, revs(0).slice(s, e), i)
+    }
+  }
+
+  def getHtml(revisions: Seq[VersionedString], n: Int): String = {
     val revs = revisions.map(_.body)
     val spans = NgramBlame.blameGreedy(revs(0), revs.slice(1, revs.size).toIndexedSeq, n)
     val starts = spans.map(x => (x._1, x._3+1)).toMap
     val ends   = spans.map(_._2).toSet
-
-    // System.err.println("revs: " + revs) //!
-    // System.err.println("spans: " + spans) //!
-    // System.err.println("starts: " + starts) //!
-    // System.err.println("ends: " + ends) //!
 
     val html = revs(0).zipWithIndex.map{
       case (c,i) => {
@@ -187,12 +191,12 @@ object WikiBlameServlet {
     html
   }
 
-  def getRevs(title: String, base: String, maxRevs: Int): Seq[Revision] = {
+  def getRevs(title: String, base: String, maxRevs: Int): Seq[VersionedString] = {
     import scala.xml.parsing.XhtmlParser
     val url = f"${base}%s/index.php?title=Special:Export&pages=${title}%s&history"
     (XhtmlParser(io.Source.fromURL(url)) \\ "revision").map{
-      rev => Revision((rev \ "timestamp").text.toString, (rev \ "id").text.toInt, (rev \ "text").text.toString)
-    }.sorted(Ordering.by[Revision,String](_.timestamp)).reverse
+      rev => VersionedString((rev \ "timestamp").text.toString, (rev \ "id").text.toInt, (rev \ "text").text.toString, -1)
+    }.sorted(Ordering.by[VersionedString,String](_.timestamp)).reverse
   }
 }
 

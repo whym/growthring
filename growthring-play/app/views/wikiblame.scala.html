@@ -1,17 +1,38 @@
-@(title: String, content: String)
+@(wbForm: Form[models.WikiBlameParams], title: String, spans: Seq[WikiBlameServlet.VersionedString], error: String)
 
-@main("wikiblame") {
+@import helper.twitterBootstrap._
+
+@main("Wikiblame - " + title) {
   <style type="text/css">
 .rev5 {background: #555;}
 .rev4 {background: #777;}
 .rev3 {background: #999;}
 .rev2 {background: #BBB;}
 .rev1 {background: #DDD;}
+.raw {color: #888;}
+
   </style>
     
   <h1>WikiBlame - "@title"</h1>
  
-  <pre>
-  @Html(content)
+  <pre class=".raw">
+@spans.map(_.toString.replace("\n", "\\n")).mkString("\n")
   </pre>
+
+@for( (x,i) <- spans.zipWithIndex ) {
+<span class="rev@(x.depth)" title="@x.timestamp">@x.body.replace("\n","")</span>
+}
+
+
+@helper.form(action = routes.Application.wikiblameFormReq) {
+    
+    @helper.inputText(wbForm("title"))
+    @helper.inputText(wbForm("base"))
+    @helper.inputText(wbForm("n"))
+    <button>Submit</button>
+}
+
+  <address>
+   @error
+  </address>
 }

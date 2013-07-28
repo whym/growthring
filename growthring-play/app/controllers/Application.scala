@@ -6,6 +6,7 @@ import play.api._
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
+import models._
 
 object Application extends Controller {
   
@@ -14,23 +15,26 @@ object Application extends Controller {
   }
 
   val wbForm = Form(
-    tuple("title" -> nonEmptyText,
-          "base"  -> default(nonEmptyText, "http://en.wikipedia.org/w"),
-          "n"     -> default(number(min=1, max=200), 100))
+    mapping("title" -> nonEmptyText,
+            "base"  -> default(nonEmptyText, "http://en.wikipedia.org/w"),
+            "n"     -> default(number(min=1, max=200), 100))
+    (WikiBlameParams.apply)(WikiBlameParams.unapply)
   )
 
   def wikiblameFormReq = Action { implicit request =>
     wbForm.bindFromRequest.fold(
-      errors => BadRequest(views.html.wikiblame("error!", errors.toString)),
-      value => value match {
-        case (title, base, n) => {
-          val revs = wbs.getRevs(title, base, n)
-          val html = wbs.getHtml(revs, n)
-          Ok(views.html.wikiblame(title, html))
-          //Redirect(routes.Application.wikiblameLandingPage)
-        }
+      errors => BadRequest(views.html.wikiblame(wbForm, "error!", Nil, errors.toString)),
+      v => {
+        val revs = wbs.getRevs(v.title, v.base, v.n)
+        val spans = wbs.getSpans(revs, v.n)
+        Ok(views.html.wikiblame(wbForm.fill(v), v.title, spans, ""))
+        //Redirect(routes.Application.wikiblameLandingPage)
       }
     )
+  }
+
+  def wikiblameForm = Action {
+    Ok(views.html.wikiblame(wbForm, "", Nil, ""))
   }
   
 }

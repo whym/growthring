@@ -20,7 +20,9 @@ object ApplicationBuild extends Build {
     // For additionally resolving from the conventional ivy local home.
     resolvers += Resolver.file("LocalIvy", file(Path.userHome +
       File.separator + ".ivy2" + File.separator +
-      "local"))(Resolver.ivyStylePatterns)
+      "local"))(Resolver.ivyStylePatterns),
+
+    templatesImport += "org.whym.growthring._"
   )
 
 }

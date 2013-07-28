@@ -186,7 +186,7 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
   }
   val json = get()
 
-  test("wiki blame"){
+  test("wiki blame servlet") {
     expectResult(JString("Main_page")) {
       json \ "title"
     }
@@ -200,4 +200,15 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
       json \ "html"
     }
   }
+
+  test("wiki blame spans") {
+    import WikiBlameServlet._
+    expectResult(List(VersionedString("2011", 20, "aaa", 1),
+                      VersionedString("2010", 10, "ccc", 0))) {
+      getSpans(Seq(VersionedString("2010", 10, "aaaccc", 0),
+                   VersionedString("2011", 20, "bbbccc", 1),
+                   VersionedString("2012", 30, "aaabbb", 2)), 3)
+    }
+  }
+
 }
