@@ -33,9 +33,7 @@ object NaiveExtremalSubstrings {
          }
 
   def count[T](seq: Seq[T]): Map[T,List[T]] = {
-    val counts = new mutable.HashMap[T,List[T]] {
-      override def default(x:T) = List[T]()
-    }
+    val counts = new mutable.HashMap[T,List[T]] withDefault (_ => List())
     for ( s <- seq ) {
       counts(s) = s :: counts(s)
     }
@@ -43,9 +41,7 @@ object NaiveExtremalSubstrings {
   }
 
   def countBounded[T](seq: Seq[T], bound: Int): Map[T,List[T]] = {
-    val counts = new mutable.HashMap[T,List[T]] {
-      override def default(x:T) = List[T]()
-    }
+    val counts = new mutable.HashMap[T,List[T]] withDefault (_ => List())
     val overflown = new mutable.HashSet[T]
     for ( s <- seq ) {
       if ( !(overflown contains s) ) {

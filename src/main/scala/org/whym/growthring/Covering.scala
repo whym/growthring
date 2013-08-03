@@ -123,7 +123,7 @@ object Covering {
 
   def greedyConservative[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val flags = Array.fill(body.size + 2)(false)
-    val invalidated = new mutable.HashMap[IndexedSeq[T], Int]{ override def default(x:IndexedSeq[T]) = 0 }
+    val invalidated = new mutable.HashMap[IndexedSeq[T], Int] withDefault (_ => 0)
     val groups = rp.groupBy(x => body.slice(x._1, x._2+1).toIndexedSeq)
     val min_freq = groups.map(_._2.size).min
     for ( (seg, ls) <- groups.toList.sortBy(x => (- x._1.size, x._2.size)) ) {

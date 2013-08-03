@@ -81,6 +81,29 @@ object ExtremalSubstrings {
     }
     height
   }
+
+  def slidingMinimums_bak(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
+    (0 until (arr.size - n + 2)).map{i => arr.slice(i, i+n-1).min}
+  }
+
+  def slidingMinimums(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
+    var seq = arr.slice(0, n).toList
+    var bag = new java.util.TreeMap[Int,Int]
+    for ( x <- seq ) {
+      bag.put(x, bag.get(x) + 1)
+    }
+    
+    bag.firstKey +: (for ( x <- arr.slice(n, arr.size) ) yield {
+      bag.put(x, bag.get(x) + 1)
+      bag.put(seq.head, bag.get(seq.head) - 1)
+      if ( bag.get(seq.head) == 0 ) {
+        bag.remove(seq.head)
+      }
+      seq = seq.drop(1) :+ x
+      bag.firstKey
+    }).toIndexedSeq
+  }
+
 }
 
 class ExtremalSubstrings(str: String, method: String = "jsuffixarrays") extends Logging {
@@ -158,7 +181,7 @@ class ExtremalSubstrings(str: String, method: String = "jsuffixarrays") extends 
     logger.info(s"start maxRepeats(${n})")
     val mr = Array.fill(arr.size + n + 1)(arr.size)
     val lcp = lcp_ ++ Array.fill(n)(-1)
-    val lcpm_padded = Array.fill(n)(-1) ++ (0 until (lcp.size - n + 2)).map{i => lcp.slice(i, i+n-1).min}
+    val lcpm_padded = Array.fill(n)(-1) ++ slidingMinimums(n - 1, lcp)
     def lcpm(i: Int) = lcpm_padded(i + n)
     logger.info(s"start main loop")
     for ( i <- 0 until arr.size;
