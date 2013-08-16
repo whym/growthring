@@ -83,11 +83,14 @@ object ExtremalSubstrings {
   }
 
   def slidingMinimums_bak(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
-    (0 until (arr.size - n + 2)).map{i => arr.slice(i, i+n-1).min}
+    (0 until (arr.size - n + 1)).map{i => arr.slice(i, i+n).min}
   }
 
   def slidingMinimums(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
-    var seq = arr.slice(0, n).toList
+    var seq = new mutable.Queue[Int]
+    for ( x <- arr.slice(0, n).toList ) {
+      seq.enqueue(x)
+    }
     var bag = new java.util.TreeMap[Int,Int]
     for ( x <- seq ) {
       bag.put(x, bag.get(x) + 1)
@@ -99,7 +102,8 @@ object ExtremalSubstrings {
       if ( bag.get(seq.head) == 0 ) {
         bag.remove(seq.head)
       }
-      seq = seq.drop(1) :+ x
+      seq.dequeue
+      seq.enqueue(x)
       bag.firstKey
     }).toIndexedSeq
   }

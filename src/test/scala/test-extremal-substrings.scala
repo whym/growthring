@@ -27,6 +27,12 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
+  test("sliding minimum") {
+    expectResult(IndexedSeq(1,1,1,1,2,2)) {
+      ES.slidingMinimums(3, Array(1,4,2,1,9,3,2,7))
+    }
+  }
+
   test("string to uchar: abc") {
     expectResult(List(0x61,0,0x62,0,0x63,0)) {
       ES.stringToUchars("abc").toList
