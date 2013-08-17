@@ -82,26 +82,40 @@ object ExtremalSubstrings {
     height
   }
 
-  def slidingMinimums_bak(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
-    (0 until (arr.size - n + 1)).map{i => arr.slice(i, i+n).min}
-  }
+  // def slidingMinimums(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
+  //   (0 until (arr.size - n + 1)).map{i => arr.slice(i, i+n).min}
+  // }
 
   def slidingMinimums(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
-    var seq = new mutable.Queue[Int]
-    for ( x <- arr.slice(0, n).toList ) {
-      seq.enqueue(x)
+    class Count() {
+      var p = 0
+      override def toString = p.toString
     }
-    var bag = new java.util.TreeMap[Int,Int]
-    for ( x <- seq ) {
-      bag.put(x, bag.get(x) + 1)
+    var bag = new java.util.TreeMap[Int,Count] {
+      def inc(x: Int) {
+        if ( !this.containsKey(x) ) {
+          this.put(x, new Count)
+        }
+        this.get(x).p += 1
+      }
+      def dec(x: Int) {
+        if ( this.get(x) == null  ||  this.get(x).p == 1 ) {
+          this.remove(x)
+        } else {
+          this.get(x).p -= 1
+        }
+      }
+    }
+    var seq = new mutable.Queue[Int]
+
+    for ( x <- arr.slice(0, n).toList ) {
+      bag.inc(x)
+      seq.enqueue(x)
     }
     
     bag.firstKey +: (for ( x <- arr.slice(n, arr.size) ) yield {
-      bag.put(x, bag.get(x) + 1)
-      bag.put(seq.head, bag.get(seq.head) - 1)
-      if ( bag.get(seq.head) == 0 ) {
-        bag.remove(seq.head)
-      }
+      bag.inc(x)
+      bag.dec(seq.head)
       seq.dequeue
       seq.enqueue(x)
       bag.firstKey
