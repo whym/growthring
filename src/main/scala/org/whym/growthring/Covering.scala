@@ -27,6 +27,23 @@ object Covering {
     //TODO: spans(x._1) = x._2 なる配列を使ったほうが速そう
   }
 
+  def rec(score: Int, set: Set[Int], rp: Seq[(Int,Int)]): (Int,Set[Int]) =
+    if ( rp.size == 0 ) {
+      (score, set)
+    } else if ( rp.size == 1 ) {
+      (score + rp.head._2 + 1 - rp.head._1, set ++ Range(rp.head._1, rp.head._2+1).toSet)
+    } else {
+      List(rec(score + rp.head._2 + 1 - rp.head._1,
+              set ++ Range(rp.head._1, rp.head._2+1).toSet,
+              rp.filter(x => x._1 > rp.head._2)),
+           rec(score,
+               set,
+               rp.tail)).maxBy(_._1)
+    }
+
+  def dp[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
+    rec(0, Set(), rp)._2
+
   def exhaustive3[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val remains = new mutable.ListBuffer[(Int,Int)]
     remains.appendAll(rp)
