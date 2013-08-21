@@ -56,6 +56,12 @@ class TestCovering extends FunSuite {
       Covering.dp("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
     }
   }
+  test("covering dp 2") {
+    expectResult(Set(0,1,5,6,7,8,10,11,13,14,15)) {
+      Covering.dp("abcdefghi abcdef".toCharArray,
+                  List((0,1), (3,5), (5,8), (10,11), (13,15)))
+    }
+  }
 
   test("covering exhaustive") {
     expectResult(List(0,1,2,3,10,11,12,13,14,15,16,17,18)) {

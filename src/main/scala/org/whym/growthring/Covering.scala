@@ -8,6 +8,7 @@ package org.whym.growthring
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.annotation.tailrec
 
 /**
  * Given spans, fill the parent sequence with some of the spans so that no overlap nor concatenation happens
@@ -27,21 +28,45 @@ object Covering {
     //TODO: spans(x._1) = x._2 なる配列を使ったほうが速そう
   }
 
-  def rec(set: Set[Int], rp: Seq[(Int,Int)]): Set[Int] =
-    if ( rp.size == 0 ) {
-      set
-    } else if ( rp.size == 1 ) {
-      set ++ Range(rp.head._1, rp.head._2+1).toSet
-    } else {
-      List(rec(set ++ Range(rp.head._1, rp.head._2+1).toSet,
-               rp.filter(x => x._1 > rp.head._2)),
-           rec(set,
-               rp.tail)
-         ).maxBy(_.size)
-    }
+  def rec(rp2: Seq[(Int,Int)]): Set[Int] = {
+    case class Operation(score: Int, prevPos: Int)
 
-  def dp[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
-    rec(Set(), rp)
+    val rp = rp2.toIndexedSeq.sorted
+    lazy val table: Stream[Operation] = Stream.tabulate(rp.size) {
+      n => {
+        val s = rp(n)._2 - rp(n)._1 + 1
+        if ( n == 0 ) {
+          Operation(s, -1)
+        } else if (n == 0 ) {
+          Operation(s, -1)
+        } else {
+          (0 until n).reverse.find(i => rp(n)._1 > rp(i)._2) match {
+            case Some(prevPos) => {
+              if ( table(prevPos).score + s > table(n-1).score ) {
+                Operation(table(prevPos).score + s, prevPos)
+              } else {
+                Operation(table(n-1).score, table(prevPos).prevPos)
+              }
+            }
+            case None =>
+              Operation(table(n-1).score, -1)
+          }
+        }
+      }
+    }
+    val m = table.zipWithIndex.maxBy(_._1.score)._2
+    val ret = new mutable.HashSet[Int]
+    var i = m
+    while ( i >= 0 ) {
+      ret ++= Range(rp(i)._1, rp(i)._2+1).toSet
+      i = table(i).prevPos
+    }
+    ret.toSet
+  }
+
+  def dp[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+    rec(rp)
+  }
 
   def exhaustive3[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val remains = new mutable.ListBuffer[(Int,Int)]
