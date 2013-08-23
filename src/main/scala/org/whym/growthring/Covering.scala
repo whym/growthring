@@ -37,19 +37,19 @@ object Covering {
         val s = rp(n)._2 - rp(n)._1 + 1
         if ( n == 0 ) {
           Operation(s, -1)
-        } else if (n == 0 ) {
-          Operation(s, -1)
         } else {
-          (0 until n).reverse.find(i => rp(n)._1 > rp(i)._2) match {
+          val p  = table(n-1)
+          (0 until n).reverse.find(i => rp(i)._2 < rp(n)._1) match {
             case Some(prevPos) => {
-              if ( table(prevPos).score + s > table(n-1).score ) {
-                Operation(table(prevPos).score + s, prevPos)
+              val pp = table(prevPos)
+              if ( pp.score + s > p.score ) {
+                Operation(pp.score + s, prevPos)
               } else {
-                Operation(table(n-1).score, table(prevPos).prevPos)
+                p
               }
             }
             case None =>
-              Operation(table(n-1).score, -1)
+              Operation(p.score, -1)
           }
         }
       }
@@ -64,9 +64,8 @@ object Covering {
     ret.toSet
   }
 
-  def dp[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def dp[T](body: Array[T], rp: Seq[(Int,Int)]) =
     rec(rp)
-  }
 
   def exhaustive3[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val remains = new mutable.ListBuffer[(Int,Int)]
