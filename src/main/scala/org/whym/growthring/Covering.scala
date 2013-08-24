@@ -32,6 +32,16 @@ object Covering {
     case class Operation(score: Int, prevPos: Int)
 
     val rp = rp2.toIndexedSeq.sorted
+
+    val index_ = (-1 +: rp.map(_._2)).sliding(2).map(x => x(1) - x(0)).toList.zipWithIndex.map(x => List.fill(x._1)(x._2-1)).reduce(_++_).toIndexedSeq
+    def index(i: Int) = if ( i < 0 ) {
+      -1
+    } else if ( i < index_.size ) {
+      index_(i)
+    } else {
+      rp.size - 1
+    }
+
     lazy val table: Stream[Operation] = Stream.tabulate(rp.size) {
       n => {
         val s = rp(n)._2 - rp(n)._1 + 1
@@ -39,17 +49,16 @@ object Covering {
           Operation(s, -1)
         } else {
           val p  = table(n-1)
-          (0 until n).reverse.find(i => rp(i)._2 < rp(n)._1) match {
-            case Some(prevPos) => {
-              val pp = table(prevPos)
-              if ( pp.score + s > p.score ) {
-                Operation(pp.score + s, prevPos)
-              } else {
-                p
-              }
+          val prevPos = index(rp(n)._1)
+          if ( prevPos >= 0 ) {
+            val pp = table(prevPos)
+            if ( pp.score + s > p.score ) {
+              Operation(pp.score + s, prevPos)
+            } else {
+              p
             }
-            case None =>
-              Operation(p.score, -1)
+          } else{
+            Operation(p.score, -1)
           }
         }
       }
