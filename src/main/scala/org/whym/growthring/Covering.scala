@@ -33,7 +33,19 @@ object Covering {
 
     val rp = rp2.toIndexedSeq.sorted
 
-    val index_ = (-1 +: rp.map(_._2)).sliding(2).map(x => x(1) - x(0)).toList.zipWithIndex.map(x => List.fill(x._1)(x._2-1)).reduce(_++_).toIndexedSeq
+    val index_ = {
+      val ret = mutable.ArrayBuffer.fill(rp.last._2)(-1)
+      var i = rp(0)._2 + 1
+      var n = 0
+      while ( i < rp.last._2 && n < rp.size ) {
+        ret(i) = n
+        if ( i >= rp(n+1)._2 + 1 ) {
+          n += 1
+        }
+        i += 1
+      }
+      ret.toIndexedSeq
+    }
     def index(i: Int) = if ( i < 0 ) {
       -1
     } else if ( i < index_.size ) {
@@ -45,7 +57,7 @@ object Covering {
     lazy val table: Stream[Operation] = Stream.tabulate(rp.size) {
       n => {
         val s = rp(n)._2 - rp(n)._1 + 1
-        if ( n == 0 ) {
+        if ( n <= 0 ) {
           Operation(s, -1)
         } else {
           val p  = table(n-1)
