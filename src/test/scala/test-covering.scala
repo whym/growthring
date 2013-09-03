@@ -59,7 +59,7 @@ class TestCovering extends FunSuite {
   test("covering dp 2") {
     expectResult(Set(0,1,5,6,7,8,10,11,13,14,15)) {
       Covering.dp("abcdefghi abcdef".toCharArray,
-                  List((0,1), (3,5), (5,8), (10,11), (13,15)))
+                  List((0,1), (3,5), (5,8), (10,11), (13,15), (15,16)))
     }
   }
 
