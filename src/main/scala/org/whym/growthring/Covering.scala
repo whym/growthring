@@ -28,7 +28,7 @@ object Covering {
     //TODO: spans(x._1) = x._2 なる配列を使ったほうが速そう
   }
 
-  def rec(rp2: Seq[(Int,Int)]): Set[Int] = {
+  def dp_(rp2: Seq[(Int,Int)]): Set[Int] = {
     case class Operation(score: Int, prevPos: Int)
 
     val rp = rp2.toIndexedSeq.sorted
@@ -54,26 +54,24 @@ object Covering {
       index_(rp.size - 1)
     }
 
-    lazy val table: Stream[Operation] = Stream.tabulate(rp.size) {
-      n => {
-        val s = rp(n)._2 - rp(n)._1 + 1
-        if ( n <= 0 ) {
-          Operation(s, -1)
-        } else {
-          val p  = table(n-1)
-          val prevPos = index(rp(n)._1)
-          if ( prevPos >= 0 ) {
-            val ps = table(prevPos).score
-            if ( ps + s > p.score ) {
-              Operation(ps + s, prevPos)
-            } else {
-              p
-            }
-          } else{
-            Operation(p.score, -1)
+    val table = new mutable.ArrayBuffer[Operation]
+    table.append(Operation(rp(0)._2 - rp(0)._1 + 1, -1))
+    for ( n <- 1 until rp.size ) {
+      val s = rp(n)._2 - rp(n)._1 + 1
+      val p  = table(n-1)
+      val prevPos = index(rp(n)._1)
+      table.append({
+        if ( prevPos >= 0 ) {
+          val ps = table(prevPos).score
+          if ( ps + s > p.score ) {
+            Operation(ps + s, prevPos)
+          } else {
+            p
           }
+        } else{
+          Operation(p.score, -1)
         }
-      }
+      })
     }
     val m = table.zipWithIndex.maxBy(_._1.score)._2
     val ret = new mutable.HashSet[Int]
@@ -86,7 +84,7 @@ object Covering {
   }
 
   def dp[T](body: Array[T], rp: Seq[(Int,Int)]) =
-    rec(rp)
+    dp_(rp)
 
   def exhaustive3[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val remains = new mutable.ListBuffer[(Int,Int)]
