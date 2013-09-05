@@ -27,15 +27,16 @@ object Covering {
     return false
     //TODO: spans(x._1) = x._2 なる配列を使ったほうが速そう
   }
+  def hasOverlap(x: Iterable[(Int,Int)]): Boolean = hasOverlap(x, x)
 
   def dp_(rp2: Seq[(Int,Int)]): Set[Int] = {
-    case class Operation(score: Int, prevPos: Int)
+    case class Operation(score: Int, prevPos: Int, skip: Boolean)
 
     val rp = rp2.toIndexedSeq.sorted
 
     val index_ = {
       val ret = mutable.ArrayBuffer.fill(rp.last._2 + 1)(-1)
-      var i = rp(0)._2 + 1
+      var i = rp(0)._2 + 2
       var n = 0
       while ( i < ret.size && n < rp.size ) {
         ret(i) = n
@@ -55,7 +56,7 @@ object Covering {
     }
 
     val table = new mutable.ArrayBuffer[Operation]
-    table.append(Operation(rp(0)._2 - rp(0)._1 + 1, -1))
+    table.append(Operation(rp(0)._2 - rp(0)._1 + 1, -1, false))
     for ( n <- 1 until rp.size ) {
       val s = rp(n)._2 - rp(n)._1 + 1
       val p  = table(n-1)
@@ -63,13 +64,21 @@ object Covering {
       table.append({
         if ( prevPos >= 0 ) {
           val ps = table(prevPos).score
-          if ( ps + s > p.score ) {
-            Operation(ps + s, prevPos)
+          if ( prevPos == n-1 ) {
+            Operation(ps + s, prevPos, false)
           } else {
-            p
+            if ( ps + s > p.score ) {
+              Operation(ps + s, prevPos, false)
+            } else {
+              Operation(p.score, n-1, true)
+            }
           }
         } else{
-          Operation(p.score, -1)
+          if ( p.score > s ) {
+            Operation(p.score, n-1, true)
+          } else {
+            Operation(s, -1, false)
+          }
         }
       })
     }
@@ -77,7 +86,9 @@ object Covering {
     val ret = new mutable.HashSet[Int]
     var i = m
     while ( i >= 0 ) {
-      ret ++= Range(rp(i)._1, rp(i)._2+1).toSet
+      if ( !table(i).skip ) {
+        ret ++= Range(rp(i)._1, rp(i)._2+1).toSet
+      }
       i = table(i).prevPos
     }
     ret.toSet
@@ -86,43 +97,7 @@ object Covering {
   def dp[T](body: Array[T], rp: Seq[(Int,Int)]) =
     dp_(rp)
 
-  def exhaustive3[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
-    val remains = new mutable.ListBuffer[(Int,Int)]
-    remains.appendAll(rp)
-    val cands = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
-    if ( remains.size == 0 ) {
-      return Set.empty[Int]
-    }
-    val h = remains.head
-    remains.drop(1)
-    def withdrawOverlapping(e: Int): Seq[(Int,Int)] = {
-      val ret = new mutable.ListBuffer[(Int,Int)]
-      while ( remains.size > 0  &&  remains.head._1 <= e + 1 ) {
-        ret.append(remains.head)
-        remains.drop(1)
-      }
-      ret
-    }
-    for ( r <- (h +: withdrawOverlapping(h._2)) ) {
-      cands.append(mutable.ListBuffer(r))
-    }
-    while ( remains.size > 0 ) {
-      val h = remains.head
-      val cands2 = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
-      for ( s <- cands ) {
-        if ( !overlaps(s.last, h) ) {
-          for ( r <- (h +: withdrawOverlapping(h._2)) ) {
-            cands2.append(s :+ r)
-          }
-        }
-      }
-      cands.appendAll(cands2)
-    }
-    cands.max(Ordering.by[Iterable[(Int,Int)],Int](x => x.map(y => (1 + y._2 - y._1)).sum)).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
-  }
-
-  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
-    val remains = mutable.ListBuffer(rp)
+  def exhaustive_[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val cands = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
     cands.append(mutable.ListBuffer(rp.head))
     cands.append(mutable.ListBuffer(rp.tail.head))
@@ -138,9 +113,18 @@ object Covering {
     cands.max(Ordering.by[Iterable[(Int,Int)],Int](x => x.map(y => (1 + y._2 - y._1)).sum)).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
   }
 
-  def exhaustive2[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
-    rp.toSet.subsets.max(Ordering.by[Set[(Int,Int)],Int](x =>
-      if (hasOverlap(x, x)) { Int.MinValue } else { x.map(y => (1 + y._2 - y._1)).sum })).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
+  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+    rp.toSet.subsets.max(
+      Ordering.by[Set[(Int,Int)],Int] {
+        set =>
+          if (hasOverlap(set)) {
+            Int.MinValue
+          } else {
+            set.toList.map(x => (1 + x._2 - x._1)).sum
+          }
+      }
+    ).map(x => Range(x._1,x._2+1).toSet).reduce(_++_)
+  }
 
   def greedyLength[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val sorted = new mutable.HashMap[Int,mutable.Set[(Int,Int)]] with mutable.MultiMap[Int, (Int,Int)]
