@@ -34,6 +34,7 @@ object Covering {
 
     val rp = rp2.toIndexedSeq.sorted
 
+    // index(n) は rp(n) と重複しない rp(i) のうち最大の i を返す
     val index_ = {
       val ret = mutable.ArrayBuffer.fill(rp.last._2 + 1)(-1)
       var i = rp(0)._2 + 2
@@ -55,6 +56,7 @@ object Covering {
       index_(rp.size - 1)
     }
 
+    // table(n) は _.skip=false のとき rp(n) を使ってそれ以前の rp でとりうる最大のスコアとそのときに使う直前の rp(_.prevPos) なる prevPos を保持する。_.skip=true のとき、 rp(n) を使わずにそれ以前の rpでとりうる最大のスコアを保持する。
     val table = new mutable.ArrayBuffer[Operation]
     table.append(Operation(rp(0)._2 - rp(0)._1 + 1, -1, false))
     for ( n <- 1 until rp.size ) {
@@ -63,22 +65,16 @@ object Covering {
       val prevPos = index(rp(n)._1)
       table.append({
         if ( prevPos >= 0 ) {
-          val ps = table(prevPos).score
-          if ( prevPos == n-1 ) {
-            Operation(ps + s, prevPos, false)
+          val newscore = table(prevPos).score + s
+          if ( prevPos == n-1  ||  newscore > p.score ) {
+            Operation(newscore, prevPos, false)
           } else {
-            if ( ps + s > p.score ) {
-              Operation(ps + s, prevPos, false)
-            } else {
-              Operation(p.score, n-1, true)
-            }
-          }
-        } else{
-          if ( p.score > s ) {
             Operation(p.score, n-1, true)
-          } else {
-            Operation(s, -1, false)
           }
+        } else if ( p.score > s ) {
+          Operation(p.score, n-1, true)
+        } else {
+          Operation(s, -1, false)
         }
       })
     }
