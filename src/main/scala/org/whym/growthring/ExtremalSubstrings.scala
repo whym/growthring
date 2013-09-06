@@ -61,6 +61,10 @@ object ExtremalSubstrings {
       ((x._1 + (x._1     & 1)) / 2,
        (x._2 - ((x._2+1) & 1)) / 2)
 
+  /**
+   * Calculating a longest common prefix array from a suffix array.
+   * Adapted from Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications (Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa and Kunsoo Park, 2009)
+   */
   def getHeight(text: Array[Int], pos: Array[Int]): Array[Int] = {
     val n = text.size
     val height = Array.fill(n)(0)

@@ -109,7 +109,7 @@ object Covering {
     cands.max(Ordering.by[Iterable[(Int,Int)],Int](x => x.map(y => (1 + y._2 - y._1)).sum)).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
   }
 
-  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
     rp.toSet.subsets.max(
       Ordering.by[Set[(Int,Int)],Int] {
         set =>
@@ -120,7 +120,6 @@ object Covering {
           }
       }
     ).map(x => Range(x._1,x._2+1).toSet).reduce(_++_)
-  }
 
   def greedyLength[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
     val sorted = new mutable.HashMap[Int,mutable.Set[(Int,Int)]] with mutable.MultiMap[Int, (Int,Int)]
