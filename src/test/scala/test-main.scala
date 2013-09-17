@@ -23,4 +23,13 @@ class TestMain extends FunSuite {
                                        0, -1).toList
     }
   }
+
+  test("config default") {
+    import com.typesafe.config.ConfigFactory
+    val config = ConfigFactory.load.getConfig("org.whym.growthring")
+    expectResult("jsuffixarrays") {
+      config.getString("repeatsMethod")
+    }
+  }
+
 }

@@ -5,6 +5,7 @@
  */
 
 package org.whym.growthring
+import scala.collection.JavaConverters._
 import com.typesafe.scalalogging.slf4j.Logging
 
 /**
@@ -61,9 +62,10 @@ object Main extends Logging {
 
   def main(args: Array[String]) {
     import com.typesafe.config.ConfigFactory
-    val config = ConfigFactory.load()
+    val config = ConfigFactory.load.getConfig("org.whym.growthring")
 
     logger.info("**** main begin ****")
+    logger.info("config = " + config.entrySet.asScala.mkString("\t"))
     import scala.io
     import scala.xml.parsing.XhtmlParser
 
