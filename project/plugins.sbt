@@ -1,5 +1,5 @@
 // -*- mode: scala -*-
 
-addSbtPlugin("com.github.retronym" % "sbt-onejar" % "0.8")
+addSbtPlugin("org.scala-sbt.plugins" % "sbt-onejar" % "0.8")
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.9.1")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.10.2")
