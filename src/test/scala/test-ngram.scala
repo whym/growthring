@@ -16,7 +16,7 @@ import scala.collection.mutable
 class TestNgramRepeats extends FunSuite {
 
   test("ngram queue") {
-    expectResult(List(List("abc", "d"),
+    assertResult(List(List("abc", "d"),
                       List("abc", "d", "e"),
                       List("d", "e"),
                       List("abc", "d", "e", "f"),
@@ -35,7 +35,7 @@ class TestNgramRepeats extends FunSuite {
   }
 
   test("ngram repeats") {
-    expectResult(List((0,0), (0,1), (0,2),
+    assertResult(List((0,0), (0,1), (0,2),
                       (1,1), (1,2), (1,3),
                       (2,2), (2,3),
                       (3,3),
@@ -48,7 +48,7 @@ class TestNgramRepeats extends FunSuite {
   }
 
   test("ngram covering") {
-    expectResult(List(0, 1, 2, 5, 7, 8, 9)) {
+    assertResult(List(0, 1, 2, 5, 7, 8, 9)) {
       import org.whym.growthring.{NgramRepeats => NR}
       val r = new NR(3).repeats("abracadabra", 2)
       Covering.greedyLength("abracadabra".toCharArray, r).toList.sorted

@@ -33,7 +33,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   def linear_dag(str: String): Dag[Char] = Dag((str).toIndexedSeq,
                                                Range(0, str.length-1).map(x => (x,x+1)).toSet)
   test("linear align: simple replace") {
-    expectResult(Dag(("abBc$").toIndexedSeq,
+    assertResult(Dag(("abBc$").toIndexedSeq,
            Set((0,1), (1,3),
                (0,2), (2,3),
                (3,4)))) {
@@ -42,7 +42,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: many vs one replace") {
-    expectResult(Dag("aBzbc$".toIndexedSeq,
+    assertResult(Dag("aBzbc$".toIndexedSeq,
                Set((0,1), (1,4),
                    (0,2), (2,3), (3,4),
                    (4,5)))) {
@@ -51,7 +51,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: deletions") {
-    expectResult(Dag("abzzc$".toIndexedSeq,
+    assertResult(Dag("abzzc$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4),
                    (1,4),
                    (4,5)))) {
@@ -60,7 +60,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: insertion + deletion") {
-    expectResult(Dag("$abcz$".toIndexedSeq,
+    assertResult(Dag("$abcz$".toIndexedSeq,
                Set((0,1), (1,2), (2,3),
                    (0,2), (2,3),
                    (3,4), (3,5),
@@ -78,13 +78,13 @@ class TestMultipleSequenceAlignment extends FunSuite {
                        (2, 3))
                    )
     //! これは複数パスでアラインする実装ができるまでは通らない
-    // expectResult(dag1) {
+    // assertResult(dag1) {
     //   dag1.align(dag1, weight())
     // }
-    expectResult(dag1) {
+    assertResult(dag1) {
       dag1.align(linear_dag("$b$"), weight())
     }
-    expectResult(dag1) {
+    assertResult(dag1) {
       dag1.align(linear_dag("$B$"), weight())
     }
   }
@@ -102,7 +102,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
                        (1, 3),
                        (2, 3))
                    )
-    expectResult(Dag("$bBA$".toIndexedSeq,
+    assertResult(Dag("$bBA$".toIndexedSeq,
                Set((0, 1),
                    (0, 2),
                    (0, 3),
@@ -115,7 +115,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: insertions") {
-    expectResult(Dag("azbzzc$".toIndexedSeq,
+    assertResult(Dag("azbzzc$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4), (4,5),
                    (0,2), (2,5),
                    (5,6)))) {
@@ -124,7 +124,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: simple insertions") {
-    expectResult(Dag("$zbxx$".toIndexedSeq,
+    assertResult(Dag("$zbxx$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,4), (4,5),
                    (0,2), (2,5)))) {
       linear_dag("$b$").align(linear_dag("$zbxx$"), weight())
@@ -132,7 +132,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: recurring letters") {
-    expectResult(Dag("^baba$".toIndexedSeq,
+    assertResult(Dag("^baba$".toIndexedSeq,
                Set((0,1), (1,2), (2,3), (3,5),
                    (0,2), (3,4), (4,5)))) {
       linear_dag("^aba$").align(linear_dag("^bab$"), weight())
@@ -140,7 +140,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("linear align: JA") {
-    expectResult(Dag("$色いろは匂にえほどへ散とちりぬるを$".toIndexedSeq,
+    assertResult(Dag("$色いろは匂にえほどへ散とちりぬるを$".toIndexedSeq,
                Set((0,1), (1,4), (4,5), (5,7), (7,9), (9, 11), (11,14), (14,15), (15,16), (16,17), (17,18),
                    (0,2), (2,3), (3,4), (4, 6), (6,8), (8,10), (10,12), (12,13), (13,14)))) {
       linear_dag("$色は匂えど散りぬるを$").align(linear_dag("$いろはにほへとちりぬるを$"), weight())
@@ -148,23 +148,23 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test trace: 1") {
-    expectResult(Some(List(2))) {
+    assertResult(Some(List(2))) {
       linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("b".toIndexedSeq)
     }
   }
   test("test trace: fail") {
-    expectResult(None) {
+    assertResult(None) {
       linear_dag("$b$").align(linear_dag("$zbxx$"), weight()).trace("o".toIndexedSeq)
     }
   }
   test("test trace: same letters") {
-    expectResult(Some(List(4,5,6,7))) {
+    assertResult(Some(List(4,5,6,7))) {
       linear_dag("$aaaxxbbb$").trace("xxbb".toIndexedSeq)
     }
   }
 
   test("test dot") {
-    expectResult(List("digraph g {",
+    assertResult(List("digraph g {",
                 "  rankdir = LR;",
                 "  N_0[label=\"^\"];",
                 "  N_1[label=\"a\"];",
@@ -186,7 +186,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: one path") {
-    expectResult(Dag(Vector("^", "abc", "A", "$"),
+    assertResult(Dag(Vector("^", "abc", "A", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
       Dag("^abcA$".toIndexedSeq.map({x: Char => x.toString}),
@@ -196,7 +196,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: twin") {
-    expectResult(Dag(Vector("^", "ab", "AB", "$"),
+    assertResult(Dag(Vector("^", "ab", "AB", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
       Dag("^abAB$".toIndexedSeq.map({x: Char => x.toString}),
@@ -206,7 +206,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: multiple") {
-    expectResult(Dag(Vector("^", "ab", "AB", "CDE","c", "$"),
+    assertResult(Dag(Vector("^", "ab", "AB", "CDE","c", "$"),
                Set((0,1), (1,3), (3,5),
                    (2,5),
                    (0,4), (4,5),
@@ -220,7 +220,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: shortcut") {
-    expectResult(Dag(Vector("^", "1", "23","45", "$"),
+    assertResult(Dag(Vector("^", "1", "23","45", "$"),
                Set((0,1), (1,4), (0,2), (2,3), (0,3), (3,4)))) {
       Dag("^12345$".toIndexedSeq.map({x: Char => x.toString}),
           Set((0,1), (1,6),
@@ -231,7 +231,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test compact: start") {
-    expectResult(Dag(Vector("^ab", "CDE","c", "$"),
+    assertResult(Dag(Vector("^ab", "CDE","c", "$"),
                Set((0,1), (1,3),
                    (0,2), (2,3)))) {
       Dag("^abCDEc$".toIndexedSeq.map({x: Char => x.toString}),
@@ -241,7 +241,7 @@ class TestMultipleSequenceAlignment extends FunSuite {
   }
 
   test("test node concat") {
-    expectResult(MSA.Node("abcdef".toIndexedSeq, 0, 4)) {
+    assertResult(MSA.Node("abcdef".toIndexedSeq, 0, 4)) {
       MSA.Node("abcdef".toIndexedSeq, 0, 2) concat MSA.Node("cdef".toIndexedSeq, 0, 2)
     }
   }
@@ -251,19 +251,19 @@ class TestMultipleSequenceAlignment extends FunSuite {
                          "^xbc$".toIndexedSeq,
                          "^bcd$".toIndexedSeq))
     val align = m.align
-    expectResult(Some(List(0,1,3,4,6))) {
+    assertResult(Some(List(0,1,3,4,6))) {
       align.trace("^abc$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-    expectResult(Some(List(0,2,3,4,6))) {
+    assertResult(Some(List(0,2,3,4,6))) {
       align.trace("^xbc$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-    expectResult(Some(List(0,3,4,5,6))) {
+    assertResult(Some(List(0,3,4,5,6))) {
       align.trace("^bcd$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-    expectResult(Some(List(0,3,4,5,6))) {
+    assertResult(Some(List(0,3,4,5,6))) {
       align.trace("^bcd$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
@@ -273,11 +273,11 @@ class TestMultipleSequenceAlignment extends FunSuite {
     val m = new MSA(List("^$".toIndexedSeq,
                          "^ac$".toIndexedSeq,
                          "^xb$".toIndexedSeq))
-    expectResult(Some(List(0,2,4,5))) {
+    assertResult(Some(List(0,2,4,5))) {
       m.align.trace("^xb$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }
-    expectResult(Some(List(0,1,3,5))) {
+    assertResult(Some(List(0,1,3,5))) {
       m.align.trace("^ac$".toIndexedSeq,
                     x => x.label.head.toString)(_.toString)
     }

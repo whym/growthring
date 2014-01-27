@@ -16,7 +16,7 @@ import scala.collection.mutable
 class TestMain extends FunSuite {
 
   test("anonymize") {
-    expectResult(List("a bc __","bc a")) {
+    assertResult(List("a bc __","bc a")) {
                         Main.anonymize(new WordRepeats().repeats,
                                        Covering.greedyLengthFreq,
                                        Seq("a bc aa", "bc a"), 1, '_', 2, "[ \\n]",
@@ -27,7 +27,7 @@ class TestMain extends FunSuite {
   test("config default") {
     import com.typesafe.config.ConfigFactory
     val config = ConfigFactory.load.getConfig("org.whym.growthring")
-    expectResult("jsuffixarrays") {
+    assertResult("jsuffixarrays") {
       config.getString("repeatsMethod")
     }
   }

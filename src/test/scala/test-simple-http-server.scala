@@ -30,7 +30,7 @@ class TestSimpleHttpServer extends FunSuite {
   }
 
   test("simple http server 0") {
-    expectResult((true, "def")) {
+    assertResult((true, "def")) {
       val a = SimpleHttpServer.findFreeAddress()
       val s = SimpleHttpServer.create("localhost", a.getPort, Map(("/abc", "def")))
       s.start
@@ -49,10 +49,10 @@ object TestSimpleHttpServer {
         sock.close
         return true
       } else {
-        Thread.sleep(limit / 20)
         if ( System.currentTimeMillis - start > limit ) {
           return false
         }
+        Thread.sleep(limit / 20)
       }
     }
     return false

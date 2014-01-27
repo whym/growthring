@@ -39,13 +39,13 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   val json2 = get("abracadabra", "2", "2")
   test("find repeats (plain)") {
 
-    expectResult(JString("_a_a____a_a_a")) {
+    assertResult(JString("_a_a____a_a_a")) {
       json \ "plain"
     }
   }
 
   test("find repeats (chart)") {
-    expectResult(JString("""   b
+    assertResult(JString("""   b
  **a
   *n
  **a
@@ -64,7 +64,7 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   }
 
   test("find repeats (list)"){
-    expectResult(JArray(List(JArray(List(2,
+    assertResult(JArray(List(JArray(List(2,
                                          List(List(1, 3),
                                               List(3, 4),
                                               List(8, 10),
@@ -82,10 +82,10 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   }
 
   test("find repeats (plain#2)") {
-    expectResult(JString("abra___abra")) {
+    assertResult(JString("abra___abra")) {
       json2 \ "plain"
     }
-    expectResult(JArray(List(JArray(List(2,
+    assertResult(JArray(List(JArray(List(2,
                                          List(List(0, 3),
                                               List(7, 10))))))) {
       json2 \ "max_repeats"
@@ -93,19 +93,19 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   }
 
   test("find repeats (html)") {
-    expectResult(JString("abra<del>c</del><del>a</del><del>d</del>abra")) {
+    assertResult(JString("abra<del>c</del><del>a</del><del>d</del>abra")) {
       json2 \ "html"
     }
   }
 
   test("find repeats (layers)"){
-    expectResult(JArray(List(JArray(List(JArray(List("B", "I", "I", "E", "O", "O", "O", "B", "I", "I", "E"))))))) {
+    assertResult(JArray(List(JArray(List(JArray(List("B", "I", "I", "E", "O", "O", "O", "B", "I", "I", "E"))))))) {
       json2 \ "layers"
     }
   }
   
   test("find repeats (layers html)"){
-    expectResult(JString("<tr><td>B</td><td>I</td><td>I</td><td>E</td><td>O</td><td>O</td><td>O</td><td>B</td><td>I</td><td>I</td><td>E</td></tr>")) {
+    assertResult(JString("<tr><td>B</td><td>I</td><td>I</td><td>E</td><td>O</td><td>O</td><td>O</td><td>B</td><td>I</td><td>I</td><td>E</td></tr>")) {
       json2 \ "layers_html"
     }
   }
@@ -187,23 +187,23 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
   val json = get()
 
   test("wiki blame servlet") {
-    expectResult(JString("Main_page")) {
+    assertResult(JString("Main_page")) {
       json \ "title"
     }
-    expectResult(JInt(3)) {
+    assertResult(JInt(3)) {
       json \ "nrevs"
     }
-    expectResult(JInt(1202)) {
+    assertResult(JInt(1202)) {
       json \ "rev_id"
     }
-    expectResult(JString("""<span class="rev1" title="1201, 2013-06-04T12:10:00Z">bbb</span>&lt;<span class="rev2" title="1200, 2013-06-04T12:00:00Z">ccc</span>""")) {
+    assertResult(JString("""<span class="rev1" title="1201, 2013-06-04T12:10:00Z">bbb</span>&lt;<span class="rev2" title="1200, 2013-06-04T12:00:00Z">ccc</span>""")) {
       json \ "html"
     }
   }
 
   test("wiki blame spans") {
     import WikiBlameServlet._
-    expectResult(List(VersionedString("2011", 20, "aaa", 1),
+    assertResult(List(VersionedString("2011", 20, "aaa", 1),
                       VersionedString("2010", 10, "ccc", 0))) {
       getSpans(Seq(VersionedString("2010", 10, "aaaccc", 0),
                    VersionedString("2011", 20, "bbbccc", 1),

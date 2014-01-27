@@ -20,7 +20,7 @@ class TestTiledLayers extends FunSuite {
                         End => E,
                         Inside => I,
                         Outside => O}
-    expectResult(List(Vector(B(), E(), O(), B(), I(), E(), O(), O(), O()),
+    assertResult(List(Vector(B(), E(), O(), B(), I(), E(), O(), O(), O()),
                       Vector(O(), B(), I(), I(), E(), B(), I(), I(), E()))) {
       TiledLayers.greedyTiling("abcdefghi".toCharArray,
                                List((0,1), (1,4), (3,5), (5,8)))

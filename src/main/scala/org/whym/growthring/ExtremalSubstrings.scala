@@ -95,6 +95,7 @@ object ExtremalSubstrings {
       var p = 0
       override def toString = p.toString
     }
+    import scala.language.reflectiveCalls
     var bag = new java.util.TreeMap[Int,Count] {
       def inc(x: Int) {
         if ( !this.containsKey(x) ) {

@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "org.slf4j"          % "slf4j-api"     % "1.7.1",
   "ch.qos.logback"     % "logback-classic" % "1.0.7",
   "com.typesafe"      %% "scalalogging-slf4j" % "1.0.1",
-  "org.scalatest"     %% "scalatest"     % "1.9.1" % "test",
+  "org.scalatest"     %% "scalatest"     % "2.0" % "test",
   "org.mockito"        % "mockito-core"  % "1.9.0" % "test",
   "junit"              % "junit"         % "4.10"  % "test"
 )
