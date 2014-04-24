@@ -7,7 +7,7 @@ name    := "growthring"
 
 version := "0.3"
 
-scalaVersion := "2.10.3"
+scalaVersion := "2.10.4"
 
 scalacOptions ++= Seq("-deprecation",
                       "-unchecked",
@@ -17,19 +17,24 @@ scalacOptions ++= Seq("-deprecation",
                       "-Xmax-classfile-name", "128",
                       "-g:line")
 
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+
 libraryDependencies ++= Seq(
   "com.carrotsearch"   % "jsuffixarrays" % "0.1.0",
-  "net.java.dev.jna"   % "jna"           % "3.2.2",
-  "org.apache.commons" % "commons-lang3" % "3.1",
+  "net.java.dev.jna"   % "jna"           % "4.1.0",
+  "org.apache.commons" % "commons-lang3" % "3.3.2",
   "javax.servlet"      % "servlet-api"   % "2.5",
-  "org.json4s"        %% "json4s-native" % "3.2.5",
-  "com.typesafe"       % "config"        % "1.0.0",
-  "org.slf4j"          % "slf4j-api"     % "1.7.1",
-  "ch.qos.logback"     % "logback-classic" % "1.0.7",
-  "com.typesafe"      %% "scalalogging-slf4j" % "1.0.1",
-  "org.scalatest"     %% "scalatest"     % "2.0" % "test",
-  "org.mockito"        % "mockito-core"  % "1.9.0" % "test",
-  "junit"              % "junit"         % "4.10"  % "test"
+  "org.json4s"        %% "json4s-native" % "3.2.9",
+  "com.typesafe"       % "config"        % "1.2.0",
+  "org.slf4j"          % "slf4j-api"     % "1.7.7",
+  "org.scala-lang"    %% "scala-pickling"  % "0.8.0-SNAPSHOT",
+  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3",
+  "com.typesafe"    %% "scalalogging-slf4j" % "1.1.0",
+  //"com.typesafe.scala-logging"    %% "scala-logging-slf4j" % "2.1.1",
+  "ch.qos.logback"     % "logback-classic" % "1.1.2",
+  "org.scalatest"     %% "scalatest"     % "2.1.3" % "test",
+  "org.mockito"        % "mockito-core"  % "1.9.5" % "test",
+  "junit"              % "junit"         % "4.11"  % "test"
 )
 
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
