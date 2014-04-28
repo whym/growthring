@@ -194,7 +194,7 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 <p id="busy"></p>
 
 <address>
-運営 <a href="http://twitter.com/whym">@whym</a>
+<a href="http://whym.org">whym.org</a>
 </address>
 </body>
 </html>
