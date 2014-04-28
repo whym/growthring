@@ -9,6 +9,8 @@ package org.whym.growthring
 import scala.collection.JavaConverters._
 import scala.collection.{mutable, immutable}
 import com.typesafe.scalalogging.slf4j.Logging
+import java.{io => jio}
+import java.nio
 
 /**
  * Suffix array utilities
@@ -16,6 +18,10 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @author Yusuke Matsubara <whym@whym.org>
  */
 object SuffixArrays extends Logging {
+
+  val HEAD = "GAR1".getBytes
+  val INTSIZE = 4
+
   /**
    * Conversion from a string to an array of unsigned chars (in int array).  Needed by org.jsuffixarrays.
    */
@@ -91,8 +97,67 @@ object SuffixArrays extends Logging {
       case _ =>      buildJsuffixarrays(str)
     }
   }
-    }
+
+  implicit class RichByteBuffer(val b: nio.ByteBuffer) extends AnyVal {
+    def getBytes(n: Int) =   { val a = new Array[Byte](n); b.get(a); a }
+    def getShorts(n: Int) =  { val a = new Array[Short](n);  var i=0; while (i<n) { a(i)=b.getShort();  i+=1 } ; a }
+    def getInts(n: Int) =    { val a = new Array[Int](n);    var i=0; while (i<n) { a(i)=b.getInt();    i+=1 } ; a }
+    def getLongs(n: Int) =   { val a = new Array[Long](n);   var i=0; while (i<n) { a(i)=b.getLong();   i+=1 } ; a }
+    def getFloats(n: Int) =  { val a = new Array[Float](n);  var i=0; while (i<n) { a(i)=b.getFloat();  i+=1 } ; a }
+    def getDoubles(n: Int) = { val a = new Array[Double](n); var i=0; while (i<n) { a(i)=b.getDouble(); i+=1 } ; a }
   }
+
+  def store(array: Array[Int], sa: Array[Int], out: jio.FileOutputStream): Option[Int] = {
+    val fc = out.getChannel
+    val header = nio.ByteBuffer.allocate(HEAD.length + INTSIZE)
+    var size = 0
+    header.put(HEAD)
+    header.putInt(array.length)
+    header.flip
+    size += fc.write(header)
+
+    val ints = nio.ByteBuffer.allocate(INTSIZE * sa.length)
+    for ( x <- sa ) {
+      ints.putInt(x)
+    }
+    ints.flip
+    size += fc.write(ints)
+
+    val chars = nio.ByteBuffer.allocate(array.length)
+    for ( x <- array ) {
+      chars.put((x-128).asInstanceOf[Byte])
+    }
+    chars.flip
+    size += fc.write(chars)
+
+    out.flush
+    return Some(size)
+  }
+
+  def load(in: jio.FileInputStream): Option[(Array[Int], Array[Int])] = {
+    val fc = in.getChannel
+    val header = nio.ByteBuffer.allocate(HEAD.length + INTSIZE)
+    println("fc read " + fc.read(header))
+    val hbytes = new Array[Byte](HEAD.length)
+    header.clear
+    header.get(hbytes)
+    if ( new String(hbytes) != new String(HEAD) ) {
+      println("wrong header: " + hbytes)
+      return None
+    }
+    val nrec = header.getInt
+
+    val ints = nio.ByteBuffer.allocate(INTSIZE * nrec)
+    fc.read(ints)
+    ints.clear
+
+    val chars = nio.ByteBuffer.allocate(nrec)
+    fc.read(chars)
+    chars.clear
+
+    Some((chars.getBytes(nrec).map(_.asInstanceOf[Int] + 128), ints.getInts(nrec)))
+  }
+
 }
 
 case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int])
