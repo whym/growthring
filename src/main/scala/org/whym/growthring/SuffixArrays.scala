@@ -53,37 +53,44 @@ object SuffixArrays extends Logging {
     height
   }
 
-  def build(str: String, method: String = "jsuffixarrays"): SuffixArrays = {
-    logger.info("start suffixarrays build")
+  def buildSais(str: String): SuffixArrays = {
+    logger.info("start sais build")
     val arr = stringToUchars(str)
+    import com.sun.jna.{Library, Native, Memory, Pointer}
+    trait SAIS extends Library {
+      def sais(s: Pointer, p: Pointer, n: Int): Int
+      //def sais_int(s: Pointer, p: Pointer, n: Int, k: Int): Int
+    }
+    logger.info("load sais")
+    val sais = Native.loadLibrary("sais", classOf[SAIS]).asInstanceOf[SAIS]
+    val mem1 = new Memory(str.size * 2)
+    val mem2 = new Memory(str.size * 4 * 2)
+    mem1.write(0, arr.map(_.asInstanceOf[Byte]), 0, arr.size)
+    logger.info("start sais")
+    sais.sais(mem1, mem2, arr.size)
+    //sais.sais_int(mem1, mem2, arr.size, 256)
+    val sa = Array.tabulate(arr.size)(i => mem2.getInt(i * 4))
+    logger.info("start lcp")
+    SuffixArrays(arr, sa, getHeight(arr, sa))
+  }
+
+  def buildJsuffixarrays(str: String): SuffixArrays = {
+    logger.info("start jsuffixarrays build")
+    val arr = stringToUchars(str)
+    import org.{jsuffixarrays => JSA}
+    val builder = new JSA.DivSufSort()
+    val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, builder)
+    SuffixArrays(arr, sadata.getSuffixArray, sadata.getLCP)
+    // val sa = sadata.getSuffixArray
+    // (sa, getHeight(arr, sa))
+  }
+
+  def build(str: String, method: String = "jsuffixarrays"): SuffixArrays = {
     method match {
-      case "sais" => {
-        // TODO: 関数にして単体テスト
-        import com.sun.jna.{Library, Native, Memory, Pointer}
-          trait SAIS extends Library {
-            def sais(s: Pointer, p: Pointer, n: Int): Int
-            //def sais_int(s: Pointer, p: Pointer, n: Int, k: Int): Int
-          }
-        logger.info("load sais")
-        val sais = Native.loadLibrary("sais", classOf[SAIS]).asInstanceOf[SAIS]
-        val mem1 = new Memory(str.size * 2)
-        val mem2 = new Memory(str.size * 4 * 2)
-        mem1.write(0, arr.map(_.asInstanceOf[Byte]), 0, arr.size)
-        logger.info("start sais")
-        sais.sais(mem1, mem2, arr.size)
-        //sais.sais_int(mem1, mem2, arr.size, 256)
-        val sa = Array.tabulate(arr.size)(i => mem2.getInt(i * 4))
-        logger.info("start lcp")
-        SuffixArrays(arr, sa, getHeight(arr, sa))
-      }
-      case _ => {
-        import org.{jsuffixarrays => JSA}
-        val builder = new JSA.DivSufSort()
-        val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, builder)
-        SuffixArrays(arr, sadata.getSuffixArray, sadata.getLCP)
-        // val sa = sadata.getSuffixArray
-        // (sa, getHeight(arr, sa))
-      }
+      case "sais" => buildSais(str)
+      case _ =>      buildJsuffixarrays(str)
+    }
+  }
     }
   }
 }

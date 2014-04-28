@@ -96,7 +96,7 @@ object Main extends Logging {
           case "naive" =>  NaiveExtremalSubstrings.maxRepeats
           case "word"  =>  new WordRepeats().repeats
           case "ngram" =>  new NgramRepeats(config.getInt("ngramSize")).repeats(_, _, config.getInt("minLen").toInt)
-          case m =>   {(s:String, r:Int) => new ExtremalSubstrings(SuffixArrays.build(s, m)).maxRepeats(r)}
+          case m => {(s:String, r:Int) => new ExtremalSubstrings(SuffixArrays.build(s, m)).maxRepeats(r)}
         }
 
         val cmethod: (Array[Char],Seq[(Int,Int)])=>Set[Int] = config.getString("coveringMethod") match {

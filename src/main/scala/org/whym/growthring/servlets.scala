@@ -42,7 +42,7 @@ class FindRepeatsServlet extends HttpServlet {
       case null => Seq(2)
       case x => x.split(",").map(_.toInt).filter(_ >= 2).sorted
     }
-    val es = new ExtremalSubstrings(SuffixArrays.build(str))
+    val es = new ExtremalSubstrings(SuffixArrays.buildJsuffixarrays(str))
 
     case class Repeats(threshold: Int, regions: Seq[(Int, Int)], flags: Set[Int])
     val repeats = threshold.map(x => {
