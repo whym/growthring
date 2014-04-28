@@ -50,7 +50,7 @@ object Main extends Logging {
   def findRepeats(method: String, strings: Seq[String], freq: Int): Seq[String] = {
     import org.apache.commons.lang3.{StringEscapeUtils => SEU}
     val str = strings.mkString("\n")
-    val es = new ExtremalSubstrings(str, method)
+    val es = new ExtremalSubstrings(SuffixArrays.build(str, method))
     es.maxRepeats(freq).map{
       x =>
         f"r ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s"
@@ -96,7 +96,7 @@ object Main extends Logging {
           case "naive" =>  NaiveExtremalSubstrings.maxRepeats
           case "word"  =>  new WordRepeats().repeats
           case "ngram" =>  new NgramRepeats(config.getInt("ngramSize")).repeats(_, _, config.getInt("minLen").toInt)
-          case x =>   new ExtremalSubstrings(_, x).maxRepeats(_)
+          case m =>   {(s:String, r:Int) => new ExtremalSubstrings(SuffixArrays.build(s, m)).maxRepeats(r)}
         }
 
         val cmethod: (Array[Char],Seq[(Int,Int)])=>Set[Int] = config.getString("coveringMethod") match {
