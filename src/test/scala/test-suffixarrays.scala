@@ -18,12 +18,13 @@ class TestSuffixArrays extends FunSuite {
     val temp = jio.File.createTempFile("temp",".dat")
     
     assertResult(Some(28)) {
-      SA.store(Array(255,2,33,4), Array(11,2,33,4), new jio.FileOutputStream(temp))
+      SA.store(Array(255,2,33,4), Array(0,2,3,1), new jio.FileOutputStream(temp))
     }
-    assertResult((Array(255,2,33,4).deep, Array(11,2,33,4).deep)) {
+    assertResult((Array(255,2,33,4).deep, Array(0,2,3,1).deep)) {
       val a = SA.load(new jio.FileInputStream(temp)).get
-      (a._1.deep, a._2.deep)
+      (a.arr, a.sa)
     }
   }
+
 }
 

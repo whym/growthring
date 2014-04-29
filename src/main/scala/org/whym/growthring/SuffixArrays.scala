@@ -87,8 +87,6 @@ object SuffixArrays extends Logging {
     val builder = new JSA.DivSufSort()
     val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, builder)
     SuffixArrays(arr, sadata.getSuffixArray, sadata.getLCP)
-    // val sa = sadata.getSuffixArray
-    // (sa, getHeight(arr, sa))
   }
 
   def build(str: String, method: String = "jsuffixarrays"): SuffixArrays = {
@@ -107,7 +105,9 @@ object SuffixArrays extends Logging {
     def getDoubles(n: Int) = { val a = new Array[Double](n); var i=0; while (i<n) { a(i)=b.getDouble(); i+=1 } ; a }
   }
 
-  def store(array: Array[Int], sa: Array[Int], out: jio.FileOutputStream): Option[Int] = {
+  def store(a: SuffixArrays, out: jio.FileOutputStream): Option[Int] = store(a.arr, a.sa, out)
+
+  def store(array: IndexedSeq[Int], sa: IndexedSeq[Int], out: jio.FileOutputStream): Option[Int] = {
     val fc = out.getChannel
     val header = nio.ByteBuffer.allocate(HEAD.length + INTSIZE)
     var size = 0
@@ -134,7 +134,7 @@ object SuffixArrays extends Logging {
     return Some(size)
   }
 
-  def load(in: jio.FileInputStream): Option[(Array[Int], Array[Int])] = {
+  def load(in: jio.FileInputStream): Option[SuffixArrays] = {
     val fc = in.getChannel
     val header = nio.ByteBuffer.allocate(HEAD.length + INTSIZE)
     println("fc read " + fc.read(header))
@@ -155,9 +155,13 @@ object SuffixArrays extends Logging {
     fc.read(chars)
     chars.clear
 
-    Some((chars.getBytes(nrec).map(_.asInstanceOf[Int] + 128), ints.getInts(nrec)))
+    val arr = chars.getBytes(nrec).map(_.asInstanceOf[Int] + 128)
+    val sa = ints.getInts(nrec)
+    Some(SuffixArrays(arr,
+                      sa,
+                      getHeight(arr, sa)))
   }
 
 }
 
-case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int])
+case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedSeq[Int])
