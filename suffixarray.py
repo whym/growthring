@@ -1,3 +1,5 @@
+'''This is a proof-of-concept to show it is possible to "concatenate" two suffix arrays that represent two concecutive regions in a string delimited by a special boundary character.
+'''
 from itertools import *
 
 DELIMIT = '#'
@@ -7,7 +9,11 @@ def suffixes(s):
     return sorted(xrange(0, len(s)), key=lambda i: s[i:])
 
 def merge(left, right, key):
-    '''merge sort module'''
+    '''merge sort module
+
+    This *has to be* linear in time, but it is not proven to be so (and I'm not positive to prove so) when "key" is looking at subsequent characters.  What is an efficient alternative?
+
+    '''
     if not len(left) or not len(right):
         return left or right
 
