@@ -9,7 +9,7 @@ package org.whym.growthring
 import scala.collection.JavaConverters._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import javax.servlet.ServletConfig
-import org.json4s.{JObject, JField, JArray, JValue, JsonAST}
+import org.json4s.{JObject, JField, JArray, JValue, JInt, JsonAST}
 import org.json4s.native.{Printer, JsonMethods}
 import org.json4s.JsonDSL._
 import scala.io
@@ -42,6 +42,7 @@ class FindRepeatsServlet extends HttpServlet {
       case null => Seq(2)
       case x => x.split(",").map(_.toInt).filter(_ >= 2).sorted
     }
+    val threshold_rev = threshold.zipWithIndex.map(x => (x._1, x._2+1)).toMap ++ Map((0,0))
     val es = new ExtremalSubstrings(SuffixArrays.buildJsuffixarrays(str))
 
     case class Repeats(threshold: Int, regions: Seq[(Int, Int)], flags: Set[Int])
@@ -52,6 +53,19 @@ class FindRepeatsServlet extends HttpServlet {
     val flags = Array.tabulate(str.length)(i => {
       repeats.foldLeft(Set[Int]())((s,x) => if ( x.flags(i) ){s + x.threshold} else {s})
     })
+    val max_flags = Array.tabulate(str.length)(i => {
+      repeats.reverse.find(x => x.flags(i)) match {
+        case Some(n) => n.threshold
+        case None => 0
+      }
+    })
+    val max_flags_html = max_flags.zipWithIndex.map(x => {
+      val c = str.charAt(x._2) match {
+        case ' ' => "&nbsp;"
+        case x => x.toString
+      }
+      f"<div class='cell c${threshold_rev(x._1)}'>${c}</div>"
+    }).mkString("")
     val chart = str.zip(flags).map(
       x =>
         Array.tabulate(threshold.length)(
@@ -111,6 +125,9 @@ class FindRepeatsServlet extends HttpServlet {
           Printer.pretty(JsonMethods.render(
             JObject(List(JField("plain", masked_plain),
                          JField("chart", chart),
+                         JField("flags", JArray(flags.toList.map(x => JArray(x.toList.map(JInt(_)))))),
+                         JField("freqs", max_flags.toList.map(JInt(_))),
+                         JField("freqs_html", max_flags_html),
                          JField("html", masked_html),
                          JField("layers", JArray(List[JValue](layers_plain.map(l => l.map(cell2char))))),
                          JField("layers_html", layers_html),

@@ -63,6 +63,30 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
     }
   }
 
+  test("find repeats (freqs)") {
+    assertResult(JArray(List(JInt(0),
+                             JInt(4),
+                             JInt(2),
+                             JInt(4),
+                             JInt(0),
+                             JInt(0),
+                             JInt(0),
+                             JInt(0),
+                             JInt(4),
+                             JInt(2),
+                             JInt(4),
+                             JInt(0),
+                             JInt(4)))) {
+      json \ "freqs"
+    }
+  }
+
+  test("find repeats (freqs html)") {
+    assertResult(JString("<div class='cell c0'>b</div><div class='cell c2'>a</div><div class='cell c1'>n</div><div class='cell c2'>a</div><div class='cell c0'>n</div><div class='cell c0'>A</div><div class='cell c0'>&nbsp;</div><div class='cell c0'>w</div><div class='cell c2'>a</div><div class='cell c1'>n</div><div class='cell c2'>a</div><div class='cell c0'>p</div><div class='cell c2'>a</div>")) {
+      json \ "freqs_html"
+    }
+  }
+
   test("find repeats (list)"){
     assertResult(JArray(List(JArray(List(2,
                                          List(List(1, 3),

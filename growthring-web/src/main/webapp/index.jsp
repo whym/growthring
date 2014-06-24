@@ -85,7 +85,7 @@ function update() {
       var url = document.location.href.split('?')[0] + '?q=' + query;
       $('#permalink').attr('href', url);
       $('#permalinkbox').val(url);
-      $('#resultmessage').text((get_time() - before_query) + " msecs" + "\n").append(make_table(query, json.layers_html));
+      $('#resultmessage').text((get_time() - before_query) + " msecs" + "\n").append(make_table(query, json.freqs_html));
       state.lastQueryHash = query.hashCode();
     },
     error: function(jqXHR, textStatus, errorThrown) {
@@ -155,6 +155,10 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 
 #resulthtml { color: #000; font-size: 130%; margin: 0 0 0 10%; }
 #resulthtml del { text-decoration: none; color: #CCC; }
+
+.cell {display: inline-block}
+.c0{background-color:rgb(255,255,204)} .c1{background-color:rgb(255,237,160)} .c2{background-color:rgb(254,217,118)} .c3{background-color:rgb(254,178,76)} .c4{background-color:rgb(253,141,60)} .c5{background-color:rgb(252,78,42)} .c6{background-color:rgb(227,26,28)} .c7{background-color:rgb(189,0,38)} .c8{background-color:rgb(128,0,38)}
+
 </style>
 </head>
 <body>
