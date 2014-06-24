@@ -27,7 +27,6 @@ libraryDependencies ++= Seq(
   "org.json4s"        %% "json4s-native" % "3.2.9",
   "com.typesafe"       % "config"        % "1.2.0",
   "org.slf4j"          % "slf4j-api"     % "1.7.7",
-  "org.scala-lang"    %% "scala-pickling"  % "0.8.0-SNAPSHOT",
   "com.typesafe"      %% "scalalogging-slf4j" % "1.1.0",
   "ch.qos.logback"     % "logback-classic" % "1.1.2",
   "org.scalatest"     %% "scalatest"     % "2.1.3" % "test",
