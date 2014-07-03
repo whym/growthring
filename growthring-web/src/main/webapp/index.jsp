@@ -79,13 +79,13 @@ function update() {
     },
     success: function(json){
       // set the result
-      $('#result').val(json.plain);
+      $('#result').html(json.freqs_html);
       $('#resulthtml').html(json.html);
        // update the permalink
       var url = document.location.href.split('?')[0] + '?q=' + query;
       $('#permalink').attr('href', url);
       $('#permalinkbox').val(url);
-      $('#resultmessage').text((get_time() - before_query) + " msecs" + "\n").append(make_table(query, json.freqs_html));
+      $('#resultmessage').text((get_time() - before_query) + " msecs" + "\n");
       state.lastQueryHash = query.hashCode();
     },
     error: function(jqXHR, textStatus, errorThrown) {
@@ -143,7 +143,7 @@ body { background-color: #EEE; color: #444; }
 #body { margin: 3em auto; }
 #body { max-width: 60%; }
 .counter { display: inline-block; width: 6%; font-size: 200%; text-align: right; vertical-align: top; }
-textarea { display: inline-block; width: 78%; margin: 0 0 0 10%; height: auto; font-size: 180%; padding: 0.3em; border: 3px solid #777; }
+#edit, #result { display: inline-block; width: 78%; margin: 0 0 0 10%; height: auto; font-size: 180%; padding: 0.3em; border: 3px solid #777; }
 .box p { text-align: center; }
 .mode { text-align: center; font-size: 150%; width: 100%; padding: 0.5em 0; background: url("resources/images/arrow.png") no-repeat center; }
 .mode label { display: inline-block; padding: 0 1.5em 0 0.8em; }
@@ -156,8 +156,17 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 #resulthtml { color: #000; font-size: 130%; margin: 0 0 0 10%; }
 #resulthtml del { text-decoration: none; color: #CCC; }
 
+#result { background-color: white; }
 .cell {display: inline-block}
-.c0{background-color:rgb(255,255,204)} .c1{background-color:rgb(255,237,160)} .c2{background-color:rgb(254,217,118)} .c3{background-color:rgb(254,178,76)} .c4{background-color:rgb(253,141,60)} .c5{background-color:rgb(252,78,42)} .c6{background-color:rgb(227,26,28)} .c7{background-color:rgb(189,0,38)} .c8{background-color:rgb(128,0,38)}
+.c1{background-color:rgb(255,255,204)}
+.c2{background-color:rgb(255,237,160)}
+.c3{background-color:rgb(254,217,118)}
+.c4{background-color:rgb(254,178,76)}
+.c5{background-color:rgb(253,141,60)}
+.c6{background-color:rgb(252,78,42)}
+.c7{background-color:rgb(227,26,28)}
+.c8{background-color:rgb(189,0,38)}
+.c9{background-color:rgb(128,0,38)}
 
 </style>
 </head>
@@ -180,7 +189,7 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 </div>
 
 <div class="box">
-<textarea rows="4" cols="20" id="result" readonly="readonly"><jsp:include page="<%=queryURL%>" /></textarea>
+<div id="result"><jsp:include page="<%=queryURL%>" /></div>
 <label id="resultmessage" for="edit"></label>
 <div id="resulthtml"></div>
 </div>
