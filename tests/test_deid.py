@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import unittest
-import convert_deid, evaluate_deid, ratio_deid
+import convert_deid, evaluate_deid
 from StringIO import StringIO
 
 class TestDeid(unittest.TestCase):
@@ -10,23 +10,18 @@ class TestDeid(unittest.TestCase):
         None
 
     def test_evaluate(self):
-        system = StringIO('''A__D	PHI
-ABCD
-GF
-''')
-        expect = StringIO('''ABCD	PHI
-ABCD
-GF	PHI
-''')
         res = list(evaluate_deid.evaluate([('ABCD', 'PHI'),
                                            ('ABCD', ''),
-                                           ('G', 'PHI')],
+                                           ('G', 'PHI'),
+                                           ('X', '')],
                                           [('A__D', 'PHI'),
                                            ('ABCD', ''),
-                                           ('G', '')]))
+                                           ('G', ''),
+                                           ('X', 'PHI')]))
         self.assertEqual([('A__D', 'PHI', 'ABCD', 'PHI','TP'),
                           ('ABCD', '', 'ABCD', '', 'TN'),
-                          ('G', '', 'G', 'PHI','FP')], res)
+                          ('G', '', 'G', 'PHI','FN'),
+                          ('X', 'PHI', 'X', '','FP')], res)
 
     def test_ratio(self):
         inp = StringIO('''A__D	
