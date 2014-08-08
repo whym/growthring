@@ -38,7 +38,7 @@ _
         from xml.sax import make_parser
         parser = make_parser()
         out = StringIO()
-        inp = StringIO('<ROOT><REPORT><TEXT>a <PHI>b</PHI> c</TEXT></REPORT></ROOT>')
+        inp = StringIO('<ROOT><RECORD ID="123"><TEXT>a <PHI>b</PHI> c</TEXT></RECORD></ROOT>')
         convert_deid.convert(inp, out)
         self.assertEqual('''a
 b	PHI

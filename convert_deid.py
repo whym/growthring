@@ -6,17 +6,24 @@
 from xml.sax import make_parser, handler
 import re
 import sys
+import random
+from collections import defaultdict
 
 class DeidHandler(handler.ContentHandler):
 
-    def __init__(self, output, pattern, tag):
-        self.out = output
+    def __init__(self, pattern, tag, rpattern='RECORD', rattr='ID'):
         self._text = ''
         self._phi = False
         self.pattern = pattern
         self.tag = tag
+        self.cur = None
+        self.rpattern = rpattern
+        self.rattr = rattr
+        self.acc = defaultdict(list)
 
     def startElement(self, name, attrs):
+        if name == self.rpattern:
+            self.cur = attrs[self.rattr]
         if self.pattern.match(name):
             self._phi = True
 
@@ -27,14 +34,25 @@ class DeidHandler(handler.ContentHandler):
     def characters(self, content):
         tokens = [x for x in re.split(r'\s+', content) if len(x) > 0]
         if len(self.tag) > 0 and self._phi:
-            self.out.write("".join(["%s\t%s\n" % (x, self.tag) for x in tokens]))
+            self.acc[self.cur].append("".join(["%s\t%s\n" % (x, self.tag) for x in tokens]))
         else:
-            self.out.write("".join([x + "\n" for x in tokens]))
+            self.acc[self.cur].append("".join([x + "\n" for x in tokens]))
 
-def convert(inp, out, pattern=re.compile(r'^PHI'), tag='PHI'):
+    def get(self):
+        return self.acc
+
+def convert(inp, out, pattern=re.compile(r'^PHI'), tag='PHI', shuffle=False):
     parser = make_parser()
-    parser.setContentHandler(DeidHandler(out, pattern, tag))
+    handler = DeidHandler(pattern, tag)
+    parser.setContentHandler(handler)
     parser.parse(inp)
+    records = handler.get().items()
+    if shuffle:
+        random.shuffle(records)
+
+    for (key, lines) in records:
+        for line in lines:
+            out.write(line)
 
 if __name__ == '__main__':
     import argparse
@@ -51,6 +69,9 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose',
                         dest='verbose', action='store_true', default=False,
                         help='turn on verbose message output')
+    parser.add_argument('-s', '--shuffle',
+                        dest='shuffle', action='store_true', default=False,
+                        help='shuffle records')
     parser.add_argument('input')
     options = parser.parse_args()
 
