@@ -52,8 +52,10 @@ object Main extends Logging {
     val str = strings.mkString("\n")
     val es = new ExtremalSubstrings(SuffixArrays.build(str, method))
     es.maxRepeats(freq).map{
-      x =>
-        f"r ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s"
+      x => {
+        val f= str.slice(x._1, x._2 + 1).replace("\n", " ")
+        f"r ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s ${f}%s"
+      }
     } ++ es.minUniques.map{
       x =>
         f"u ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s"
