@@ -64,7 +64,11 @@ class FindRepeatsServlet extends HttpServlet {
         case ' ' => "&nbsp;"
         case x => x.toString
       }
-      f"<div class='cell c${threshold_rev(x._1)}'>${c}</div>"
+      val newline = str.charAt(x._2) match {
+        case '\n' => " nl"
+        case _ => ""
+      }
+      f"<div class='cell c${threshold_rev(x._1)}${newline}'>${c}</div>"
     }).mkString("")
     val chart = str.zip(flags).map(
       x =>

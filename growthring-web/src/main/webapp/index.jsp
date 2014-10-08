@@ -32,7 +32,7 @@
 <link rev="made" href="http://whym.org" />
 <link rel="INDEX" href="." />
 <title>growthring<%= str.equals("") ? "": " - " + snippet%></title>
-<!-- q=<%=str%> threshold=<%=threshold%> min=<%=min_len%> method=<%=method%> -->
+<!-- q=<%=str%> n=<%=threshold%> min=<%=min_len%> method=<%=method%> -->
 <script type="text/javascript" src="resources/jquery.js"></script>
 <script type="text/javascript">
 $(function(){
@@ -141,9 +141,9 @@ function update() {
 h1 { text-align: center; }
 body { background-color: #EEE; color: #444; }
 #body { margin: 3em auto; }
-#body { max-width: 60%; }
+#body { max-width: 100%; }
 .counter { display: inline-block; width: 6%; font-size: 200%; text-align: right; vertical-align: top; }
-#edit, #result { display: inline-block; width: 78%; margin: 0 0 0 10%; height: auto; font-size: 180%; padding: 0.3em; border: 3px solid #777; }
+#edit, #result { display: inline-block; width: 80%; margin: 0 0 0 10%; height: auto; font-size: 180%; padding: 0.3em; border: 3px solid #777; }
 .box p { text-align: center; }
 .mode { text-align: center; font-size: 150%; width: 100%; padding: 0.5em 0; background: url("resources/images/arrow.png") no-repeat center; }
 .mode label { display: inline-block; padding: 0 1.5em 0 0.8em; }
@@ -157,7 +157,7 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 #resulthtml del { text-decoration: none; color: #CCC; }
 
 #result { background-color: white; }
-.cell {display: inline-block}
+.cell {display: inline-block; margin-bottom: .2em; }
 .c1{background-color:rgb(255,255,204)}
 .c2{background-color:rgb(255,237,160)}
 .c3{background-color:rgb(254,217,118)}
@@ -167,7 +167,7 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 .c7{background-color:rgb(227,26,28)}
 .c8{background-color:rgb(189,0,38)}
 .c9{background-color:rgb(128,0,38)}
-
+.nl{display: block; height: .5em;}
 </style>
 </head>
 <body>
