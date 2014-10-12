@@ -75,12 +75,13 @@ function update() {
       q: query,
       format: 'json',
       min: '<%=min_len%>',
+      prop: 'freqs_html|masked_html',
       n: '<%=threshold%>'
     },
     success: function(json){
       // set the result
       $('#result').html(json.freqs_html);
-      $('#resulthtml').html(json.html);
+      // $('#resulthtml').html(json.masked_html);
        // update the permalink
       var url = document.location.href.split('?')[0] + '?q=' + query;
       $('#permalink').attr('href', url);

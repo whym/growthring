@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import javax.servlet.ServletConfig
 import org.json4s.{JObject, JField, JArray, JValue, JInt, JsonAST}
-import org.json4s.native.{Printer, JsonMethods}
+import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
 import scala.io
 import org.apache.commons.lang3.{StringEscapeUtils => seu}
@@ -42,6 +42,11 @@ class FindRepeatsServlet extends HttpServlet {
       case null => Seq(2)
       case x => x.split(",").map(_.toInt).filter(_ >= 2).sorted
     }
+    val attr = (req.getParameter("prop") match {
+      case null => Array("plain", "max_repeats")
+      case x =>  x.split('|')
+    }).map(_.toLowerCase).toSet
+
     val threshold_rev = threshold.zipWithIndex.map(x => (x._1, x._2+1)).toMap ++ Map((0,0))
     val es = new ExtremalSubstrings(SuffixArrays.buildJsuffixarrays(str))
 
@@ -50,34 +55,19 @@ class FindRepeatsServlet extends HttpServlet {
       val rp = es.maxRepeats(x).filter(x => (x._2 - x._1 + 1) >= min_len)
       Repeats(x, rp, Covering.greedyLength(str.toCharArray, rp))
     })
-    val flags = Array.tabulate(str.length)(i => {
+
+    lazy val flags = Array.tabulate(str.length)(i => {
       repeats.foldLeft(Set[Int]())((s,x) => if ( x.flags(i) ){s + x.threshold} else {s})
     })
-    val max_flags = Array.tabulate(str.length)(i => {
+
+    lazy val max_flags = Array.tabulate(str.length)(i => {
       repeats.reverse.find(x => x.flags(i)) match {
         case Some(n) => n.threshold
         case None => 0
       }
     })
-    val max_flags_html = max_flags.zipWithIndex.map(x => {
-      val c = str.charAt(x._2) match {
-        case ' ' => "&nbsp;"
-        case x => x.toString
-      }
-      val newline = str.charAt(x._2) match {
-        case '\n' => " nl"
-        case _ => ""
-      }
-      f"<div class='cell c${threshold_rev(x._1)}${newline}'>${c}</div>"
-    }).mkString("")
-    val chart = str.zip(flags).map(
-      x =>
-        Array.tabulate(threshold.length)(
-          i => (if (x._2(threshold(threshold.length - i - 1))){"*"}else{" "})
-        ).mkString + x._1
-    ).mkString("\n") + "\n"
 
-    val repeats_deepest = {
+    lazy val repeats_deepest = {
       val a = repeats.filter(_.regions.length > 0)
       if ( a.length > 0 ) {
         a.last
@@ -85,26 +75,14 @@ class FindRepeatsServlet extends HttpServlet {
         repeats.last
       }
     }
-    // abstract sealed class Tag(){}
-    // case class Begin(threshold: Int, s: String) extends Tag
-    // case class End(threshold: Int, s: String) extends Tag
-    // case object NoTag extends Tag
-    // for ( r <- repeats_deepest.regions ) {
-    //   tags(r._1)     = Begin(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
-    //   tags(r._2 + 1) = End(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
-    // }
 
-    val masked_html = str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
-      case (char, true)  => char.toString
-      case (char, false) => f"<del>${char}</del>"
-    }.mkString
+    lazy val masked_plain =
+      str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
+        case (char, true)  => "" + char
+        case (char, false) => (if (0x00 <= char && char <= 0xFF) {"_"} else {"__"})
+      }.mkString
 
-    val masked_plain = str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
-      case (char, true)  => "" + char
-      case (char, false) => (if (0x00 <= char && char <= 0xFF) {"_"} else {"__"})
-    }.mkString
-
-    val layers_plain = TiledLayers.greedyTiling(str.toCharArray, repeats_deepest.regions)
+    lazy val layers_plain = TiledLayers.greedyTiling(str.toCharArray, repeats_deepest.regions)
     import org.whym.growthring.{TiledLayers => TL}
     val cell2char: TL.Cell => String = {
         case TL.Outside() => "O"
@@ -113,11 +91,22 @@ class FindRepeatsServlet extends HttpServlet {
         case TL.End()     => "E"
         case TL.Inside()  => "I"
     }
-    val layers_html = if (layers_plain.size == 0) {""} else {
-      layers_plain.map{
-        s => "<tr>" + s.map(x => "<td>" + cell2char(x) + "</td>").mkString + "</tr>"
-      }.reduce(_+_)
+
+    lazy val layers_html =
+      if (layers_plain.size == 0) {""} else {
+        layers_plain.map{
+          s => "<tr>" + s.map(x => "<td>" + cell2char(x) + "</td>").mkString + "</tr>"
+        }.mkString
+      }
+
+    def if_field(field: String, f: Unit=>JValue): JField = {
+      if (attr contains field) {
+        JField(field, f())
+      } else {
+        JField(field, "")
+      }
     }
+
     val writer = resp.getWriter
     req.getParameter("format") match {
       case "plain" => {
@@ -126,21 +115,45 @@ class FindRepeatsServlet extends HttpServlet {
       }
       case _ => {
         resp.setContentType("application/json")
-        writer.println(
-          Printer.pretty(JsonMethods.render(
-            JObject(List(JField("plain", masked_plain),
-                         JField("chart", chart),
-                         JField("flags", JArray(flags.toList.map(x => JArray(x.toList.map(JInt(_)))))),
-                         JField("freqs", max_flags.toList.map(JInt(_))),
-                         JField("freqs_html", max_flags_html),
-                         JField("html", masked_html),
-                         JField("layers", JArray(List[JValue](layers_plain.map(l => l.map(cell2char))))),
-                         JField("layers_html", layers_html),
-                         JField("max_repeats",
-                                repeats.map{rp => JArray(List[JValue](
-                                  rp.threshold,
-                                  rp.regions.map(x => JArray(List(x._1, x._2)))
-                                ))}))))))
+        val o =
+          JObject(List(
+            if_field("masked_plain", _ => masked_plain),
+            if_field("chart", _ => {
+              str.zip(flags).map(
+                x =>
+                  Array.tabulate(threshold.length)(
+                    i => (if (x._2(threshold(threshold.length - i - 1))){"*"}else{" "})
+                  ).mkString + x._1
+              ).mkString("\n") + "\n"
+            }),
+            if_field("flags", _ => JArray(flags.toList.map(x => JArray(x.toList.map(JInt(_)))))),
+            if_field("freqs", _ => max_flags.toList.map(JInt(_))),
+            if_field("freqs_html", _ => max_flags.zipWithIndex.map(x => {
+              val c = str.charAt(x._2) match {
+                case ' ' => "&nbsp;"
+                case x => x.toString
+              }
+              val newline = str.charAt(x._2) match {
+                case '\n' => " nl"
+                case _ => ""
+              }
+              f"<div class='cell c${threshold_rev(x._1)}${newline}'>${c}</div>"
+            }).mkString("")),
+            if_field("masked_html", _ =>
+              str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
+                case (char, true)  => char.toString
+                case (char, false) => f"<del>${char}</del>"
+              }.mkString
+                   ),
+            if_field("layers", _ => JArray(List[JValue](layers_plain.map(l => l.map(cell2char))))),
+            if_field("layers_html", _ => layers_html),
+            if_field("max_repeats", _ =>
+              repeats.map{rp => JArray(List[JValue](
+                rp.threshold,
+                rp.regions.map(x => JArray(List(x._1, x._2)))
+              ))})
+          ))
+        writer.println(pretty(render(o)))
       }
     }
   }
@@ -171,7 +184,7 @@ class WikiBlameServlet extends HttpServlet {
     val writer = resp.getWriter
     resp.setContentType("application/json")
     writer.println(
-      Printer.pretty(JsonMethods.render(
+      compact(render(
         JObject(List(JField("title", title),
                      JField("nrevs", revisions.size),
                      JField("rev_id", revisions(0).id),

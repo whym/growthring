@@ -12,7 +12,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.json4s.{JInt, JString, JField, JArray, JValue}
-import org.json4s.native.JsonParser
+import org.json4s.native.JsonParser._
 import org.json4s.JsonDSL._
 
 /**
@@ -31,16 +31,17 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
     when(request.getParameter("n")).thenReturn(n)
     when(request.getParameter("min")).thenReturn(min)
     when(request.getParameter("format")).thenReturn("json")
+    when(request.getParameter("prop")).thenReturn("masked_plain|masked_html|chart|flags|freqs|freqs_html|layers|layers_html|max_repeats")
     
     new FindRepeatsServlet().doGet(request, response)
-    return JsonParser.parse(stringWriter.toString)
+    return parse(stringWriter.toString)
   }
   val json = get("bananA wanapa", "2,4,8", "1")
   val json2 = get("abracadabra", "2", "2")
   test("find repeats (plain)") {
 
     assertResult(JString("_a_a____a_a_a")) {
-      json \ "plain"
+      json \ "masked_plain"
     }
   }
 
@@ -107,7 +108,7 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
 
   test("find repeats (plain#2)") {
     assertResult(JString("abra___abra")) {
-      json2 \ "plain"
+      json2 \ "masked_plain"
     }
     assertResult(JArray(List(JArray(List(2,
                                          List(List(0, 3),
@@ -116,9 +117,9 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
     }
   }
 
-  test("find repeats (html)") {
+  test("find repeats (masked_html)") {
     assertResult(JString("abra<del>c</del><del>a</del><del>d</del>abra")) {
-      json2 \ "html"
+      json2 \ "masked_html"
     }
   }
 
@@ -206,7 +207,7 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
 </mediawiki>.toString))).start
     TestSimpleHttpServer.waitUntilPrepared(addr, 1000L)
     new WikiBlameServlet().doGet(request, response)
-    return JsonParser.parse(stringWriter.toString)
+    return parse(stringWriter.toString)
   }
   val json = get()
 
