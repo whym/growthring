@@ -48,7 +48,7 @@ class FindRepeatsServlet extends HttpServlet {
     case class Repeats(threshold: Int, regions: Seq[(Int, Int)], flags: Set[Int])
     val repeats = threshold.map(x => {
       val rp = es.maxRepeats(x).filter(x => (x._2 - x._1 + 1) >= min_len)
-      Repeats(x, rp, Covering.greedyLengthFreq(str.toCharArray, rp))
+      Repeats(x, rp, Covering.greedyLength(str.toCharArray, rp))
     })
     val flags = Array.tabulate(str.length)(i => {
       repeats.foldLeft(Set[Int]())((s,x) => if ( x.flags(i) ){s + x.threshold} else {s})
@@ -93,15 +93,16 @@ class FindRepeatsServlet extends HttpServlet {
     //   tags(r._1)     = Begin(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
     //   tags(r._2 + 1) = End(repeats_deepest.threshold, str.slice(r._1, r._2 + 1))
     // }
+
     val masked_html = str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
       case (char, true)  => char.toString
       case (char, false) => f"<del>${char}</del>"
-    }.reduce(_+_)
+    }.mkString
 
     val masked_plain = str.zip(flags.map(_.contains(repeats_deepest.threshold))).map{
       case (char, true)  => "" + char
       case (char, false) => (if (0x00 <= char && char <= 0xFF) {"_"} else {"__"})
-    }.reduce(_+_)
+    }.mkString
 
     val layers_plain = TiledLayers.greedyTiling(str.toCharArray, repeats_deepest.regions)
     import org.whym.growthring.{TiledLayers => TL}
