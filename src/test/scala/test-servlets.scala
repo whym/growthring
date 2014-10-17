@@ -11,7 +11,7 @@ import java.io.{Writer, PrintWriter, StringWriter}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.json4s.{JInt, JString, JField, JArray, JValue}
+import org.json4s.{JInt, JString, JField, JObject, JArray, JValue}
 import org.json4s.native.JsonParser._
 import org.json4s.JsonDSL._
 
@@ -124,13 +124,14 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   }
 
   test("find repeats (layers)"){
-    assertResult(JArray(List(JArray(List(JArray(List("B", "I", "I", "E", "O", "O", "O", "B", "I", "I", "E"))))))) {
+    assertResult(JObject(List(JField("2", JArray(List(JArray(List(JArray(List("B", "I", "I", "E", "O", "O", "O", "B", "I", "I", "E")))))))))) {
       json2 \ "layers"
     }
   }
   
   test("find repeats (layers html)"){
-    assertResult(JString("<tr><td>B</td><td>I</td><td>I</td><td>E</td><td>O</td><td>O</td><td>O</td><td>B</td><td>I</td><td>I</td><td>E</td></tr>")) {
+    assertResult(JObject(List(JField("2", JString("""<set><series><e class='B'>a</e><e class='I'>b</e><e class='I'>r</e><e class='E'>a</e><e class='O'>c</e><e class='O'>a</e><e class='O'>d</e><e class='B'>a</e><e class='I'>b</e><e class='I'>r</e><e class='E'>a</e></series>
+</set>"""))))) {
       json2 \ "layers_html"
     }
   }

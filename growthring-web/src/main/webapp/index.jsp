@@ -75,13 +75,13 @@ function update() {
       q: query,
       format: 'json',
       min: '<%=min_len%>',
-      prop: 'freqs_html|masked_html',
+      prop: 'freqs_html|layers_html',
       n: '<%=threshold%>'
     },
     success: function(json){
       // set the result
       $('#result').html(json.freqs_html);
-      // $('#resulthtml').html(json.masked_html);
+      $('#resulthtml').html('<sets>' + Object.keys(json.layers_html).map(function(v,i){ return '<h2>'+v+'</h2>' + json.layers_html[v] }).join('') + '<sets>');
        // update the permalink
       var url = document.location.href.split('?')[0] + '?q=' + query;
       $('#permalink').attr('href', url);
@@ -154,9 +154,6 @@ body { background-color: #EEE; color: #444; }
 h1 a img {border: none;}
 input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em; }
 
-#resulthtml { color: #000; font-size: 130%; margin: 0 0 0 10%; }
-#resulthtml del { text-decoration: none; color: #CCC; }
-
 #result { background-color: white; }
 .cell {display: inline-block; margin-bottom: .2em; }
 .c1{background-color:rgb(255,255,204)}
@@ -169,6 +166,52 @@ input[type=submit] { display: block; margin: 0 auto; font-size:130%; width: 12em
 .c8{background-color:rgb(189,0,38)}
 .c9{background-color:rgb(128,0,38)}
 .nl{display: block; height: .5em;}
+
+sets {
+ display: flex;
+ flex-flow: row;
+}
+sets h2 {
+ margin: 1em .5em;
+}
+set {
+ display: flex;
+ flex-flow: row;
+}
+series{
+ display: flex;
+ flex-flow: column;
+ margin-right: .1em;
+}
+e {
+ width: 2ex;
+ height: 2ex;
+ border-top: .2em solid transparent;
+ border-bottom: .2em solid transparent;
+ vertical-align: middle;
+ text-align: center;
+}
+e.I, e.S, e.B, e.E {
+ background: rgb(255,255,204);
+}
+e.S, e.B {
+-webkit-border-top-left-radius: .3em;
+-webkit-border-top-right-radius: .3em;
+-moz-border-radius-topleft: .3em;
+-moz-border-radius-topright: .3em;
+border-top-left-radius: .3em;
+border-top-right-radius: .3em;
+ border-top: .2em solid rgb(253,141,60);
+}
+e.S, e.E {
+-webkit-border-bottom-right-radius: .3em;
+-webkit-border-bottom-left-radius: .3em;
+-moz-border-radius-bottomright: .3em;
+-moz-border-radius-bottomleft: .3em;
+border-bottom-right-radius: .3em;
+border-bottom-left-radius: .3em;
+ border-bottom: .2em solid rgb(253,141,60);
+}
 </style>
 </head>
 <body>

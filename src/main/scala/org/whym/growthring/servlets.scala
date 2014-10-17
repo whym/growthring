@@ -53,7 +53,7 @@ class FindRepeatsServlet extends HttpServlet {
     case class Repeats(threshold: Int, regions: Seq[(Int, Int)], flags: Set[Int])
     val repeats = threshold.map(x => {
       val rp = es.maxRepeats(x).filter(x => (x._2 - x._1 + 1) >= min_len)
-      Repeats(x, rp, Covering.greedyLength(str.toCharArray, rp))
+      Repeats(x, rp, Covering.dp0(str.toCharArray, rp))
     })
 
     lazy val flags = Array.tabulate(str.length)(i => {
@@ -82,7 +82,7 @@ class FindRepeatsServlet extends HttpServlet {
         case (char, false) => (if (0x00 <= char && char <= 0xFF) {"_"} else {"__"})
       }.mkString
 
-    lazy val layers_plain = TiledLayers.greedyTiling(str.toCharArray, repeats_deepest.regions)
+    lazy val layers = repeats.map(rp => (rp.threshold, TiledLayers.greedyTiling(str.toCharArray, rp.regions)))
     import org.whym.growthring.{TiledLayers => TL}
     val cell2char: TL.Cell => String = {
         case TL.Outside() => "O"
@@ -92,12 +92,16 @@ class FindRepeatsServlet extends HttpServlet {
         case TL.Inside()  => "I"
     }
 
-    lazy val layers_html =
-      if (layers_plain.size == 0) {""} else {
-        layers_plain.map{
-          s => "<tr>" + s.map(x => "<td>" + cell2char(x) + "</td>").mkString + "</tr>"
+    lazy val layers_html = layers.map{ x=> {
+      val thres = x._1
+      val layers_plain = x._2
+      (thres, if (layers_plain.size == 0) {""} else {
+        val elements = layers_plain.map{
+          s => "<series>" + s.zipWithIndex.map(x => "<e class='" + cell2char(x._1) + "'>" + str.charAt(x._2) + "</e>").mkString + "</series>\n"
         }.mkString
-      }
+        "<set>" + elements + "</set>"
+      })
+    }}
 
     def if_field(field: String, f: Unit=>JValue): JField = {
       if (attr contains field) {
@@ -145,8 +149,8 @@ class FindRepeatsServlet extends HttpServlet {
                 case (char, false) => f"<del>${char}</del>"
               }.mkString
                    ),
-            if_field("layers", _ => JArray(List[JValue](layers_plain.map(l => l.map(cell2char))))),
-            if_field("layers_html", _ => layers_html),
+            if_field("layers", _ => JObject(layers.map(x => JField(x._1.toString, JArray(List[JValue](x._2.map(l => l.map(cell2char)))))).toList)),
+            if_field("layers_html", _ => JObject(layers_html.map(x => JField(x._1.toString, x._2)).toList)),
             if_field("max_repeats", _ =>
               repeats.map{rp => JArray(List[JValue](
                 rp.threshold,

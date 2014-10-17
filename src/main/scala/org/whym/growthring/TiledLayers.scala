@@ -1,4 +1,4 @@
-/**
+/*
  *
  * @author Yusuke Matsubara <whym@whym.org>
  *
@@ -9,8 +9,9 @@ package org.whym.growthring
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-/**
+/*
  * Given spans, pack them into smallest layers each of which has no overlaps
+ * 
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */
@@ -70,7 +71,7 @@ object TiledLayers {
         ((-1 +: -1 +: ar), (-1 +: ar :+ -1), (ar :+ -1 :+ -1)).zipped.map{
           case (_,  -1,  _) => Outside()
           case (-1, _ , -1) => Single()
-          case (x,  y  , z)  => (if ( x == y && y == z ) { Inside() } else if ( x == y ) { End() } else if ( y == z ) { Begin() } else { Single() })
+          case (x,  y,   z)  => (if ( x == y && y == z ) { Inside() } else if ( x == y ) { End() } else if ( y == z ) { Begin() } else { Single() })
         }.slice(1, body.size+1).toIndexedSeq
       }
     }.toList

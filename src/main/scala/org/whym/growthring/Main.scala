@@ -106,8 +106,9 @@ object Main extends Logging {
           case "greedyConservative" => Covering.greedyConservative
           case "greedySliced" =>       Covering.greedySliced
           case "exhaustive" =>         Covering.exhaustive
-          case "dp" =>                 Covering.dp
-          case _        =>             {
+          case "dp0" =>                Covering.dp0
+          case "dp1" =>                Covering.dp1
+          case _  => {
             logger.debug("using default covering algorithm")
             Covering.greedyLengthFreq
           }

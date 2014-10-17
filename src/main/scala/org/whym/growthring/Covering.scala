@@ -29,19 +29,22 @@ object Covering {
   }
   def hasOverlap(x: Iterable[(Int,Int)]): Boolean = hasOverlap(x, x)
 
-  def dp_(rp2: Seq[(Int,Int)]): Set[Int] = {
+  def dp_(rp2: Seq[(Int,Int)], gap: Int): Set[Int] = {
     case class Operation(score: Int, prevPos: Int, skip: Boolean)
 
+    if (rp2.size == 0) {
+      return Set()
+    }
     val rp = rp2.toIndexedSeq.sorted
 
     // index(n) は rp(n) と重複しない rp(i) のうち最大の i を返す
     val index_ = {
       val ret = mutable.ArrayBuffer.fill(rp.last._2 + 1)(-1)
-      var i = rp(0)._2 + 2
+      var i = rp(0)._2 + 1 + gap
       var n = 0
       while ( i < ret.size && n < rp.size ) {
         ret(i) = n
-        if ( i >= rp(n+1)._2 + 1 ) {
+        if ( i >= rp(n+1)._2 + gap ) {
           n += 1
         }
         i += 1
@@ -60,8 +63,8 @@ object Covering {
     val table = new mutable.ArrayBuffer[Operation]
     table.append(Operation(rp(0)._2 - rp(0)._1 + 1, -1, false))
     for ( n <- 1 until rp.size ) {
-      val s = rp(n)._2 - rp(n)._1 + 1
-      val p  = table(n-1)
+      val s = rp(n)._2 - rp(n)._1 + 1   // size
+      val p  = table(n-1)               // previous
       val prevPos = index(rp(n)._1)
       table.append({
         if ( prevPos >= 0 ) {
@@ -90,24 +93,11 @@ object Covering {
     ret.toSet
   }
 
-  def dp[T](body: Array[T], rp: Seq[(Int,Int)]) =
-    dp_(rp)
+  def dp0[T](body: Array[T], rp: Seq[(Int,Int)]) =
+    dp_(rp, 0)
 
-  def exhaustive_[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
-    val cands = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
-    cands.append(mutable.ListBuffer(rp.head))
-    cands.append(mutable.ListBuffer(rp.tail.head))
-    for ( r <- rp.tail.tail ) {
-      val cands2 = new mutable.ListBuffer[mutable.ListBuffer[(Int,Int)]]
-      for ( s <- cands ) {
-        if ( !overlaps(s.last, r) ) {
-          cands2.append(s :+ r)
-        }
-      }
-      cands.appendAll(cands2)
-    }
-    cands.max(Ordering.by[Iterable[(Int,Int)],Int](x => x.map(y => (1 + y._2 - y._1)).sum)).map(x => Range(x._1,x._2+1).toList).reduce(_++_).toSet
-  }
+  def dp1[T](body: Array[T], rp: Seq[(Int,Int)]) =
+    dp_(rp, 1)
 
   def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
     rp.toSet.subsets.max(
