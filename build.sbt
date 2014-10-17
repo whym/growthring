@@ -47,3 +47,5 @@ mainClass in assembly := Some("org.whym.growthring.Main")
 publishMavenStyle := true
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+
+jetty()
