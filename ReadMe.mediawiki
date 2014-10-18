@@ -10,15 +10,14 @@ document grows over revisions. It contains:
 == How to use ==
 
 === Using the multiple sequence aligner ===
-[http://www.scala-sbt.org/ sbt 0.13] and Java Development Kit 1.6.0 will be required.
+''[http://www.scala-sbt.org/ sbt 0.13] and Java Development Kit 1.6.0 are required.''
 # sbt assembly
 # java -Xss50M -jar target/scala-2.10/growthring-assembly-0.3.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf
 
-=== Using the anonymizer ===
-[http://www.scala-sbt.org/ sbt 0.13], [https://maven.apache.org/ maven 3] and Java Development Kit 1.6.0 will be required.
-# sbt publish
-# cd growthring-web && mvn package && sh dev_appserver.sh target/growthring-web-0.1
-# xdg-open http://localhost:8080 # open http://localhost:8080
+=== Using the web interface ===
+''[http://www.scala-sbt.org/ sbt 0.13] and Java Development Kit 1.6.0 are required.''
+# sbt container:start
+# xdg-open http://localhost:8080 # or open http://localhost:8080 on your browser
 
 === Combining with SAIS ===
 # Use the command below to get the shared library version of [https://sites.google.com/site/yuta256/sais SAIS].  You may need to add <code>-fPIC</code> to <code>CFLAGS</code> in the Makefile.
