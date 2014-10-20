@@ -10,7 +10,7 @@ document grows over revisions. It contains:
 == How to use ==
 
 === Using the multiple sequence aligner ===
-''[http://www.scala-sbt.org/ sbt 0.13] and Java Development Kit 1.6.0 are required.''
+''[http://www.scala-sbt.org/ sbt 0.13], Java Development Kit 1.6.0 and [http://www.graphviz.org graphviz] are required.''
 # sbt assembly
 # java -Xss50M -jar target/scala-2.10/growthring-assembly-0.3.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf
 
