@@ -285,7 +285,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     List("}")
 
   def compact(concat: (T,T)=>T): Dag[T] = {
-    val visited = new mutable.HashSet[Int]
+    val visited = new mutable.BitSet
     def compactable_edges(root: Int, buff: List[Int], acc: Set[List[Int]]): Set[List[Int]] = {
       val prevs = prev_nodes(root)
       if ( buff.size == 0 ) {

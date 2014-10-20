@@ -37,7 +37,7 @@ object Main extends Logging {
     val flags = cmethod(str.toCharArray, coveredFiltered, gap)
     logger.debug(f"${flags.size} characters unsuppressed.")
     import scala.collection.mutable
-    val unhides = new mutable.HashSet[Int]
+    val unhides = new mutable.BitSet
     for ( x <- (new Regex(unhide_pattern) findAllMatchIn str) ) {
       for ( i <- Range(x.start,x.end) ) {
         unhides(i) = true

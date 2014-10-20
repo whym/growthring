@@ -82,7 +82,7 @@ object Covering {
       })
     }
     val m = table.zipWithIndex.maxBy(_._1.score)._2
-    val ret = new mutable.HashSet[Int]
+    val ret = new mutable.BitSet
     var i = m
     while ( i >= 0 ) {
       if ( !table(i).skip ) {
@@ -116,7 +116,7 @@ object Covering {
      for ( ent <- rp ) {
       sorted.addBinding(ent._1 - ent._2, ent)
      }
-     val flags = Array.fill(body.size + 2)(false)
+     val flags = new mutable.BitSet
      if ( sorted.size == 0 ) {
        return Set()
      }
@@ -127,7 +127,7 @@ object Covering {
         }
       }
     }
-    return flags.zipWithIndex.filter(_._1).map(_._2).toSet
+    return flags.toSet
   }
 
   def greedyLengthFreq[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1): Set[Int] = {
@@ -138,7 +138,7 @@ object Covering {
     for ( ent <- rp ) {
       sorted.addBinding(body.slice(ent._1, ent._2+1), ent)
     }
-    val flags = Array.fill(body.size + 2)(false)
+    val flags = new mutable.BitSet
     if ( sorted.size == 0 ) {
       return Set()
     }
@@ -149,11 +149,11 @@ object Covering {
         }
       }
     }
-    return flags.zipWithIndex.filter(_._1).map(_._2).toSet
+    return flags.toSet
   }
 
   def greedyConservative[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
-    val flags = Array.fill(body.size + 2)(false)
+    val flags = new mutable.BitSet
     val invalidated = new mutable.HashMap[IndexedSeq[T], Int] withDefault (_ => 0)
     val groups = rp.groupBy(x => body.slice(x._1, x._2+1).toIndexedSeq)
     val min_freq = groups.map(_._2.size).min
@@ -168,7 +168,7 @@ object Covering {
         }
       }
     }
-    return flags.zipWithIndex.filter(_._1).map(_._2).toSet
+    return flags.toSet
   }
 
   def greedySliced[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1): Set[Int] = {
@@ -176,7 +176,7 @@ object Covering {
       throw new IllegalArgumentException("gap must be 1 or 0:" + gap)
     }
     import scala.collection.mutable.PriorityQueue
-    val flags = Array.fill(body.size + 2)(false)
+    val flags = new mutable.BitSet
     val queue = new PriorityQueue[(Int,Int)]()(Ordering.by[(Int,Int),Int](x => x._2 - x._1))
     for ( x <- rp ) {
       queue.enqueue(x)
@@ -204,7 +204,7 @@ object Covering {
         }
       }
     }
-    return flags.zipWithIndex.filter(_._1).map(_._2).toSet
+    return flags.toSet
   }
 
   // observe that the covering problem can be casted into a max-weight matching problem by translating spans into vertices.

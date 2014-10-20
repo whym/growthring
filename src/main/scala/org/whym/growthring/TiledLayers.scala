@@ -33,11 +33,11 @@ object TiledLayers {
     for ( (r,i) <- rp.zipWithIndex ) {
       starts(r._1) = i
     }
-    val res = new mutable.HashSet[Int]
+    val res = new mutable.BitSet
     for ( x <- Range(0, rp.size) ) {
       res.add(x)
     }
-    var cur = new mutable.HashSet[Int]
+    var cur = new mutable.BitSet
     val ret = new mutable.ListBuffer[Set[Int]]
     while ( res.size > 0 ) {
       var n = 0
