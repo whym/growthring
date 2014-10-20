@@ -16,12 +16,13 @@ import com.typesafe.scalalogging.slf4j.Logging
 object Main extends Logging {
 
   def anonymize(rmethod: (String,Int)=>Seq[(Int,Int)],
-                cmethod: (Array[Char], Seq[(Int,Int)]) => Set[Int],
+                cmethod: (Array[Char], Seq[(Int,Int)], Int) => Set[Int],
                 strings: Seq[String],
                 min_len: Int,
                 cover_char: Char,
                 freq: Int,
                 unhide_pattern: String="",
+                gap: Int,
                 _start: Int,
                 _end: Int): Seq[String] = {
     import scala.util.matching.Regex
@@ -33,7 +34,7 @@ object Main extends Logging {
     val end = if (_end > 0) {_end} else {str.length}
     val coveredFiltered = covered.filter(x => (start <= x._1  && x._1 < end) || (start <= x._2 && x._2 < end))
     logger.debug(f"${coveredFiltered.size}%d / ${covered.size}%d repeats from ${start}%d to ${end}%d.")
-    val flags = cmethod(str.toCharArray, coveredFiltered)
+    val flags = cmethod(str.toCharArray, coveredFiltered, gap)
     logger.debug(f"${flags.size} characters unsuppressed.")
     import scala.collection.mutable
     val unhides = new mutable.HashSet[Int]
@@ -101,13 +102,12 @@ object Main extends Logging {
           case m => {(s:String, r:Int) => new ExtremalSubstrings(SuffixArrays.build(s, m)).maxRepeats(r)}
         }
 
-        val cmethod: (Array[Char],Seq[(Int,Int)])=>Set[Int] = config.getString("coveringMethod") match {
-          case "greedyLength" =>       Covering.greedyLength
-          case "greedyConservative" => Covering.greedyConservative
-          case "greedySliced" =>       Covering.greedySliced
-          case "exhaustive" =>         Covering.exhaustive
-          case "dp0" =>                Covering.dp0
-          case "dp1" =>                Covering.dp1
+        val cmethod: (Array[Char],Seq[(Int,Int)],Int)=>Set[Int] = config.getString("coveringMethod") match {
+          case "greedyLength" =>  Covering.greedyLength
+          //case "greedyConservative" => Covering.greedyConservative
+          case "greedySliced" =>  Covering.greedySliced
+          case "exhaustive" =>    Covering.exhaustive
+          case "dp" =>            Covering.dp
           case _  => {
             logger.debug("using default covering algorithm")
             Covering.greedyLengthFreq
@@ -120,6 +120,7 @@ object Main extends Logging {
                              config.getString("coverChar")(0),
                              config.getInt("repeats").toInt,
                              config.getString("unhide"),
+                             config.getInt("gap"),
                              config.getInt("start"),
                              config.getInt("end")) ) {
           println(s)

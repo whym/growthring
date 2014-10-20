@@ -93,25 +93,25 @@ object Covering {
     ret.toSet
   }
 
-  def dp0[T](body: Array[T], rp: Seq[(Int,Int)]) =
-    dp_(rp, 0)
+  def dp[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1) =
+    dp_(rp, gap)
 
-  def dp1[T](body: Array[T], rp: Seq[(Int,Int)]) =
-    dp_(rp, 1)
-
-  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] =
+  def exhaustive[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1): Set[Int] =
     rp.toSet.subsets.max(
       Ordering.by[Set[(Int,Int)],Int] {
         set =>
           if (hasOverlap(set)) {
             Int.MinValue
           } else {
-            set.toList.map(x => (1 + x._2 - x._1)).sum
+            set.toList.map(x => (gap + x._2 - x._1)).sum
           }
       }
     ).map(x => Range(x._1,x._2+1).toSet).reduce(_++_)
 
-  def greedyLength[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedyLength[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1): Set[Int] = {
+    if ( gap != 0 && gap != 1 ) {
+      throw new IllegalArgumentException("gap must be 1 or 0:" + gap)
+    }
     val sorted = new mutable.HashMap[Int,mutable.Set[(Int,Int)]] with mutable.MultiMap[Int, (Int,Int)]
      for ( ent <- rp ) {
       sorted.addBinding(ent._1 - ent._2, ent)
@@ -121,7 +121,7 @@ object Covering {
        return Set()
      }
     for ( (s,e) <- sorted.keySet.toList.sorted.map(sorted(_).toList).reduce(_++_) ) {
-      if ( ( (s == 0) || flags(s-1) == false ) && flags(e+1) == false ) {
+      if ( ( (s == 0) || (gap == 0 | flags(s-1) == false) ) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e+1) == false) ) {
         for ( i <- s to e ) {
           flags(i) = true
         }
@@ -130,7 +130,10 @@ object Covering {
     return flags.zipWithIndex.filter(_._1).map(_._2).toSet
   }
 
-  def greedyLengthFreq[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedyLengthFreq[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1): Set[Int] = {
+    if ( gap != 0 && gap != 1 ) {
+      throw new IllegalArgumentException("gap must be 1 or 0:" + gap)
+    }
     val sorted = new mutable.HashMap[Seq[T],mutable.Set[(Int,Int)]] with mutable.MultiMap[Seq[T], (Int,Int)]
     for ( ent <- rp ) {
       sorted.addBinding(body.slice(ent._1, ent._2+1), ent)
@@ -140,7 +143,7 @@ object Covering {
       return Set()
     }
     for ( (s,e) <- sorted.keySet.toList.sortBy(x => (-sorted(x).size, -x.size)).map(sorted(_).toList).reduce(_++_) ) {
-      if ( ( (s == 0) || flags(s-1) == false ) && flags(e+1) == false ) {
+      if ( ( (s == 0) || (gap == 0 | flags(s-1) == false) ) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e+1) == false) ) {
         for ( i <- s to e ) {
           flags(i) = true
         }
@@ -168,7 +171,10 @@ object Covering {
     return flags.zipWithIndex.filter(_._1).map(_._2).toSet
   }
 
-  def greedySliced[T](body: Array[T], rp: Seq[(Int,Int)]): Set[Int] = {
+  def greedySliced[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1): Set[Int] = {
+    if ( gap != 0 && gap != 1 ) {
+      throw new IllegalArgumentException("gap must be 1 or 0:" + gap)
+    }
     import scala.collection.mutable.PriorityQueue
     val flags = Array.fill(body.size + 2)(false)
     val queue = new PriorityQueue[(Int,Int)]()(Ordering.by[(Int,Int),Int](x => x._2 - x._1))
@@ -186,7 +192,7 @@ object Covering {
     while ( queue.size > 0 ) {
       val h = queue.dequeue
       val (s,e) = h
-      if ( ( (s == 0) || flags(s-1) == false ) && flags(e+1) == false ) {
+      if ( ( (s == 0) || (gap == 0 | flags(s-1) == false) ) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e+1) == false) ) {
         for ( i <- s to e ) {
           flags(i) = true
         }

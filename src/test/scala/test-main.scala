@@ -17,10 +17,11 @@ class TestMain extends FunSuite {
 
   test("anonymize") {
     assertResult(List("a bc __","bc a")) {
-                        Main.anonymize(new WordRepeats().repeats,
-                                       Covering.greedyLengthFreq,
-                                       Seq("a bc aa", "bc a"), 1, '_', 2, "[ \\n]",
-                                       0, -1).toList
+      Main.anonymize(
+        new WordRepeats().repeats,
+        Covering.greedyLengthFreq,
+        Seq("a bc aa", "bc a"), 1, '_', 2, "[ \\n]",
+        1, 0, -1).toList
     }
   }
 

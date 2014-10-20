@@ -72,12 +72,12 @@ class TestCovering extends FunSuite {
 
   test("covering dp") {
     assertResult(List(0,1,2,3,10,11,12,13,14,15,16,17,18)) {
-      Covering.dp1("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
+      Covering.dp("abcdefghijklmnopqrs".toCharArray, List((0,3), (3,10), (10,18))).toList.sorted
     }
   }
   test("covering dp 2") {
     assertResult(Set(0,1,5,6,7,8,10,11,13,14,15)) {
-      Covering.dp1("abcdefghi abcdef".toCharArray,
+      Covering.dp("abcdefghi abcdef".toCharArray,
                   List((0,1), (3,5), (5,8), (10,11), (13,15), (15,16)))
     }
   }
@@ -94,15 +94,15 @@ class TestCovering extends FunSuite {
     }
   }
 
-  test("dp1") {
+  test("dp gap=1") {
     assertResult(List(1,2,3,6)) {
-      Covering.dp1("abcdefghijklmnopqrs".toCharArray, List((1,3), (3,4), (6,6))).toList.sorted
+      Covering.dp("abcdefghijklmnopqrs".toCharArray, List((1,3), (3,4), (6,6)), 1).toList.sorted
     }
   }
 
   test("dp gap=0") {
     assertResult(List(1,2,3,4,6)) {
-      Covering.dp0("abcdefghijklmnopqrs".toCharArray, List((1,2), (3,4), (6,6))).toList.sorted
+      Covering.dp("abcdefghijklmnopqrs".toCharArray, List((1,2), (3,4), (6,6)), 0).toList.sorted
     }
   }
 
@@ -126,9 +126,9 @@ class TestCovering extends FunSuite {
       val reg = regions.toList.sorted.filter(x => x._1 < str.size && x._2 < str.size).toVector.sorted
       System.err.println(reg)
       System.err.println("e " + Covering.exhaustive(str.toCharArray, reg))
-      System.err.println("d " + Covering.dp1(str.toCharArray, reg))
+      System.err.println("d " + Covering.dp(str.toCharArray, reg))
       assertResult(Covering.exhaustive(str.toCharArray, reg).size) {
-        Covering.dp1(str.toCharArray, reg).size
+        Covering.dp(str.toCharArray, reg).size
       }
     }
   }
