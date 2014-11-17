@@ -124,9 +124,6 @@ class TestCovering extends FunSuite {
         }
       }
       val reg = regions.toList.sorted.filter(x => x._1 < str.size && x._2 < str.size).toVector.sorted
-      System.err.println(reg)
-      System.err.println("e " + Covering.exhaustive(str.toCharArray, reg))
-      System.err.println("d " + Covering.dp(str.toCharArray, reg))
       assertResult(Covering.exhaustive(str.toCharArray, reg).size) {
         Covering.dp(str.toCharArray, reg).size
       }
