@@ -108,8 +108,8 @@ object Main extends Logging {
           case "greedySliced" =>  Covering.greedySliced
           case "exhaustive" =>    Covering.exhaustive
           case "dp" =>            Covering.dp
-          case _  => {
-            logger.debug("using default covering algorithm")
+          case x  => {
+            logger.debug("\"" + x + "\" not found; using default covering algorithm")
             Covering.greedyLengthFreq
           }
         }
@@ -126,13 +126,7 @@ object Main extends Logging {
           println(s)
         }
       }
-      case "repeats" =>
-        for ( s <- findRepeats(config.getString("repeatsMethod"),
-                               strings,
-                               config.getInt("repeats").toInt) ) {
-          println(s)
-        }
-      case _ => {
+      case "msa" => {
         val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^"+x+"$").toCharArray.toIndexedSeq))
         val dag = msa.align.compact((x,y) => x.concat(y))
         def nodeformat(i: Int, x: MultipleSequenceAlignment.Node[Char]): String = {
@@ -142,6 +136,16 @@ object Main extends Logging {
           }
         for ( line <- dag.dot(nodeformat) ) {
           println(line)
+        }
+      }
+      case name @ ("repeats" | _) => {
+        if ( name != "repeats" ) {
+          logger.debug("\"" + name + "\" not found; using default mode 'repeats'")
+        }
+        for ( s <- findRepeats(config.getString("repeatsMethod"),
+                               strings,
+                               config.getInt("repeats").toInt) ) {
+          println(s)
         }
       }
     }
