@@ -136,7 +136,7 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
     return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1).map(roundMin).filter(x => x._1 <= x._2))
   }
 
-  def maxRepeats(n: Int =2): Seq[(Int, Int)] = {
+  def maxRepeats(n: Int =2, bd: Int=>Int = {_ => arr.size + 1}): Seq[(Int, Int)] = {
     logger.info(s"start maxRepeats(${n})")
     val mr = Array.fill(arr.size + n + 1)(arr.size)
     val lcp = lcp_ ++ Array.fill(n)(-1)
@@ -146,9 +146,11 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
     for ( i <- 0 until arr.size;
           l = ((i - n + 2) until (i + 2)).map(lcpm).max;
           if l >= 1 ) {
-      mr(sa(i) + l - 1) = mr(sa(i) + l - 1) min sa(i)
+      val p = (sa(i) + l - 1) min (bd(sa(i)/2) * 2 - 1) // bound by boundary positions; /2 and *2 are for converting char positions and integer positions, see also roundMax and roundMin
+      mr(p) = mr(p) min sa(i)
     }
     logger.info(s"start main subsume")
     return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1).map(roundMin).filter(x => x._1 <= x._2))
   }
+
 }

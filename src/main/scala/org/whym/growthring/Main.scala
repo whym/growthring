@@ -7,6 +7,7 @@
 package org.whym.growthring
 import scala.collection.JavaConverters._
 import com.typesafe.scalalogging.slf4j.Logging
+import scala.collection.mutable
 
 /**
  * Main entry point
@@ -36,7 +37,6 @@ object Main extends Logging {
     logger.debug(f"${coveredFiltered.size}%d / ${covered.size}%d repeats from ${start}%d to ${end}%d.")
     val flags = cmethod(str.toCharArray, coveredFiltered, gap)
     logger.debug(f"${flags.size} characters unsuppressed.")
-    import scala.collection.mutable
     val unhides = new mutable.BitSet
     for ( x <- (new Regex(unhide_pattern) findAllMatchIn str) ) {
       for ( i <- Range(x.start,x.end) ) {
@@ -48,18 +48,22 @@ object Main extends Logging {
     str.zip(Array.tabulate(str.length)(i => mflags(i))).map(_ match {case (c,true) => c; case (c,false) => cover_char}).mkString.slice(start, end).split('\n').toSeq
   }
 
-  def findRepeats(method: String, strings: Seq[String], freq: Int): Seq[String] = {
+  def formatSpan(str: String, x: (Int,Int)): String = {
     import org.apache.commons.lang3.{StringEscapeUtils => SEU}
+    val f= str.slice(x._1, x._2 + 1).replace("\n", " ")
+    f"${x._1}%d\t${x._2}%d\t${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s\t${f}%s"
+  }
+
+  def findRepeats(method: String, strings: Seq[String], freq: Int): Seq[String] = {
     val str = strings.mkString("\n")
     val es = new ExtremalSubstrings(SuffixArrays.build(str, method))
     es.maxRepeats(freq).map{
       x => {
-        val f= str.slice(x._1, x._2 + 1).replace("\n", " ")
-        f"r ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s ${f}%s"
+        f"r " + formatSpan(str, x)
       }
     } ++ es.minUniques.map{
       x =>
-        f"u ${x._1}%d ${x._2}%d ${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s"
+        f"u " + formatSpan(str, x)
     }
   }
 
@@ -136,6 +140,27 @@ object Main extends Logging {
           }
         for ( line <- dag.dot(nodeformat) ) {
           println(line)
+        }
+      }
+      case "segment" => {
+        val boundaries = new mutable.ArrayBuffer[Int]
+        boundaries.append(0)
+        for (s <- strings) {
+          boundaries.append(boundaries.last + s.length)
+        }
+        val str = strings.mkString
+        val bd = Array.fill(str.size + 1)(str.size)
+        var i = 0
+        for ( b <- boundaries ) {
+          while ( i < b ) {
+            bd(i) = b
+            i += 1
+          }
+        }
+        val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
+        val rps = es.maxRepeats(config.getInt("repeats").toInt, bd)
+        for ( x <- rps ) {
+          println(formatSpan(str, x))
         }
       }
       case name @ ("repeats" | _) => {

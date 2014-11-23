@@ -152,4 +152,28 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
+  test("with boundary (no boundary)") {
+    assertResult(Seq((0,3), (5,5), (7,10))) {
+      newES("abracadabra").maxRepeats(2, {x => 11})
+    }
+  }
+
+  test("with boundary (boundary at 4)") {
+    assertResult(Seq((0,3), (5,5), (7,10))) {
+      newES("abracadabra").maxRepeats(2, {x => if ( x < 4 ) { 4 } else { 11 }})
+    }
+  }
+
+  test("with boundary (boundary at 3)") {
+    assertResult(Seq((0,2), (3,3), (5,5), (7,10))) {
+      newES("abracadabra").maxRepeats(2, {x => if ( x < 3 ) { 3 } else { 11 }})
+    }
+  }
+
+  test("with boundary (boundary at 2)") {
+    assertResult(Seq((0,1), (2,3), (5,5), (7,10))) {
+      newES("abracadabra").maxRepeats(2, {x => if ( x < 2 ) { 2 } else { 11 }})
+    }
+  }
+
 }
