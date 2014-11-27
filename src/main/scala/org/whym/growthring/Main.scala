@@ -8,6 +8,7 @@ package org.whym.growthring
 import scala.collection.JavaConverters._
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.collection.mutable
+import scala.util.matching.Regex
 
 /**
  * Main entry point
@@ -26,7 +27,6 @@ object Main extends Logging {
                 gap: Int,
                 _start: Int,
                 _end: Int): Seq[String] = {
-    import scala.util.matching.Regex
     val str = strings.mkString("\n")
     logger.debug(f"${str.size}%d characters, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length.")
     val covered = for ( (s,e) <- rmethod(str, freq); if e - s + 1 >= min_len ) yield (s,e)
@@ -143,12 +143,14 @@ object Main extends Logging {
         }
       }
       case "segment" => {
-        val boundaries = new mutable.ArrayBuffer[Int]
-        boundaries.append(0)
-        for (s <- strings) {
-          boundaries.append(boundaries.last + s.length)
+        val str = strings.mkString("\n")
+        val bd_pattern = config.getString("boundary")
+        val boundaries = new mutable.BitSet
+        for ( x <- (new Regex(bd_pattern) findAllMatchIn str) ) {
+          boundaries(x.start) = true
+          boundaries(x.end) = true
         }
-        val str = strings.mkString
+        boundaries(str.size) = true
         val bd = Array.fill(str.size + 1)(str.size)
         var i = 0
         for ( b <- boundaries ) {
@@ -158,7 +160,7 @@ object Main extends Logging {
           }
         }
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
-        val rps = es.maxRepeats(config.getInt("repeats").toInt, bd)
+        val rps = es.maxRepeats(config.getInt("repeats").toInt, if (boundaries.size > 1) {bd } else { (_ => str.size + 1) })
         for ( x <- rps ) {
           println(formatSpan(str, x))
         }
