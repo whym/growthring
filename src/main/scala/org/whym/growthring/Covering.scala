@@ -112,14 +112,17 @@ object Covering {
     if ( gap != 0 && gap != 1 ) {
       throw new IllegalArgumentException("gap must be 1 or 0:" + gap)
     }
+
+    // sort by length
     val sorted = new mutable.HashMap[Int,mutable.Set[(Int,Int)]] with mutable.MultiMap[Int, (Int,Int)]
-     for ( ent <- rp ) {
+    for ( ent <- rp ) {
       sorted.addBinding(ent._1 - ent._2, ent)
-     }
-     val flags = new mutable.BitSet
-     if ( sorted.size == 0 ) {
-       return Set()
-     }
+    }
+
+    val flags = new mutable.BitSet
+    if ( sorted.size == 0 ) {
+      return Set()
+    }
     for ( (s,e) <- sorted.keySet.toList.sorted.map(sorted(_).toList).reduce(_++_) ) {
       if ( ( (s == 0) || (gap == 0 | flags(s-1) == false) ) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e+1) == false) ) {
         for ( i <- s to e ) {
@@ -134,6 +137,7 @@ object Covering {
     if ( gap != 0 && gap != 1 ) {
       throw new IllegalArgumentException("gap must be 1 or 0:" + gap)
     }
+
     val sorted = new mutable.HashMap[Seq[T],mutable.Set[(Int,Int)]] with mutable.MultiMap[Seq[T], (Int,Int)]
     for ( ent <- rp ) {
       sorted.addBinding(body.slice(ent._1, ent._2+1), ent)
