@@ -30,7 +30,7 @@ class TestNgramRepeats extends FunSuite {
       (for ( s <- Seq("abc", "d", "e", "f", "ghi") ) yield {
         ng enqueue s
         ng.getNgrams
-      }).reduce(_++_)
+      }).flatten
     }
   }
 

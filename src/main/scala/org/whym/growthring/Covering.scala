@@ -106,7 +106,7 @@ object Covering {
             set.toList.map(x => (gap + x._2 - x._1)).sum
           }
       }
-    ).map(x => Range(x._1,x._2+1).toSet).reduce(_++_)
+    ).map(x => Range(x._1,x._2+1).toSet).flatten
 
   def greedyLength[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1): Set[Int] = {
     if ( gap != 0 && gap != 1 ) {
@@ -123,7 +123,7 @@ object Covering {
     if ( sorted.size == 0 ) {
       return Set()
     }
-    for ( (s,e) <- sorted.keySet.toList.sorted.map(sorted(_).toList).reduce(_++_) ) {
+    for ( (s,e) <- sorted.keySet.toList.sorted.map(sorted(_).toList).flatten ) {
       if ( ( (s == 0) || (gap == 0 | flags(s-1) == false) ) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e+1) == false) ) {
         for ( i <- s to e ) {
           flags(i) = true
@@ -146,7 +146,7 @@ object Covering {
     if ( sorted.size == 0 ) {
       return Set()
     }
-    for ( (s,e) <- sorted.keySet.toList.sortBy(x => (-sorted(x).size, -x.size)).map(sorted(_).toList).reduce(_++_) ) {
+    for ( (s,e) <- sorted.keySet.toList.sortBy(x => (-sorted(x).size, -x.size)).map(sorted(_).toList).flatten ) {
       if ( ( (s == 0) || (gap == 0 | flags(s-1) == false) ) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e+1) == false) ) {
         for ( i <- s to e ) {
           flags(i) = true

@@ -19,6 +19,6 @@ class NgramRepeats(val n: Int) {
         pos.addBinding(x, i)
       }
     }
-    pos.filter(_._2.size >= k).keys.map(x => pos(x).map(y => (y - x.length + 1, y)).toSet).reduce(_++_).toList
+    pos.filter(_._2.size >= k).keys.map(x => pos(x).map(y => (y - x.length + 1, y)).toSet).flatten.toList
   }
 }

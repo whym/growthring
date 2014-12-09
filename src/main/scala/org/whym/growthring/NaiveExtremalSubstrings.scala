@@ -75,13 +75,13 @@ object NaiveExtremalSubstrings {
 
   def minUniques(str: String, threshold: Int=1) = {
     val counts = countBounded(substrings(str), threshold)
-    //minimals(counts.keySet).map(counts).reduce(_++_).map(x => (x.start, x.end - 1)).toList.sorted
-    minimals(counts.values.reduce(_++_).map(x => (x.start, x.end - 1)).toSet).toList.sorted
+    //minimals(counts.keySet).map(counts).flatten.map(x => (x.start, x.end - 1)).toList.sorted
+    minimals(counts.values.flatten.map(x => (x.start, x.end - 1)).toSet).toList.sorted
   }
 
   def maxRepeats(str: String, threshold: Int=2) = {
     val counts = count(substrings(str)).filter(x => x._2.size >= threshold)
-    maximals(counts.values.reduce(_++_).map(x => (x.start, x.end - 1)).toSet).toList.sorted
+    maximals(counts.values.flatten.map(x => (x.start, x.end - 1)).toSet).toList.sorted
   }
 
 }

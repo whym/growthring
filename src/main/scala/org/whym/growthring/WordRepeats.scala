@@ -19,6 +19,6 @@ class WordRepeats(sep: Regex ="[ \u3000　\n\r	\t]+".r) {
       val end   = s(1)._1 - 1
       counts.addBinding(str.slice(start,end+1), (start,end))
     }
-    counts.filter(_._2.size >= k).map(_._2).reduce(_++_).toList
+    counts.filter(_._2.size >= k).map(_._2).flatten.toList
   }
 }
