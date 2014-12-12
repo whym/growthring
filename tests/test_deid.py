@@ -2,12 +2,16 @@
 # -*- coding:utf-8 -*-
 
 import unittest
-import convert_deid, evaluate_deid
+import convert_deid, evaluate_deid, freq_deid
 from StringIO import StringIO
 
 class TestDeid(unittest.TestCase):
     def setUp(self):
         None
+
+    def test_count_ngrams(self):
+        res = freq_deid.count_ngrams(['A', 'B', 'C', 'A', 'B'], 2)
+        self.assertEqual({('A', 'B'): 2, ('B', 'C'): 1, ('C', 'A'): 1}, res)
 
     def test_evaluate(self):
         res = list(evaluate_deid.evaluate([('ABCD', 'PHI'),
