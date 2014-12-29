@@ -52,7 +52,8 @@ def mcnemar_significance(contig):
 def fmeasure_precition_recall(flags):
     p = float(flags[(True,True)]) / (flags[(False,True)] + flags[(True,True)])
     r = float(flags[(True,True)]) / (flags[(True,False)] + flags[(True,True)])
-    return (2.0 / ( ( 1.0 / p ) + ( 1.0 / r ) ), p, r)
+    f = 2.0 / ( ( 1.0 / p ) + ( 1.0 / r ) ) if p > 0 and r > 0 else 0
+    return (f, p, r)
 
 def convert(system, tag='PHI', ratio=0.5, suppchar='_'):
     from validate_frequency import number_of_matches

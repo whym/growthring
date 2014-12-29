@@ -9,6 +9,24 @@ class TestDeid(unittest.TestCase):
     def setUp(self):
         None
 
+    def test_fmeasure(self):
+        flags = {(True,  True):  2,
+                 (True,  False): 8,
+                 (False, False): 4,
+                 (False, True):  2,
+        }
+        p = 0.5
+        r = 0.2
+        self.assertEqual((2/(1/p + 1/r), p, r),
+                         evaluate_deid.fmeasure_precition_recall(flags))
+        flags = {(True,  True):  0,
+                 (True,  False): 5,
+                 (False, False): 0,
+                 (False, True):  5,
+        }
+        self.assertEqual(0, 0, 0),
+                         evaluate_deid.fmeasure_precition_recall(flags))
+
     def test_count_ngrams(self):
         res = freq_deid.count_ngrams(['A', 'B', 'C', 'A', 'B'], 2)
         self.assertEqual({('A', 'B'): 2, ('B', 'C'): 1, ('C', 'A'): 1}, res)
