@@ -146,7 +146,16 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
     for ( i <- 0 until arr.size;
           l = ((i - n + 2) until (i + 2)).map(lcpm).max;
           if l >= 1 ) {
-      val p = (sa(i) + l - 1) min (bd(sa(i)/2) * 2 - 1) // bound by boundary positions; /2 and *2 are for converting char positions and integer positions, see also roundMax and roundMin
+
+      // bound by boundary positions; /2 and *2 are for converting
+      // char positions and integer positions, see also roundMax and
+      // roundMin
+      val p = (sa(i) + l - 1) min (bd(sa(i)/2) * 2 - 1)
+      // This is more flexible than post-processing to cut the emitted
+      // spans from maxRepeats.  Consider a span with more than one
+      // boundary in it, and it won't be trivial to efficiently split
+      // it, especially when such spans overlap each other.
+
       mr(p) = mr(p) min sa(i)
     }
     logger.info(s"start main subsume")
