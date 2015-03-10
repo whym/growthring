@@ -26,5 +26,18 @@ class TestSuffixArrays extends FunSuite {
     }
   }
 
+  test("find") {
+    val sa = SA.build("abracadabra")
+    assertResult(Seq(1,8)) {
+      sa.find(SA.stringToUchars("b")).sorted
+    }
+    assertResult(Seq(0,7)) {
+      sa.find(SA.stringToUchars("abra")).sorted
+    }
+    assertResult(Seq(0,3,5,7,10)) {
+      sa.find(SA.stringToUchars("a")).sorted
+    }
+  }
+
 }
 

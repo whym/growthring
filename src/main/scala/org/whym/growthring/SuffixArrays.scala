@@ -164,4 +164,65 @@ object SuffixArrays extends Logging {
 
 }
 
-case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedSeq[Int])
+case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedSeq[Int]) {
+  def find(q: IndexedSeq[Int]): Seq[Int] = {
+    val l = _lowerbound(q)
+    val r = _upperbound(q)
+    return Range(l,r).map(sa(_) / 2)
+  }
+  private def _lowerbound(q: IndexedSeq[Int]): Int = {
+    def cmp(i: Int): Int = {
+      for ( j <- Range(0, q.size) ) {
+        if (sa(i) + j >= arr.size) {
+          return -1
+        }
+        if (q(j) != arr(sa(i) + j)) {
+          return arr(sa(i) + j) - q(j)
+        }
+      }
+      return 0
+    }
+    var l = -1
+    var r = arr.size
+    while ( true ) {
+      var m = l + (r - l) / 2
+      if ( m <= l ) {
+        return r
+      }
+      if (cmp(m) < 0) {
+        l = m
+      } else {
+        r = m
+      }
+    }
+    return r
+  }
+  private def _upperbound(q: IndexedSeq[Int]): Int = {
+    def cmp(i: Int): Int = {
+      for ( j <- Range(0, q.size) ) {
+        if (sa(i) + j >= arr.size) {
+          return +1
+        }
+        if (q(j) != arr(sa(i) + j)) {
+          return arr(sa(i) + j) - q(j)
+        }
+      }
+      return 0
+    }
+    var l = -1
+    var r = arr.size
+    while ( true ) {
+      var m = l + (r - l) / 2
+      if ( m <= l ) {
+        return r
+      }
+      if (cmp(m) <= 0) {
+        l = m
+      } else {
+        r = m
+      }
+    }
+    return l+1
+  }
+}
+
