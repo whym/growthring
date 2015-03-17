@@ -63,7 +63,7 @@ object TiledLayers {
         val ar = Array.fill(body.size)(-1)
         for ( n <- s;
              r = rp(n) ) {
-          for ( i <- Range(r._1, r._2+1) ) {
+          for ( i <- Range.inclusive(r._1, r._2) ) {
             ar(i) = c
           }
           c += 1

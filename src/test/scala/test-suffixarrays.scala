@@ -27,14 +27,16 @@ class TestSuffixArrays extends FunSuite {
   }
 
   test("find") {
-    val sa = SA.build("abracadabra")
-    assertResult(Seq(1,8)) {
+    val s = "abracadabra"
+    val sa = SA.build(s)
+    def rfind: String=>Seq[Int] = _.r.findAllMatchIn(s).map(_.start).toSeq
+    assertResult(rfind("b")) {
       sa.find(SA.stringToUchars("b")).sorted
     }
-    assertResult(Seq(0,7)) {
+    assertResult(rfind("abra")) {
       sa.find(SA.stringToUchars("abra")).sorted
     }
-    assertResult(Seq(0,3,5,7,10)) {
+    assertResult(rfind("a")) {
       sa.find(SA.stringToUchars("a")).sorted
     }
   }

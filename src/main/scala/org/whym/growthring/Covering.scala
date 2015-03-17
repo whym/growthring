@@ -86,7 +86,7 @@ object Covering {
     var i = m
     while ( i >= 0 ) {
       if ( !table(i).skip ) {
-        ret ++= Range(rp(i)._1, rp(i)._2+1).toSet
+        ret ++= Range.inclusive(rp(i)._1, rp(i)._2).toSet
       }
       i = table(i).prevPos
     }
@@ -106,7 +106,7 @@ object Covering {
             set.toList.map(x => (gap + x._2 - x._1)).sum
           }
       }
-    ).map(x => Range(x._1,x._2+1).toSet).flatten
+    ).map(x => Range.inclusive(x._1,x._2).toSet).flatten
 
   def greedyLength[T](body: Array[T], rp: Seq[(Int,Int)], gap: Int=1): Set[Int] = {
     if ( gap != 0 && gap != 1 ) {
