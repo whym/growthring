@@ -55,6 +55,8 @@ object NaiveExtremalSubstrings {
     return counts.toMap
   }
 
+  def find(body: String, q: String): Seq[Int] = substrings(body).filter(x => x == q).map(_.start)
+
   // def minimals(set: Set[Substring]): Set[Substring] =
   //   set.filter(str => {
   //     ( str.length <= 1 || !(set contains str.head_removed) ) &&

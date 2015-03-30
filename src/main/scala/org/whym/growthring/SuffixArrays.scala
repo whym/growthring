@@ -165,6 +165,9 @@ object SuffixArrays extends Logging {
 }
 
 case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedSeq[Int]) {
+  import SuffixArrays._
+
+  def find(q: String): Seq[Int] = find(stringToUchars(q))
   def find(q: IndexedSeq[Int]): Seq[Int] = {
     val l = _lowerbound(q)
     val r = _upperbound(q)

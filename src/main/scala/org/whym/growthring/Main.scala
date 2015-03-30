@@ -67,6 +67,24 @@ object Main extends Logging {
     }
   }
 
+  def findBoundaries(str: String, pattern: Regex): IndexedSeq[Int] = {
+    val boundaries = new mutable.BitSet
+    for ( x <- (pattern findAllMatchIn str) ) {
+      boundaries(x.start) = true
+      boundaries(x.end) = true
+    }
+    boundaries(str.size) = true
+    val bd = Array.fill(str.size + 1)(str.size)
+    var i = 0
+    for ( b <- boundaries ) {
+      while ( i < b ) {
+        bd(i) = b
+        i += 1
+      }
+    }
+    return bd
+  }
+
   def main(args: Array[String]) {
     import com.typesafe.config.ConfigFactory
     val config = ConfigFactory.load.getConfig("org.whym.growthring")
@@ -144,25 +162,57 @@ object Main extends Logging {
       }
       case "segment" => {
         val str = strings.mkString("\n")
-        val bd_pattern = config.getString("boundary")
-        val boundaries = new mutable.BitSet
-        for ( x <- (new Regex(bd_pattern) findAllMatchIn str) ) {
-          boundaries(x.start) = true
-          boundaries(x.end) = true
-        }
-        boundaries(str.size) = true
-        val bd = Array.fill(str.size + 1)(str.size)
-        var i = 0
-        for ( b <- boundaries ) {
-          while ( i < b ) {
-            bd(i) = b
-            i += 1
-          }
-        }
+        val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
-        val rps = es.maxRepeats(config.getInt("repeats").toInt, if (boundaries.size > 1) {bd } else { (_ => str.size + 1) })
+        val rps = es.maxRepeats(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
         for ( x <- rps ) {
           println(formatSpan(str, x))
+        }
+      }
+      case "dfreq" => {
+        val str = strings.mkString("\n")
+        val bd = findBoundaries(str, new Regex(config.getString("boundary")))
+        val sa = SuffixArrays.build(str, config.getString("repeatsMethod"))
+        val es = new ExtremalSubstrings(sa)
+        val rps = es.maxRepeats(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+        val cache = new mutable.HashMap[(Int,String),Set[Int]]
+        val count = new mutable.HashMap[String,Set[Int]]
+        val icount = new mutable.HashMap[(Int,String),Set[Int]]
+
+        def tfind(s: String, d: Int) = sa.find(s).filter(bd(_) == d)
+        def dfind(s: String) = sa.find(s).map(bd).toSet
+
+        import org.whym.growthring.{NaiveExtremalSubstrings => NES}
+        def tfindnaive(s: String, d: Int) = NES.find(str, s).filter(bd(_) == d)
+        def dfindnaive(s: String) = NES.find(str, s).map(bd).toSet
+
+        val ndocs = bd.toSet.size
+        for ( pos <- rps ) {
+          val doc = bd(pos._1)
+          val slice = str.slice(pos._1, pos._2 + 1)
+          for ( n <- Range.inclusive(config.getInt("minLen"), slice.size).reverse ) {
+            for ( i <- Range.inclusive(0, slice.size - n) ) {
+              val s = slice.slice(i, i+n)
+              val atf = sa.find(s).size
+              val tf = tfind(s, doc).size
+              val df = dfind(s).size
+              println("%d\t%d\t%d\t%d\t%d\t%d\t%.2f\t%d\t%s".format(pos._1, pos._1+i, pos._2+i+n, atf, tf, df, tf * scala.math.log(1.0 + 1.0*ndocs/df), s.size, s))
+              // println("%s\t%s\t%d\t%d".format(tfind(s, doc).size == tfindnaive(s, doc).size,
+              //                                 dfind(s).size == dfindnaive(s).size,
+              //                                 tfindnaive(s, doc).size,
+              //                                 dfindnaive(s).size
+              //                               ))
+
+              // val ls = cache.get((doc, s)) match {
+              //   case Some(x) => x
+              //   case None => {
+              //     val v = sa.find(s)
+              //     cache((doc, s)) = v
+              //     v
+              //   }
+              // }
+            }
+          }
         }
       }
       case name @ ("repeats" | _) => {
