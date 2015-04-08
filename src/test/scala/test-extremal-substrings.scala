@@ -49,10 +49,7 @@ class TestExtremalSubstrings extends FunSuite {
 
   test("repeats(2): abaababa") {
     assertResult(Seq((0,2), (3,5), (5,7))){
-      newES("abaababa").maxRepeats
-    }
-    assertResult(Seq((0,2), (3,5), (5,7))){
-      newES("abaababa").maxRepeats2
+      newES("abaababa").maxRepeats()
     }
   }
 
@@ -64,13 +61,13 @@ class TestExtremalSubstrings extends FunSuite {
 
   test("repeats(2): banana") {
     assertResult(NES.maxRepeats("banana")) {
-      newES("banana").maxRepeats
+      newES("banana").maxRepeats()
     }
   }
 
   test("repeats(2): アブラカダブラ") {
     assertResult(NES.maxRepeats("アブラカダブラ")) {
-      newES("アブラカダブラ").maxRepeats
+      newES("アブラカダブラ").maxRepeats()
     }
   }
 
