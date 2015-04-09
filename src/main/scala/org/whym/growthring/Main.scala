@@ -61,7 +61,7 @@ object Main extends Logging {
       x => {
         f"r " + formatSpan(str, x)
       }
-    } ++ es.minUniques.map{
+    } ++ es.minUniques(freq).map{
       x =>
         f"u " + formatSpan(str, x)
     }

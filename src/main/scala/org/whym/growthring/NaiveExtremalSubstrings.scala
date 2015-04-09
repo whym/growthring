@@ -57,12 +57,6 @@ object NaiveExtremalSubstrings {
 
   def find(body: String, q: String): Seq[Int] = substrings(body).filter(x => x == q).map(_.start)
 
-  // def minimals(set: Set[Substring]): Set[Substring] =
-  //   set.filter(str => {
-  //     ( str.length <= 1 || !(set contains str.head_removed) ) &&
-  //     ( str.length <= 1 || !(set contains str.last_removed) )
-  //   })
-
   def minimals(set: Set[(Int,Int)]): Set[(Int,Int)] =
     set.filter(self => {
       !(set contains Pair(self._1+1, self._2)) &&
@@ -75,9 +69,8 @@ object NaiveExtremalSubstrings {
       !(set contains Pair(self._1,   self._2+1))
     })
 
-  def minUniques(str: String, threshold: Int=1) = {
-    val counts = countBounded(substrings(str), threshold)
-    //minimals(counts.keySet).map(counts).flatten.map(x => (x.start, x.end - 1)).toList.sorted
+  def minUniques(str: String, threshold: Int=2) = {
+    val counts = countBounded(substrings(str), threshold-1)
     minimals(counts.values.flatten.map(x => (x.start, x.end - 1)).toSet).toList.sorted
   }
 

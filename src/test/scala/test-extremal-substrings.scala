@@ -41,9 +41,9 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
-  test("uniques: abaababa") {
+  test("crosscheck: uniques: abaababa") {
     assertResult(NES.minUniques("abaababa")){
-      newES("abaababa").minUniques
+      newES("abaababa").minUniques()
     }
   }
 
@@ -55,17 +55,17 @@ class TestExtremalSubstrings extends FunSuite {
 
   test("uniques: banana") {
     assertResult(Seq((0,0), (2,4))){
-      newES("banana").minUniques
+      newES("banana").minUniques()
     }
   }
 
-  test("repeats(2): banana") {
+  test("crosscheck: repeats(2): banana") {
     assertResult(NES.maxRepeats("banana")) {
       newES("banana").maxRepeats()
     }
   }
 
-  test("repeats(2): アブラカダブラ") {
+  test("crosscheck: repeats(2): アブラカダブラ") {
     assertResult(NES.maxRepeats("アブラカダブラ")) {
       newES("アブラカダブラ").maxRepeats()
     }
@@ -101,7 +101,7 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
-  test("repeats(4): bananan ban") {
+  test("crosscheck: repeats(4): bananan ban") {
     assertResult(NES.maxRepeats("bananan ban", 4)){
       newES("bananan ban").maxRepeats(4)
     }
@@ -119,21 +119,21 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
-  test("uniques(2): banana") {
+  test("crosscheck: uniques(2): banana") {
     assertResult(NES.minUniques("banana", 2)){
-      newES("banana").minUniques2
+      newES("banana").minUniques()
     }
   }
 
-  test("uniques(2): bananana") {
+  test("crosscheck: uniques(2): bananana") {
     assertResult(NES.minUniques("bananana", 2)){
-      newES("bananana").minUniques2
+      newES("bananana").minUniques()
     }
   }
 
-  test("uniques(2): ACTATGAAGACAGGATCGATGCTA...") {
+  test("crosscheck: uniques(2): ACTATGAAGACAGGATCGATGCTA...") {
     assertResult(NES.minUniques("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA", 2)){
-      newES("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA").minUniques2
+      newES("ACTATGAAGACAGGATCGATGCTAATTGGCGGAGGGGGGCTTCCGCGCGTGACGAGTCCGGCCTCGGCGATGGTACAGACTGGGCCCTATTGTTTCGTACGGCCCATTCTCCTCTCGCTTTGGTCGGCCGACCCATACGAAGGCTACAAACCGGCCTAAAGTCTCAGCGCACAGCAATACGGTTGCCGCACTGCGGACGA").minUniques()
     }
   }
 
@@ -145,7 +145,7 @@ class TestExtremalSubstrings extends FunSuite {
 
   test("de Bruijn uniques(2): aaaabaabbababbbbaaa") {
     assertResult((0 to 15).toList.map(x => (x, x+3))) {
-      newES("aaaabaabbababbbbaaa").minUniques
+      newES("aaaabaabbababbbbaaa").minUniques()
     }
   }
 

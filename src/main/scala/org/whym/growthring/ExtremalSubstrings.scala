@@ -99,54 +99,50 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
   import ExtremalSubstrings._
   logger.info("start extremal substrings")
 
-  def minUniques(): Seq[(Int, Int)] = {
-    val mu = Array.fill(arr.size + 1)(-1)
-    val lcp = lcp_ ++ Array.fill(1)(-1)
-    for ( i <- 0 until arr.size;
-          l = lcp(i) max lcp(i+1)) {
-      mu(sa(i) + l) = mu(sa(i) + l) max sa(i)
-    } 
-    return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= arr.size - 1).map(roundMax))
-  }
-
-  def minUniques2(): Seq[(Int, Int)] = {
-    val mu = Array.fill(arr.size + 2)(-1)
-    val lcp = lcp_ ++ Array.fill(2)(-1)
-    //! 毎回 max min の組み合わせをやるよりも、補助配列をつくったほうがいい
-    for ( (i,l) <- List((0, lcp(1) min lcp(2))) ++
-                  (1 until arr.size).map{i => (i,
-                                               (lcp(i-1) min lcp(i))
-                                               max (lcp(i) min lcp(i+1))
-                                               max (lcp(i+1) min lcp(i+2)))} ) {
-      mu(sa(i) + l) = mu(sa(i) + l) max sa(i)
-    } 
-    return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= arr.size - 1).map(roundMax))
-  }
-
-  def maxRepeats(n: Int =2, bd: Int=>Int = {_ => arr.size + 1}): Seq[(Int, Int)] = {
-    logger.info(s"start maxRepeats(${n})")
-    val mr = Array.fill(arr.size + n + 1)(arr.size)
-    val lcp = lcp_ ++ Array.fill(n)(-1)
+  private def gen_lcp_table(n: Int): Int=>Int = {
+    val lcp = this.lcp_ ++ Array.fill(n)(-1)
     val lcpm_padded = Array.fill(n)(-1) ++ slidingMinimums(n - 1, lcp)
     def lcpm(i: Int) = lcpm_padded(i + n)
+    return lcpm
+  }
+
+  def maxRepeats(n: Int =2, bd: Int=>Int = {_ => this.arr.size + 1}): Seq[(Int, Int)] = {
+    logger.info(s"start maxRepeats(${n})")
+    val lcpm = gen_lcp_table(n)
+    val mr = Array.fill(this.arr.size + n + 1)(this.arr.size)
     logger.info(s"start main loop")
-    for ( i <- 0 until arr.size;
+    for ( i <- 0 until this.arr.size;
           l = ((i - n + 2) until (i + 2)).map(lcpm).max;
           if l >= 1 ) {
 
       // bound by boundary positions; /2 and *2 are for converting
       // char positions and integer positions, see also roundMax and
       // roundMin
-      val p = (sa(i) + l - 1) min (bd(sa(i)/2) * 2 - 1)
+      val p = (this.sa(i) + l - 1) min (bd(this.sa(i)/2) * 2 - 1)
       // This is more flexible than post-processing to cut the emitted
       // spans from maxRepeats.  Consider a span with more than one
       // boundary in it, and it won't be trivial to efficiently split
       // it, especially when such spans overlap each other.
 
-      mr(p) = mr(p) min sa(i)
+      mr(p) = mr(p) min this.sa(i)
     }
-    logger.info(s"start main subsume")
-    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= arr.size - 1).map(roundMin).filter(x => x._1 <= x._2))
+    logger.info(s"start subsume")
+    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= this.arr.size - 1).map(roundMin).filter(x => x._1 <= x._2))
+  }
+
+  def minUniques(n: Int =2, bd: Int=>Int = {_ => this.arr.size + 1}): Seq[(Int, Int)] = {
+    logger.info(s"start minUniques(${n})")
+    val lcpm = gen_lcp_table(n)
+    val mu = Array.fill(this.arr.size + n + 1)(-1)
+    logger.info(s"start main loop")
+    for ( i <- 0 until this.arr.size;
+          l = ((i - n + 2) until (i + 2)).map(lcpm).max ) {
+
+      val p = (this.sa(i) + l) min (bd(this.sa(i)/2) * 2 - 1)
+      mu(p) = mu(p) max this.sa(i)
+    }
+    logger.info(s"start subsume")
+    return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= this.arr.size - 1).map(roundMax).filter(x => x._1 <= x._2))
   }
 
 }
