@@ -54,19 +54,6 @@ object Main extends Logging {
     f"${x._1}%d\t${x._2}%d\t${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s\t${f}%s"
   }
 
-  def findRepeats(method: String, strings: Seq[String], freq: Int): Seq[String] = {
-    val str = strings.mkString("\n")
-    val es = new ExtremalSubstrings(SuffixArrays.build(str, method))
-    es.maxRepeats(freq).map{
-      x => {
-        f"r " + formatSpan(str, x)
-      }
-    } ++ es.minUniques(freq).map{
-      x =>
-        f"u " + formatSpan(str, x)
-    }
-  }
-
   def findBoundaries(str: String, pattern: Regex): IndexedSeq[Int] = {
     val boundaries = new mutable.BitSet
     for ( x <- (pattern findAllMatchIn str) ) {
@@ -160,15 +147,6 @@ object Main extends Logging {
           println(line)
         }
       }
-      case "segment" => {
-        val str = strings.mkString("\n")
-        val bd = findBoundaries(str, new Regex(config.getString("boundary")))
-        val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
-        val rps = es.maxRepeats(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
-        for ( x <- rps ) {
-          println(formatSpan(str, x))
-        }
-      }
       case "dfreq" => {
         val str = strings.mkString("\n")
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
@@ -219,10 +197,17 @@ object Main extends Logging {
         if ( name != "repeats" ) {
           logger.debug("\"" + name + "\" not found; using default mode 'repeats'")
         }
-        for ( s <- findRepeats(config.getString("repeatsMethod"),
-                               strings,
-                               config.getInt("repeats").toInt) ) {
-          println(s)
+
+        val str = strings.mkString("\n")
+        val bd = findBoundaries(str, new Regex(config.getString("boundary")))
+        val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
+        val rps = es.maxRepeats(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+        val uqs = es.minUniques(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+        for ( x <- rps ) {
+          println("r\t" + formatSpan(str, x))
+        }
+        for ( x <- uqs ) {
+          println("u\t" + formatSpan(str, x))
         }
       }
     }
