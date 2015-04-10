@@ -1,8 +1,8 @@
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- *
- */
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  *
+  */
 
 package org.whym.growthring
 import scala.collection.JavaConverters._
@@ -11,22 +11,24 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 /**
- * Main entry point
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  * Main entry point
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  */
 object Main extends Logging {
 
-  def anonymize(rmethod: (String,Int)=>Seq[(Int,Int)],
-                cmethod: (Array[Char], Seq[(Int,Int)], Int) => Set[Int],
-                strings: Seq[String],
-                min_len: Int,
-                cover_char: Char,
-                freq: Int,
-                unhide_pattern: String="",
-                gap: Int,
-                _start: Int,
-                _end: Int): Seq[String] = {
+  def anonymize(
+    rmethod: (String,Int)=>Seq[(Int,Int)],
+    cmethod: (Array[Char], Seq[(Int,Int)], Int) => Set[Int],
+    strings: Seq[String],
+    min_len: Int,
+    cover_char: Char,
+    freq: Int,
+    unhide_pattern: String="",
+    gap: Int,
+    _start: Int,
+    _end: Int): Seq[String] = {
+
     val str = strings.mkString("\n")
     logger.debug(f"${str.size}%d characters, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length.")
     val covered = for ( (s,e) <- rmethod(str, freq); if e - s + 1 >= min_len ) yield (s,e)
@@ -122,16 +124,18 @@ object Main extends Logging {
             Covering.greedyLengthFreq
           }
         }
-        for ( s <- anonymize(rmethod,
-                             cmethod,
-                             strings,
-                             config.getInt("minLen").toInt,
-                             config.getString("coverChar")(0),
-                             config.getInt("repeats").toInt,
-                             config.getString("unhide"),
-                             config.getInt("gap"),
-                             config.getInt("start"),
-                             config.getInt("end")) ) {
+        for ( s <- anonymize(
+          rmethod,
+          cmethod,
+          strings,
+          config.getInt("minLen").toInt,
+          config.getString("coverChar")(0),
+          config.getInt("repeats").toInt,
+          config.getString("unhide"),
+          config.getInt("gap"),
+          config.getInt("start"),
+          config.getInt("end")) ) {
+
           println(s)
         }
       }

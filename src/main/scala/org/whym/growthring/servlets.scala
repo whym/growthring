@@ -1,8 +1,8 @@
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- *
- */
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  *
+  */
 
 package org.whym.growthring
 
@@ -16,10 +16,10 @@ import scala.io
 import org.apache.commons.lang3.{StringEscapeUtils => seu}
 
 /**
- * a servlet to receive a string and returns and visualizes repeated substrings in it.
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  * a servlet to receive a string and returns and visualizes repeated substrings in it.
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  */
 class FindRepeatsServlet extends HttpServlet {
   override def init(config: ServletConfig) {
   }
@@ -85,11 +85,11 @@ class FindRepeatsServlet extends HttpServlet {
     lazy val layers = repeats.map(rp => (rp.threshold, TiledLayers.greedyTiling(str.toCharArray, rp.regions)))
     import org.whym.growthring.{TiledLayers => TL}
     val cell2char: TL.Cell => String = {
-        case TL.Outside() => "O"
-        case TL.Single()  => "S"
-        case TL.Begin()   => "B"
-        case TL.End()     => "E"
-        case TL.Inside()  => "I"
+      case TL.Outside() => "O"
+      case TL.Single()  => "S"
+      case TL.Begin()   => "B"
+      case TL.End()     => "E"
+      case TL.Inside()  => "I"
     }
 
     lazy val layers_html = layers.map{ x=> {
@@ -124,10 +124,9 @@ class FindRepeatsServlet extends HttpServlet {
             if_field("masked_plain", _ => masked_plain),
             if_field("chart", _ => {
               str.zip(flags).map(
-                x =>
-                  Array.tabulate(threshold.length)(
-                    i => (if (x._2(threshold(threshold.length - i - 1))){"*"}else{" "})
-                  ).mkString + x._1
+                x => Array.tabulate(threshold.length)(
+                  i => (if (x._2(threshold(threshold.length - i - 1))){"*"}else{" "})
+                ).mkString + x._1
               ).mkString("\n") + "\n"
             }),
             if_field("flags", _ => JArray(flags.toList.map(x => JArray(x.toList.map(JInt(_)))))),
@@ -148,7 +147,7 @@ class FindRepeatsServlet extends HttpServlet {
                 case (char, true)  => char.toString
                 case (char, false) => f"<del>${char}</del>"
               }.mkString
-                   ),
+            ),
             if_field("layers", _ => JObject(layers.map(x => JField(x._1.toString, JArray(List[JValue](x._2.map(l => l.map(cell2char)))))).toList)),
             if_field("layers_html", _ => JObject(layers_html.map(x => JField(x._1.toString, x._2)).toList)),
             if_field("max_repeats", _ =>
@@ -165,10 +164,10 @@ class FindRepeatsServlet extends HttpServlet {
 
 
 /**
- * a servlet to receive a string and returns and visualizes repeated substrings in it.
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  * a servlet to receive a string and returns and visualizes repeated substrings in it.
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  */
 class WikiBlameServlet extends HttpServlet {
 
   override def init(config: ServletConfig) {
@@ -189,11 +188,12 @@ class WikiBlameServlet extends HttpServlet {
     resp.setContentType("application/json")
     writer.println(
       compact(render(
-        JObject(List(JField("title", title),
-                     JField("nrevs", revisions.size),
-                     JField("rev_id", revisions(0).id),
-                     JField("timestamp", revisions(0).timestamp),
-                     JField("html", html))))))
+        JObject(List(
+          JField("title", title),
+          JField("nrevs", revisions.size),
+          JField("rev_id", revisions(0).id),
+          JField("timestamp", revisions(0).timestamp),
+          JField("html", html))))))
   }
 }
 
