@@ -17,6 +17,28 @@ import scala.util.matching.Regex
   */
 object Main extends Logging {
 
+  def findCovereds(long: Seq[(Int,Int)], short: Seq[(Int,Int)], supports: Int): Seq[((Int,Int),Seq[(Int,Int)])] = {
+    def inside(x: (Int,Int), y: (Int,Int)) = (x._1 >= y._1 && x._2 <= y._2)
+    val ret = new mutable.ArrayBuffer[((Int,Int),Seq[(Int,Int)])]
+    val lit = long.iterator.buffered
+    while ( lit.hasNext ) {
+      val sit = short.iterator.buffered
+      while ( sit.hasNext && sit.head._1 < lit.head._1 ) {
+        sit.next
+      }
+      val buf = new mutable.ArrayBuffer[(Int,Int)]
+      while ( sit.hasNext && inside(sit.head, lit.head) ) {
+        buf.append(sit.head)
+        sit.next
+      }
+      if ( buf.size >= supports ) {
+        ret.append((lit.head, buf))
+      }
+      lit.next
+    }
+    return ret
+  }
+
   def anonymize(
     rmethod: (String,Int)=>Seq[(Int,Int)],
     cmethod: (Array[Char], Seq[(Int,Int)], Int) => Set[Int],
@@ -197,6 +219,28 @@ object Main extends Logging {
           }
         }
       }
+
+      case "minmax" => {
+        val str = strings.mkString("\n")
+        val bd = findBoundaries(str, new Regex(config.getString("boundary")))
+        val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
+        val mr = config.getInt("repeats").toInt
+        val mu = config.getInt("uniques").toInt
+        val supports = config.getInt("supports").toInt
+        if ( mr > mu ) {
+          logger.debug("warning: repeats (%s) should not be greater than uniques (%s)".format(mr, mu))
+        }
+        val rps = es.maxRepeats(mr, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+        val uqs = es.minUniques(mu, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+
+        for ( (rp, uq) <- findCovereds(rps, uqs, supports) ) {
+          println("r\t" + formatSpan(str, rp))
+          for ( u <- uq ) {
+            println("  u\t" + formatSpan(str, u))
+          }
+        }
+      }
+
       case name @ ("repeats" | _) => {
         if ( name != "repeats" ) {
           logger.debug("\"" + name + "\" not found; using default mode 'repeats'")
@@ -206,7 +250,7 @@ object Main extends Logging {
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
         val rps = es.maxRepeats(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
-        val uqs = es.minUniques(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+        val uqs = es.minUniques(config.getInt("uniques").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
         for ( x <- rps ) {
           println("r\t" + formatSpan(str, x))
         }

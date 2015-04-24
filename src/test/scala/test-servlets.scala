@@ -238,3 +238,34 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
   }
 
 }
+
+/**
+ *
+ * @author Yusuke Matsubara <whym@whym.org>
+ */
+class TestMinMaxServlet extends FunSuite with MockitoSugar {
+  def get(input: String, max: String, min: String): JValue = {
+    val response = mock[HttpServletResponse]
+    val request = mock[HttpServletRequest]
+    val stringWriter = new StringWriter
+    val printWriter = new PrintWriter(stringWriter)
+    
+    when(response.getWriter()).thenReturn(printWriter)
+    when(request.getParameter("q")).thenReturn(input)
+    when(request.getParameter("max")).thenReturn(max)
+    when(request.getParameter("min")).thenReturn(min)
+    when(request.getParameter("boundary")).thenReturn("$")
+    
+    new MinMaxServlet().doGet(request, response)
+    return parse(stringWriter.toString)
+  }
+  val json = get("abra$cadabra", "3", "2")
+
+  test("max min (abra$cadabra, 3, 2)") {
+
+    assertResult(JInt(3)) {
+      json \ "max"
+    }
+  }
+
+}

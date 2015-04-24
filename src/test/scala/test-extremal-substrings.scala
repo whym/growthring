@@ -53,6 +53,12 @@ class TestExtremalSubstrings extends FunSuite {
     }
   }
 
+  test("repeats: banana") {
+    assertResult(Seq((1,3), (3,5))){
+      newES("banana").maxRepeats()
+    }
+  }
+
   test("uniques: banana") {
     assertResult(Seq((0,0), (2,4))){
       newES("banana").minUniques()

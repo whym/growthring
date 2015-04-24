@@ -164,7 +164,7 @@ class FindRepeatsServlet extends HttpServlet {
 
 
 /**
-  * a servlet to receive a string and returns and visualizes repeated substrings in it.
+  * a servlet to receive a MediaWiki page ID and returns and visualizes repeated substrings in the edit history.
   *
   * @author Yusuke Matsubara <whym@whym.org>
   */
@@ -239,3 +239,34 @@ object WikiBlameServlet {
   }
 }
 
+/**
+  * a servlet to visualize maximum repeats and minimum uniques
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  */
+class MinMaxServlet extends HttpServlet {
+
+  override def init(config: ServletConfig) {
+  }
+
+  override def doPost(req: HttpServletRequest, resp: HttpServletResponse) = doGet(req, resp)
+
+  override def doGet(req: HttpServletRequest, resp: HttpServletResponse) {
+    resp.setCharacterEncoding("UTF-8")
+    val body = req.getParameter("q")
+    val boundary = req.getParameter("boundary")
+    val min = Option(req.getParameter("min")).getOrElse("10").toInt
+    val max = Option(req.getParameter("max")).getOrElse("10").toInt
+    // write respones
+    val writer = resp.getWriter
+    resp.setContentType("application/json")
+    writer.println(
+      compact(render(
+        JObject(List(
+          JField("max", max)
+        )))))
+  }
+}
+
+object MinMaxServlet {
+}
