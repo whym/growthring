@@ -20,12 +20,39 @@ class TestExtremalSubstrings extends FunSuite {
 
   def newES(s: String) = new ExtremalSubstrings(SuffixArrays.buildJsuffixarrays(s))
 
+  test("subsume longer") {
+    assertResult(Seq((0,3))) {
+      ES.subsumeLonger(Seq((0,3),(1,3)))
+    }
+  }
+
+  test("subsume shorter") {
+    assertResult(Seq((1,3))) {
+      ES.subsumeShorter(Seq((0,3),(1,3)))
+    }
+  }
+
+  test("round max") {
+    assertResult((2,3)) {
+      ES.roundMax((5,7))
+    }
+    assertResult((5,6)) {
+      ES.roundMax((10,12))
+    }
+    assertResult((3,5)) {
+      ES.roundMax((7,10))
+    }
+  }
+
   test("round min") {
     assertResult((3,3)) {
       ES.roundMin((5,7))
     }
     assertResult((5,5)) {
       ES.roundMin((10,12))
+    }
+    assertResult((4,4)) {
+      ES.roundMin((7,10))
     }
   }
 

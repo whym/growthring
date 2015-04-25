@@ -42,8 +42,8 @@ object ExtremalSubstrings {
     }
 
   def roundMax(x: (Int,Int)): (Int,Int) =
-      ((x._1 - (x._1     & 1)) / 2,
-       (x._2 + ((x._2+1) & 1)) / 2)
+      ((x._1 - (x._1 & 1)) / 2,
+        x._2 / 2)
 
   def roundMin(x: (Int,Int)): (Int,Int) =
       ((x._1 + (x._1     & 1)) / 2,
@@ -116,7 +116,7 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
           if l >= 1 ) {
 
       // bound by boundary positions; /2 and *2 are for converting
-      // char positions and integer positions, see also roundMax and
+      // char positions and integer positions, see also roundMin and
       // roundMin
       val p = (this.sa(i) + l - 1) min (bd(this.sa(i)/2) * 2 - 1)
       // This is more flexible than post-processing to cut the emitted
@@ -127,7 +127,8 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
       mr(p) = mr(p) min this.sa(i)
     }
     logger.info(s"start subsume")
-    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= this.arr.size - 1).map(roundMin).filter(x => x._1 <= x._2))
+    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= this.arr.size - 1).
+      map(roundMin).filter(x => x._1 <= x._2))
   }
 
   def minUniques(n: Int =2, bd: Int=>Int = {_ => this.arr.size + 1}): Seq[(Int, Int)] = {
@@ -142,7 +143,8 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
       mu(p) = mu(p) max this.sa(i)
     }
     logger.info(s"start subsume")
-    return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= this.arr.size - 1).map(roundMax).filter(x => x._1 <= x._2))
+    return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= this.arr.size - 1).
+      map(roundMax).filter(x => x._1 <= x._2))
   }
 
 }
