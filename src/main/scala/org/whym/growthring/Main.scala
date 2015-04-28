@@ -78,7 +78,7 @@ object Main extends Logging {
     f"${x._1}%d\t${x._2}%d\t${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s\t${f}%s"
   }
 
-  def findBoundaries(str: String, pattern: Regex): IndexedSeq[Int] = {
+  def findBoundariesAsArray(str: String, pattern: Regex): IndexedSeq[Int] = {
     val boundaries = new mutable.BitSet
     for ( x <- (pattern findAllMatchIn str) ) {
       boundaries(x.start) = true
@@ -94,6 +94,11 @@ object Main extends Logging {
       }
     }
     return bd
+  }
+
+  def findBoundaries(str: String, pattern: Regex): Int=>Int = {
+    val bd = findBoundariesAsArray(str, pattern)
+    return if (bd.size > 0 && bd(0) != str.size) { bd } else { (_ => str.size + 1) }
   }
 
   def main(args: Array[String]) {
@@ -175,10 +180,10 @@ object Main extends Logging {
       }
       case "dfreq" => {
         val str = strings.mkString("\n")
-        val bd = findBoundaries(str, new Regex(config.getString("boundary")))
+        val bd = findBoundariesAsArray(str, new Regex(config.getString("boundary")))
         val sa = SuffixArrays.build(str, config.getString("repeatsMethod"))
         val es = new ExtremalSubstrings(sa)
-        val rps = es.maxRepeats(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+        val rps = es.maxRepeats(config.getInt("repeats").toInt, bd)
         val cache = new mutable.HashMap[(Int,String),Set[Int]]
         val count = new mutable.HashMap[String,Set[Int]]
         val icount = new mutable.HashMap[(Int,String),Set[Int]]
@@ -230,8 +235,8 @@ object Main extends Logging {
         if ( mr > mu ) {
           logger.debug("warning: repeats (%s) should not be greater than uniques (%s)".format(mr, mu))
         }
-        val rps = es.maxRepeats(mr, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
-        val uqs = es.minUniques(mu, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+        val rps = es.maxRepeats(mr, bd)
+        val uqs = es.maxRepeats(mu, bd)
 
         for ( (rp, uq) <- findCovereds(rps, uqs, supports) ) {
           println("r\t" + formatSpan(str, rp))
@@ -249,8 +254,8 @@ object Main extends Logging {
         val str = strings.mkString("\n")
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
-        val rps = es.maxRepeats(config.getInt("repeats").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
-        val uqs = es.minUniques(config.getInt("uniques").toInt, if (bd.size > 0 && bd(0) != str.size) {bd } else { (_ => str.size + 1) })
+        val rps = es.maxRepeats(config.getInt("repeats").toInt, bd)
+        val uqs = es.minUniques(config.getInt("uniques").toInt, bd)
         for ( x <- rps ) {
           println("r\t" + formatSpan(str, x))
         }
