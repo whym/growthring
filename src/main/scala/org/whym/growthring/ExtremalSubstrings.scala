@@ -139,8 +139,10 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
     for ( i <- 0 until this.arr.size;
           l = ((i - n + 2) until (i + 2)).map(lcpm).max ) {
 
-      val p = (this.sa(i) + l) min (bd(this.sa(i)/2) * 2 - 1)
-      mu(p) = mu(p) max this.sa(i)
+      val p = this.sa(i) + l
+      if ( bd(this.sa(i)/2) * 2 - 1 > p ) {
+        mu(p) = mu(p) max this.sa(i)
+      }
     }
     logger.info(s"start subsume")
     return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= this.arr.size - 1).
