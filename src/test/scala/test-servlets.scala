@@ -243,7 +243,7 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */
-class TestMinMaxServlet extends FunSuite with MockitoSugar {
+class TestNestedRepeatsServlet extends FunSuite with MockitoSugar {
   def get(input: String, max: String, min: String): JValue = {
     val response = mock[HttpServletResponse]
     val request = mock[HttpServletRequest]
@@ -256,12 +256,12 @@ class TestMinMaxServlet extends FunSuite with MockitoSugar {
     when(request.getParameter("min")).thenReturn(min)
     when(request.getParameter("boundary")).thenReturn("$")
     
-    new MinMaxServlet().doGet(request, response)
+    new NestedRepeatsServlet().doGet(request, response)
     return parse(stringWriter.toString)
   }
   val json = get("abra$cadabra", "3", "2")
 
-  test("max min (abra$cadabra, 3, 2)") {
+  test("nested repeats (abra$cadabra, 3, 2)") {
 
     assertResult(JInt(3)) {
       json \ "max"

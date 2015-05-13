@@ -225,18 +225,22 @@ object Main extends Logging {
         }
       }
 
-      case "minmax" => {
+      case "nested" => {
         val str = strings.mkString("\n")
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
         val mr = config.getInt("repeats").toInt
-        val mu = config.getInt("uniques").toInt
+        val mu = config.getInt("nestedRepeats").toInt
         val supports = config.getInt("supports").toInt
         if ( mr > mu ) {
-          logger.debug("warning: repeats (%s) should not be greater than uniques (%s)".format(mr, mu))
+          logger.debug("warning: repeats (%s) should not be greater than nested repeats (%s)".format(mr, mu))
         }
         val rps = es.maxRepeats(mr, bd)
-        val uqs = es.maxRepeats(mu, bd)
+        val uqs = if ( config.getBoolean("nestedRepeats.useUniques") ) {
+          es.minUniques(mu, bd)
+        } else {
+          es.maxRepeats(mu, bd)
+        }
 
         for ( (rp, uq) <- findCovereds(rps, uqs, supports) ) {
           println("r\t" + formatSpan(str, rp))

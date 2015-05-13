@@ -244,7 +244,7 @@ object WikiBlameServlet {
   *
   * @author Yusuke Matsubara <whym@whym.org>
   */
-class MinMaxServlet extends HttpServlet {
+class NestedRepeatsServlet extends HttpServlet {
 
   override def init(config: ServletConfig) {
   }
@@ -268,5 +268,5 @@ class MinMaxServlet extends HttpServlet {
   }
 }
 
-object MinMaxServlet {
+object NestedRepeatsServlet {
 }
