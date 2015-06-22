@@ -230,13 +230,13 @@ object Main extends Logging {
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
         val mr = config.getInt("repeats").toInt
-        val mu = config.getInt("nestedRepeats").toInt
+        val mu = config.getInt("nested.repeats").toInt
         val supports = config.getInt("supports").toInt
         if ( mr > mu ) {
           logger.debug("warning: repeats (%s) should not be greater than nested repeats (%s)".format(mr, mu))
         }
         val rps = es.maxRepeats(mr, bd)
-        val uqs = if ( config.getBoolean("nestedRepeats.useUniques") ) {
+        val uqs = if ( config.getBoolean("nested.useUniques") ) {
           es.minUniques(mu, bd)
         } else {
           es.maxRepeats(mu, bd)
