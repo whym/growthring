@@ -24,7 +24,7 @@ class TestDeid(unittest.TestCase):
                  (False, False): 0,
                  (False, True):  5,
         }
-        self.assertEqual(0, 0, 0),
+        self.assertEqual((0, 0, 0),
                          evaluate_deid.fmeasure_precition_recall(flags))
 
     def test_count_ngrams(self):
