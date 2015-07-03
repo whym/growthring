@@ -3,9 +3,7 @@
 
 """ merge two deid-form text file. """
 
-import re
 import sys
-from collections import defaultdict
 
 def load(st):
     for line in st:

@@ -2,8 +2,12 @@
 
 """ Extract the distribution of frequencies and sizes of continuous substrings """
 
+import sys
+import argparse
+import re
+import codecs
+
 def stats(inputs, marker):
-    import re
     from collections import defaultdict
     splitter = re.compile(marker + '+')
     binss = []
@@ -23,12 +27,6 @@ def stats(inputs, marker):
         yield (i, [binss[j][i] for j in xrange(0,len(binss))])
 
 if __name__ == '__main__':
-
-    import sys
-    import argparse
-    import re
-    import codecs
-    import random
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--marker', type=str, default='_')

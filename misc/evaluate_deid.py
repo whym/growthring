@@ -3,7 +3,6 @@
 
 """ compare two deid-form text file. """
 
-import re
 import sys
 from collections import defaultdict
 

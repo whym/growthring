@@ -3,7 +3,6 @@
 
 import unittest
 import suffixarray_concat as sc
-from StringIO import StringIO
 
 class TestSuffixArrayConcat(unittest.TestCase):
     def setUp(self):

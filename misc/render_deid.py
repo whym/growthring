@@ -9,8 +9,6 @@ The rest is the system output, where each line may have underscores (_) to denot
 
 import sys
 import argparse
-import csv
-import re
 
 def match_wildcard(s1, s2, wildcard='_'):
     for (i,x) in enumerate(s1):

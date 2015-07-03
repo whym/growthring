@@ -1,6 +1,5 @@
 '''This is a proof-of-concept script to show it is possible to "concatenate" two suffix arrays that represent two concecutive regions in a string. It assumes the regions are delimited by a special boundary character.
 '''
-from itertools import *
 import argparse
 
 DELIMIT = '#'

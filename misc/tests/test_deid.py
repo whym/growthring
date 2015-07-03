@@ -57,8 +57,6 @@ _
                          res)
 
     def test_convert(self):
-        from xml.sax import make_parser
-        parser = make_parser()
         out = StringIO()
         inp = StringIO('<ROOT><RECORD ID="123"><TEXT>a <PHI>b</PHI> c</TEXT></RECORD></ROOT>')
         convert_deid.convert(inp, out)

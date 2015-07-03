@@ -3,7 +3,6 @@
 
 import unittest
 import suffixarray_tf as st
-from StringIO import StringIO
 
 def get_pos(s, q):
     pos = s.find(q)

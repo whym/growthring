@@ -18,7 +18,6 @@ should read as
 w[SA[BL]] != w[SA[BR]]
 
 '''
-from itertools import *
 from IPython import embed
 import argparse
 import codecs

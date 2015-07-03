@@ -3,7 +3,6 @@
 
 """Output comparison of N-gram frequencies of sensitive terms and non-sensitive spans, where N is a given intege. Input is a two-column labeled deid format. """
 
-import re
 import sys
 from collections import defaultdict
 import matplotlib.pyplot as plt

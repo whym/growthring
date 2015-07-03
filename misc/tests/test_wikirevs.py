@@ -19,7 +19,6 @@ class TestWikiRevs(unittest.TestCase):
     @httprettified
     def test_get_revisions(self):
         base = 'http://localhost:4881'
-        content = ['*', '+']
         title = 'hello'
 
         HTTPretty.register_uri(HTTPretty.GET,
