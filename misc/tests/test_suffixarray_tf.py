@@ -46,12 +46,22 @@ class TestSuffixArrayTF(unittest.TestCase):
 
     def test_tf(self):
         s = 'mississippi' + st.DELIMIT
-        ec = st.equivalence_classes(s)
-        self.assertEqual(['issi', 'i', 'mississippi', 'p'], [s[x.pos[0]:x.pos[1]] for x in ec if x])
+        ec = list(st.equivalence_classes(s))
+        self.assertEqual(['issi', 'i', 'mississippi', 'p', 's'], [s[x.pos[0]:x.pos[1]] for x in ec if x])
+
+    def test_replace(self):
+        s1 = 'TO_BE_OR_NOT_TO_BE' + st.DELIMIT
+        s2 = 'TO BE OR NOT TO BE' + st.DELIMIT
+        ec1 = list(st.equivalence_classes(s1))
+        ec2 = list(st.equivalence_classes(s2))
+        def rep(s, x):
+            s[x[0]:x[1]].replace('_', ' ')
+        self.assertEqual([rep(s2, x.pos) for x in ec2],
+                         [rep(s1, x.pos) for x in ec1])
 
     def test_equiv(self):
         s = 'abrab' + st.DELIMIT
-        ec = st.equivalence_classes(s)
+        ec = list(st.equivalence_classes(s))
         ss = set()
         for x in ec:
             for y in list(st.pincer(s, x.pos, x.minimal)):
