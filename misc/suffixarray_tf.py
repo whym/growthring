@@ -194,11 +194,14 @@ if __name__ == '__main__':
                         help='')
     parser.add_argument('inputs', nargs='*')
     options = parser.parse_args()
+
+    def esc(s):
+        return s.replace('\n', '\\n')
     if options.interactive:
         for line in next_input(options.inputs):
             s = line + DELIMIT
             for e in equivalence_classes(s):
-                print e, s[e.pos[0]:e.pos[1]]
+                print e, esc(s[e.pos[0]:e.pos[1]]), ','.join(esc(s[x[0]:x[1]])for x in e.minimal)
     else:
         if len(options.inputs) == 0:
             print >>sys.stderr, 'input file missing'
@@ -215,5 +218,4 @@ if __name__ == '__main__':
                 eqc,
                 key=lambda e: -(e.pos[1]-e.pos[0]) * math.log(e.freq))
         for e in eqc:
-            print e
-            print s[e.pos[0]:e.pos[1]].replace('\n', '\\n')
+            print e, esc(s[e.pos[0]:e.pos[1]]), ','.join(esc(s[x[0]:x[1]])for x in e.minimal)
