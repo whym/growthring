@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import csv
 import math
 
+
 def load(st):
     for line in st:
         a = line.split("\t", 2)
@@ -20,6 +21,7 @@ def load(st):
         a[1] = a[1].strip()
         yield tuple(a)
 
+
 def count_ngrams(tokens, size):
     ng = defaultdict(int)
     buff = tokens[0:size]
@@ -30,13 +32,14 @@ def count_ngrams(tokens, size):
         ng[tuple(buff)] += 1
     return ng
 
+
 def binned(vals, binsize, mx=None, logarithmic=False):
     if logarithmic:
         scale = lambda x: int(math.log10(x) / binsize)
-        unscale = lambda x: 10 ** (x*binsize)
+        unscale = lambda x: 10 ** (x * binsize)
     else:
         scale = lambda x: int(x / binsize)
-        unscale = lambda x: x*binsize
+        unscale = lambda x: x * binsize
     if mx is None:
         mx = max(vals)
     c = defaultdict(int)
@@ -46,8 +49,9 @@ def binned(vals, binsize, mx=None, logarithmic=False):
         if n > mx:
             continue
         c[scale(n)] += 1
-    for (k,v) in sorted(c.items()):
-        yield unscale(k), unscale(k+1), v
+    for (k, v) in sorted(c.items()):
+        yield unscale(k), unscale(k + 1), v
+
 
 def csv_histogram(serieses, output, binsize=10, logarithmic=False):
     bn = {}
@@ -57,11 +61,13 @@ def csv_histogram(serieses, output, binsize=10, logarithmic=False):
     writer = csv.writer(output)
     writer.writerow(['b_start', 'b_end'] + names)
     for i in xrange(0, len(bn[names[0]])):
-        writer.writerow(list(bn[names[0]][i][0:2]) + [bn[s][i][2] for s in names])
+        writer.writerow(list(bn[names[0]][i][0:2]) +
+                        [bn[s][i][2] for s in names])
+
 
 def plot_histogram(serieses, output, binsize=10, logarithmic=False):
-    plt.bar(left=[1,2,3], height=[10,30,20], width=0.2, color='red')
-    plt.bar(left=[1.2,2.2,3.2], height=[5,10,20], width=0.2, color='blue')
+    plt.bar(left=[1, 2, 3], height=[10, 30, 20], width=0.2, color='red')
+    plt.bar(left=[1.2, 2.2, 3.2], height=[5, 10, 20], width=0.2, color='blue')
     plt.show()
 
 if __name__ == '__main__':
@@ -84,14 +90,15 @@ if __name__ == '__main__':
                         help='turn on verbose message output')
     parser.add_argument('input')
     options = parser.parse_args()
-    
+
     tokens = list(load(open(options.input)))
     ngrams = count_ngrams([x[0] for x in tokens], options.ngram)
     serieses = defaultdict(list)
-    
+
     for i in xrange(0, len(tokens) - options.ngram):
-        f = ngrams[tuple(x[0] for x in tokens[i:i+options.ngram])]
+        f = ngrams[tuple(x[0] for x in tokens[i:i + options.ngram])]
         serieses[tokens[i][1]].append(f)
         if options.verbose:
             print tokens[i][0], tokens[i][1], f
-    csv_histogram(serieses, options.output, binsize=options.bin, logarithmic=options.logarithmic)
+    csv_histogram(serieses, options.output, binsize=options.bin,
+                  logarithmic=options.logarithmic)

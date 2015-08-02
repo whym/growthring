@@ -6,11 +6,13 @@
 import sys
 from collections import defaultdict
 
+
 def load_unlabeled(st):
     for line in st:
         a = line.split("\t", 2)
         a = a[0].strip()
         yield a
+
 
 def load_labeled(st):
     for line in st:
@@ -22,37 +24,42 @@ def load_labeled(st):
             a.append('')
         yield a
 
+
 def match(stoken, etoken, supp):
     if len(stoken) != len(etoken):
         return False
-    for (s,e) in zip(stoken,etoken):
+    for (s, e) in zip(stoken, etoken):
         if s == supp or e == supp or s == e:
             next
         else:
             return False
     return True
 
+
 def evaluate(expect, system, suppchar='_'):
-    for ((stoken,slabel),(etoken,elabel)) in zip(system, expect):
-        if not match(stoken,etoken,suppchar):
-            print >>sys.stderr, 'error: %s vs %s' % (etoken,stoken)
+    for ((stoken, slabel), (etoken, elabel)) in zip(system, expect):
+        if not match(stoken, etoken, suppchar):
+            print >>sys.stderr, 'error: %s vs %s' % (etoken, stoken)
             next
-        yield (stoken,slabel,etoken,elabel, ('T' if slabel == elabel else 'F') + ('N' if slabel == '' else 'P'))
+        yield (stoken, slabel, etoken, elabel, ('T' if slabel == elabel else 'F') + ('N' if slabel == '' else 'P'))
+
 
 def mcnemar_significance(contig):
     import mcnemar
-    significant = not mcnemar.mcnemar(contig[(True,True)],
-                                      contig[(True,False)],
-                                      contig[(False,True)],
-                                      contig[(False,False)],
-                                      alpha = 0.05, verbose=False)
+    significant = not mcnemar.mcnemar(contig[(True, True)],
+                                      contig[(True, False)],
+                                      contig[(False, True)],
+                                      contig[(False, False)],
+                                      alpha=0.05, verbose=False)
     return significant
 
-def fmeasure_precition_recall(flags):
-    p = float(flags[(True,True)]) / (flags[(False,True)] + flags[(True,True)])
-    r = float(flags[(True,True)]) / (flags[(True,False)] + flags[(True,True)])
-    f = 2.0 / ( ( 1.0 / p ) + ( 1.0 / r ) ) if p > 0 and r > 0 else 0
+
+def fmeasure_precition_recall(mat):
+    p = float(mat[(True, True)]) / (mat[(False, True)] + mat[(True, True)])
+    r = float(mat[(True, True)]) / (mat[(True, False)] + mat[(True, True)])
+    f = 2.0 / ((1.0 / p) + (1.0 / r)) if p > 0 and r > 0 else 0
     return (f, p, r)
+
 
 def convert(system, tag='PHI', ratio=0.5, suppchar='_'):
     from validate_frequency import number_of_matches
@@ -88,21 +95,24 @@ if __name__ == '__main__':
     parser.add_argument('expect')
     parser.add_argument('system', nargs='+')
     options = parser.parse_args()
-    
+
     import csv
     writer = csv.writer(options.output)
-    writer.writerow(['# filename', 'threshold', 'total', 'tp', 'tn', 'fp', 'fn', 'sig', 'fmeas', 'prec', 'reca'])
+    writer.writerow(['# filename', 'threshold', 'total', 'tp',
+                     'tn', 'fp', 'fn', 'sig', 'fmeas', 'prec', 'reca'])
     for system in options.system:
         for ratio in options.ratio:
             contig = defaultdict(int)
-            for (stoken,slabel,etoken,elabel,res) in evaluate(load_labeled(open(options.expect)),
-                                                              convert(load_unlabeled(open(system)), options.tag, ratio, options.wildcard),
-                                                              options.wildcard):
-                print >>options.doutput, '# %s\t%s\t%s\t%s\t%s' % (stoken,slabel,etoken,elabel,res)
+            for (stoken, slabel, etoken, elabel, res) in evaluate(load_labeled(open(options.expect)),
+                                                                  convert(load_unlabeled(
+                                                                      open(system)), options.tag, ratio, options.wildcard),
+                                                                  options.wildcard):
+                print >>options.doutput, '# %s\t%s\t%s\t%s\t%s' % (
+                    stoken, slabel, etoken, elabel, res)
                 contig[(elabel != '', slabel != '')] += 1
 
             sig = 'unknown'
-            fm = ['nan','nan','nan']
+            fm = ['nan', 'nan', 'nan']
             if len(contig.values()) > 0 and min(contig.values()) > 0:
                 if not options.skipsig:
                     sig = 'yes' if mcnemar_significance(contig) else 'no'
@@ -110,9 +120,8 @@ if __name__ == '__main__':
             writer.writerow([system,
                              ratio,
                              sum(contig.values()),
-                             contig[(True,True)],
-                             contig[(False,False)],
+                             contig[(True, True)],
+                             contig[(False, False)],
                              contig[(False, True)],
-                             contig[(True,False)],
+                             contig[(True, False)],
                              sig] + fm)
-
