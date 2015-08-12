@@ -70,16 +70,16 @@ class TestSuffixArrayTF(unittest.TestCase):
                          [rep(s1, x.pos) for x in ec1])
 
     def test_equiv(self):
-        s = 'abrab' + st.DELIMIT
+        s = 'abracadabra' + st.DELIMIT
         ec = list(st.equivalence_classes(s))
         ss = list()
         for x in ec:
             for y in list(st.pincer(s, x.pos, x.minimal)):
                 if y.find(st.DELIMIT) < 0:
                     ss.append(y)
-            #print 'pincer', list(st.pincer(s, x.pos, x.minimal)), x
+            # print 'pincer', list(st.pincer(s, x.pos, x.minimal)), x
         self.assertEqual(sorted(set(all_substrings(s[0:len(s)-1]))),
-                         sorted(set(ss)))
+                         sorted(ss))
 
 if __name__ == '__main__':
     unittest.main()

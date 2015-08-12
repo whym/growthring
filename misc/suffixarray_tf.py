@@ -9,17 +9,25 @@
   organization={Springer}
 }
 
-where at Line 11, Algorithm 2, Page 349,
+with the following fixes:
+
+1. At Line 11, Algorithm 2, Page 349,
 
 w[BL] != w[BR]
 
 should read as
 
-w[SA[BL]] != w[SA[BR]]
+w[SA[BL]] != w[SA[BR]].
 
-The "max" operation described in Line 17 and 18 and, in Lemma 14, should be read "min".
+2. At Line 21 and 26, Algorithm 2, Page 349,
 
-Also, the outmost iteration needs to be done for i=N+1 as well. This requires SA and rank to be padded with 0 (or any other artbitrary value).
+parent
+
+which is equal to max(lcp[FL], lcp[FR+1]), should be read as
+
+max(lcp[BL], lcp[BR+1]).
+
+3. The outmost iteration in Algorithm 2 needs to be done for i=N+1 as well. This requires SA and rank to be padded with 0 (or any other artbitrary value).
 
 '''
 # from IPython import embed
@@ -29,7 +37,7 @@ import sys
 import math
 from collections import namedtuple
 
-EC = namedtuple('EC', ('pos', 'freq', 'minimal'))
+EC = namedtuple('EC', ('pos', 'size', 'freq', 'minimal'))
 ST = namedtuple('ST', ('left', 'height'))
 DELIMIT = '#'
 
@@ -96,9 +104,9 @@ def ec(w, sa, lcp, rank):
         h_new = lcp[i]
         left = stack[-1].left
         height = stack[-1].height
-        #print 'i=', i, 'height', height, 'left', left, 'lcp', lcp[i]
+        # print 'i=', i, 'height', height, 'left', left, 'lcp', lcp[i]
         while height > h_new:
-            #print stack, left, height, h_new
+            # print stack, left, height, h_new
             stack.pop()
             parent = stack[-1].height if stack[-1].height > h_new else h_new
             l = left
@@ -111,7 +119,7 @@ def ec(w, sa, lcp, rank):
             if sa[l] != 1 and sa[r] != 1:
                 bl = rank[sa[l] - 1]
                 br = rank[sa[r] - 1]
-            #print freq, 'pos', pos, 'lr', (l, r), 'sa[l,r]', (sa[l], sa[r]), 'bl,br', (bl, br), 'sa[bl,br]', (sa[bl], sa[br]), w[sa[bl]], w[sa[br]], br - bl + 1 != freq, w[bl] != w[br], sa[l] == 1, sa[r] == 1
+            # print freq, 'pos', pos, 'lr', (l, r), 'sa[l,r]', (sa[l], sa[r]), 'bl,br', (bl, br), 'sa[bl,br]', (sa[bl], sa[br]), w[sa[bl]], w[sa[br]], br - bl + 1 != freq, w[bl] != w[br], sa[l] == 1, sa[r] == 1
             if (br - bl + 1 != freq) or (w[sa[bl]] != w[sa[br]]) or (sa[l] == 1) or (sa[r] == 1):
                 size = rlen - parent
                 mlen = rlen - parent
@@ -121,14 +129,14 @@ def ec(w, sa, lcp, rank):
                 fr = rank[sa[r] + 1]
                 bl = l
                 br = r
-                while (ln - 1 > lcp[fl]) and (ln - 1 > lcp[fr+1]) and (fr - fl + 1 == freq):
-                    parent = min(lcp[fl], lcp[fr + 1])
-                    ln = ln - 1
-                    size = size + ln - parent
+                while (ln - 1 > lcp[fl]) and (ln - 1 > lcp[fr + 1]) and (fr - fl + 1 == freq):
+                    parent = max(lcp[fl], lcp[fr + 1])
+                    ln -= 1
+                    size += ln - parent
                     if mlen > ln - parent:
-                        #print (lcp[fl], lcp[fr+1])
-                        #print bl, sa[bl], parent, (sa[bl], sa[bl] + parent + 1)
-                        minimal.add((sa[bl], sa[bl] + parent + 1))
+                        # print fl, fr, 'max(%s, %s) %s %s' % (lcp[fl], lcp[fr + 1], fl, fr+1)
+                        # print w[sa[bl]], sa[bl], bl, br, '%s > %s - %s' % (mlen, ln, parent)
+                        minimal.add((sa[bl], sa[bl] + max(lcp[bl], lcp[br + 1]) + 1))
                     bl = fl
                     br = fr
                     if (sa[fl] + 1 >= lenw) or (sa[fr] + 1 >= lenw):
@@ -136,11 +144,11 @@ def ec(w, sa, lcp, rank):
                     fl = rank[sa[fl] + 1]
                     fr = rank[sa[fr] + 1]
                     mlen = ln - parent
-                minimal.add((sa[bl], sa[bl] + parent + 1))
-                #print '"%s" (%d,%d): freq %d, size %d, %s' % (w[pos[0]:pos[1]], pos[0], pos[1], freq, size, minimal)
-                #print pair2str(w, (sa[l], sa[l] + rlen - 1)), '--', ', '.join([pair2str(w, y) for y in minimal])
-                #print ' --', list(pincer(w, pos, minimal))
-                yield EC(pos, freq, [x for x in minimal])
+                minimal.add((sa[bl], sa[bl] + max(lcp[bl], lcp[br + 1]) + 1))
+                # print '"%s" (%d,%d): freq %d, size %d, %s' % (w[pos[0]:pos[1]], pos[0], pos[1], freq, size, minimal)
+                # print pair2str(w, (sa[l], sa[l] + rlen - 1)), '--', ', '.join([pair2str(w, y) for y in minimal])
+                # print ' --', list(pincer(w, pos, minimal))
+                yield EC(pos, size, freq, [x for x in minimal])
             l_new = left
             left = stack[-1].left
             height = stack[-1].height
@@ -174,9 +182,9 @@ def equivalence_classes(s):
     lcp = [-1] + lcp
     rank = [0] + [x + 1 for x in rank]
 
-    #print [x for x in s], sa, rank, lcp
+    # print [x for x in s], sa, rank, lcp
     for x in ec(s, sa, lcp, rank):
-        yield EC((x.pos[0]-1, x.pos[1]-1), x.freq, set((y[0]-1, y[1]-1) for y in x.minimal))
+        yield EC((x.pos[0]-1, x.pos[1]-1), x.size, x.freq, set((y[0]-1, y[1]-1) for y in x.minimal))
 
 
 if __name__ == '__main__':
