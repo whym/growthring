@@ -35,6 +35,8 @@ import argparse
 import codecs
 import sys
 import math
+import pysais
+import numpy as np
 from collections import namedtuple
 
 EC = namedtuple('EC', ('pos', 'size', 'freq', 'minimal'))
@@ -43,8 +45,9 @@ DELIMIT = '#'
 
 
 def suffixes(s):
-    '''sorted suffixes, computed naively'''
-    return sorted(xrange(0, len(s)), key=lambda i: s[i:])
+    return list(pysais.sais_int(np.array([ord(x) for x in s], np.int32), 0xFFFF))
+    # '''sorted suffixes, computed naively'''
+    # return sorted(xrange(0, len(s)), key=lambda i: s[i:])
 
 
 def all_subspans(a, b):
@@ -77,11 +80,23 @@ def common_prefix_len(x, y):
 
 
 def longest_common_prefixes(s, sa):
-    '''LCP computed naively'''
+    '''LCP'''
+    n = len(s)
     ret = [-1]
-    for i in xrange(1, len(sa)):
-        ret.append(common_prefix_len(s[sa[i]:], s[sa[i-1]:]))
-    return ret
+    height = [-1] * n
+    rank = [-1] * n
+    for (x, y) in enumerate(sa):
+        rank[y] = x
+    h = 0
+    for i in xrange(0, n):
+        if rank[i] > 0:
+            j = sa[rank[i] - 1]
+            while i + h < n and j + h < n and s[i + h] == s[j + h]:
+                h += 1
+            height[rank[i]] = h
+            if h > 0:
+                h -= 1
+    return height
 
 
 def pair2str(w, pair):
