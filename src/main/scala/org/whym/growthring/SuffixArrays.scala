@@ -23,7 +23,8 @@ object SuffixArrays extends Logging {
   val INTSIZE = 4
 
   /**
-   * Conversion from a string to an array of unsigned chars (in int array).  Needed by org.jsuffixarrays.
+   * Conversion from a string to an array of unsigned chars (in int array).
+   * Needed by org.jsuffixarrays.
    */
   def stringToUchars(str: String): Array[Int] = {
     val array = Array.fill(str.size * 2)(0)
@@ -36,9 +37,9 @@ object SuffixArrays extends Logging {
 
   /**
    * Calculating a longest common prefix array from a suffix array.
-   * Adapted from Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications (Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa and Kunsoo Park, 2009)
+   * Adapted from "Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications" (Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa and Kunsoo Park, 2009)
    */
-  def getHeight(text: Array[Int], pos: Array[Int]): Array[Int] = {
+  def getHeight(text: IndexedSeq[Int], pos: IndexedSeq[Int]): IndexedSeq[Int] = {
     val n = text.size
     val height = Array.fill(n)(0)
     val rank = Array.fill(n)(0)
@@ -59,9 +60,8 @@ object SuffixArrays extends Logging {
     height
   }
 
-  def buildSais(str: String): SuffixArrays = {
+  def buildSais(arr: IndexedSeq[Int]): SuffixArrays = {
     logger.info("start sais build")
-    val arr = stringToUchars(str)
     import com.sun.jna.{Library, Native, Memory, Pointer}
     trait SAIS extends Library {
       def sais(s: Pointer, p: Pointer, n: Int): Int
@@ -69,9 +69,9 @@ object SuffixArrays extends Logging {
     }
     logger.info("load sais")
     val sais = Native.loadLibrary("sais", classOf[SAIS]).asInstanceOf[SAIS]
-    val mem1 = new Memory(str.size * 2)
-    val mem2 = new Memory(str.size * 4 * 2)
-    mem1.write(0, arr.map(_.asInstanceOf[Byte]), 0, arr.size)
+    val mem1 = new Memory(arr.size)
+    val mem2 = new Memory(arr.size * 4)
+    mem1.write(0, arr.map(_.asInstanceOf[Byte]).toArray, 0, arr.size)
     logger.info("start sais")
     sais.sais(mem1, mem2, arr.size)
     //sais.sais_int(mem1, mem2, arr.size, 256)
@@ -80,21 +80,22 @@ object SuffixArrays extends Logging {
     SuffixArrays(arr, sa, getHeight(arr, sa))
   }
 
-  def buildJsuffixarrays(str: String): SuffixArrays = {
+  def buildJsuffixarrays(arr: IndexedSeq[Int]): SuffixArrays = {
     logger.info("start jsuffixarrays build")
-    val arr = stringToUchars(str)
     import org.{jsuffixarrays => JSA}
     val builder = new JSA.DivSufSort()
-    val sadata = JSA.SuffixArrays.createWithLCP(arr, 0, arr.size, builder)
+    val sadata = JSA.SuffixArrays.createWithLCP(arr.toArray, 0, arr.size, builder)
     SuffixArrays(arr, sadata.getSuffixArray, sadata.getLCP)
   }
 
-  def build(str: String, method: String = "jsuffixarrays"): SuffixArrays = {
+  def build(arr: IndexedSeq[Int], method: String): SuffixArrays = {
     method match {
-      case "sais" => buildSais(str)
-      case _ =>      buildJsuffixarrays(str)
+      case "sais" => buildSais(arr)
+      case _ =>      buildJsuffixarrays(arr)
     }
   }
+  def build(str: String, method: String = "jsuffixarrays"): SuffixArrays =
+    build(stringToUchars(str), method)
 
   implicit class RichByteBuffer(val b: nio.ByteBuffer) extends AnyVal {
     def getBytes(n: Int) =   { val a = new Array[Byte](n); b.get(a); a }
@@ -162,11 +163,66 @@ object SuffixArrays extends Logging {
                       getHeight(arr, sa)))
   }
 
+  case class NodePointer(left: Int, right: Int, depth: Int)
 }
 
 case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedSeq[Int]) {
   import SuffixArrays._
 
+  def internalNodes(): IndexedSeq[NodePointer] = {
+    val nodes = new mutable.ArrayBuffer[NodePointer]
+    val stack = new mutable.Stack[(Int,Int)]
+    val n = arr.size
+    stack.push((-1, -1))
+    for ( i <- Range(0, n) ) {
+      var cur = (i, if (i == n) { -1 } else {lcp(i)})
+      var cand = stack.head
+      while ( cand._2 > cur._2 ) {
+        if ( i - cand._1 > 1 ) {
+          nodes.append(NodePointer(cand._1, i, cand._2))
+        }
+        cur = (cand._1, cur._2)
+        stack.pop
+        cand = stack.head
+      }
+      if ( cand._2 < cur._2 ) {
+        stack.push(cur)
+      }
+      stack.push((i, n - sa(i) + 1))
+    }
+    nodes
+  }
+  def bwt(i: Int): Int = if ( i < 0 ) {
+    bwt((i / this.arr.size - 1) * -this.arr.size)
+  } else if ( i >= this.arr.size ) {
+    bwt(i % this.arr.size)
+  } else if ( sa(i) == 0 ) {
+    this.arr(this.arr.size - 1)
+  } else {
+    this.arr(sa(i) - 1)
+  }
+
+  // Okanohara, Daisuke and Jun'ichi Tsujii, "Text Categorization with All Substring Features" (2009)
+  // https://github.com/iwnsew/ngweight
+  def okanohara(threshold: Int = 2): Seq[NodePointer] = {
+    var r = 0
+    val rank = Array.fill(this.arr.size)(0)
+    for ( i <- Range(1, arr.size) ) {
+      if ( sa(i) - 1 < 0 || sa(i-1)-1 < 0 ) {
+        r += 1
+      } else if ( bwt(i) != bwt(i-1) ) {
+        r += 1
+      }
+      rank(i) = r
+    }
+    val nodes = internalNodes
+    for ( i <- Range(0, nodes.size - 1).reverse;
+      if !(nodes(i).depth > 1 && nodes(i).right - nodes(i).left < threshold) &&
+      rank(nodes(i).right - 1) - rank(nodes(i).left) > 0
+    ) yield {
+      nodes(i)
+    }
+  }
   def find(q: String): Seq[Int] = find(stringToUchars(q))
   def find(q: IndexedSeq[Int]): Seq[Int] = {
     val l = _lowerbound(q)

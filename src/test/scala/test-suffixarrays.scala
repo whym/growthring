@@ -41,5 +41,21 @@ class TestSuffixArrays extends FunSuite {
     }
   }
 
-}
+  test("bwt") {
+    val s = "abracadabra$".toCharArray.map(_.asInstanceOf[Int])
+    val sa = SA.build(s, "jsuffixarrays")
+    assertResult("ard$rcaaaabb") {
+      new String(Range(0, s.size).map(sa.bwt(_).asInstanceOf[Char]).toArray)
+    }
+  }
+  test("internalNodes") {
+    val s = "abracadabra".toCharArray.map(_.asInstanceOf[Int])
+    val sa = SA.build(s, "jsuffixarrays")
+    assertResult(IndexedSeq(
+      SA.NodePointer(0, 5, 1),
+      SA.NodePointer(1, 3, 4))) {
+      sa.okanohara(1)
+    }
+  }
 
+}

@@ -106,6 +106,8 @@ class ExtremalSubstrings(array: SuffixArrays) extends Logging {
     return lcpm
   }
 
+  // Smyth, W. F., "Minimum Unique Substrings and Maximum Repeats" (2011)
+  // Matsubara, Yusuke and Koiti Hasida, "K-repeating Substrings: a String-Algorithmic Approach to Privacy-Preserving Publishing of Textual Data" (2014)
   def maxRepeats(n: Int =2, bd: Int=>Int = {_ => this.arr.size + 1}): Seq[(Int, Int)] = {
     logger.info(s"start maxRepeats(${n})")
     val lcpm = gen_lcp_table(n)

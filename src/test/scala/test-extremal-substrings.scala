@@ -18,7 +18,7 @@ class TestExtremalSubstrings extends FunSuite {
 
   import org.whym.growthring.{ExtremalSubstrings=>ES, SuffixArrays}
 
-  def newES(s: String) = new ExtremalSubstrings(SuffixArrays.buildJsuffixarrays(s))
+  def newES(s: String) = new ExtremalSubstrings(SuffixArrays.build(s, "jsuffixarrays"))
 
   test("subsume longer") {
     assertResult(Seq((0,3))) {
