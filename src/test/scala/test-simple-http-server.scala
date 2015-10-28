@@ -1,19 +1,17 @@
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- *
- */
+  *  @author Yusuke Matsubara <whym@whym.org>
+  *
+  */
 
 import scala.collection.JavaConverters._
 import org.scalatest.FunSuite
-import java.io.{Writer, PrintWriter, StringWriter, BufferedWriter, OutputStreamWriter}
-import java.net.{Socket,ServerSocket,InetSocketAddress}
+import java.io.{ Writer, PrintWriter, StringWriter, BufferedWriter, OutputStreamWriter }
+import java.net.{ Socket, ServerSocket, InetSocketAddress }
 import scala.io
 
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  *  @author Yusuke Matsubara <whym@whym.org>
+  */
 class TestSimpleHttpServer extends FunSuite {
   import org.whym.growthring.SimpleHttpServer
 
@@ -43,13 +41,13 @@ class TestSimpleHttpServer extends FunSuite {
 object TestSimpleHttpServer {
   def waitUntilPrepared(address: InetSocketAddress, limit: Long): Boolean = {
     val start = System.currentTimeMillis
-    while ( true ) {
+    while (true) {
       val sock = new Socket(address.getAddress, address.getPort)
-      if ( sock.isConnected ) {
+      if (sock.isConnected) {
         sock.close
         return true
       } else {
-        if ( System.currentTimeMillis - start > limit ) {
+        if (System.currentTimeMillis - start > limit) {
           return false
         }
         Thread.sleep(limit / 20)

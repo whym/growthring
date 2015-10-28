@@ -1,38 +1,36 @@
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- *
- */
+  *  @author Yusuke Matsubara <whym@whym.org>
+  *
+  */
 
 import org.whym.growthring._
 import scala.collection.JavaConverters._
 import org.scalatest.FunSuite
-import java.io.{Writer, PrintWriter, StringWriter}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import java.io.{ Writer, PrintWriter, StringWriter }
+import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.json4s.{JInt, JString, JField, JObject, JArray, JValue}
+import org.json4s.{ JInt, JString, JField, JObject, JArray, JValue }
 import org.json4s.native.JsonParser._
 import org.json4s.JsonDSL._
 
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  *  @author Yusuke Matsubara <whym@whym.org>
+  */
 class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   def get(input: String, n: String, min: String): JValue = {
     val response = mock[HttpServletResponse]
     val request = mock[HttpServletRequest]
     val stringWriter = new StringWriter
     val printWriter = new PrintWriter(stringWriter)
-    
+
     when(response.getWriter()).thenReturn(printWriter)
     when(request.getParameter("q")).thenReturn(input)
     when(request.getParameter("n")).thenReturn(n)
     when(request.getParameter("min")).thenReturn(min)
     when(request.getParameter("format")).thenReturn("json")
     when(request.getParameter("prop")).thenReturn("masked_plain|masked_html|chart|flags|freqs|freqs_html|layers|layers_html|max_repeats")
-    
+
     new FindRepeatsServlet().doGet(request, response)
     return parse(stringWriter.toString)
   }
@@ -65,19 +63,20 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   }
 
   test("find repeats (freqs)") {
-    assertResult(JArray(List(JInt(0),
-                             JInt(4),
-                             JInt(2),
-                             JInt(4),
-                             JInt(0),
-                             JInt(0),
-                             JInt(0),
-                             JInt(0),
-                             JInt(4),
-                             JInt(2),
-                             JInt(4),
-                             JInt(0),
-                             JInt(4)))) {
+    assertResult(JArray(List(
+      JInt(0),
+      JInt(4),
+      JInt(2),
+      JInt(4),
+      JInt(0),
+      JInt(0),
+      JInt(0),
+      JInt(0),
+      JInt(4),
+      JInt(2),
+      JInt(4),
+      JInt(0),
+      JInt(4)))) {
       json \ "freqs"
     }
   }
@@ -88,20 +87,25 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
     }
   }
 
-  test("find repeats (list)"){
-    assertResult(JArray(List(JArray(List(2,
-                                         List(List(1, 3),
-                                              List(3, 4),
-                                              List(8, 10),
-                                              List(12, 12)))),
-                             JArray(List(4,
-                                         List(List(1, 1),
-                                              List(3, 3),
-                                              List(8, 8),
-                                              List(10, 10),
-                                              List(12, 12)))),
-                             JArray(List((8),
-                                         JArray(List())))))) {
+  test("find repeats (list)") {
+    assertResult(JArray(List(JArray(List(
+      2,
+      List(
+        List(1, 3),
+        List(3, 4),
+        List(8, 10),
+        List(12, 12)))),
+      JArray(List(
+        4,
+        List(
+          List(1, 1),
+          List(3, 3),
+          List(8, 8),
+          List(10, 10),
+          List(12, 12)))),
+      JArray(List(
+        (8),
+        JArray(List())))))) {
       json \ "max_repeats"
     }
   }
@@ -111,8 +115,8 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
       json2 \ "masked_plain"
     }
     assertResult(JArray(List(JArray(List(2,
-                                         List(List(0, 3),
-                                              List(7, 10))))))) {
+      List(List(0, 3),
+        List(7, 10))))))) {
       json2 \ "max_repeats"
     }
   }
@@ -123,13 +127,13 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
     }
   }
 
-  test("find repeats (layers)"){
+  test("find repeats (layers)") {
     assertResult(JObject(List(JField("2", JArray(List(JArray(List(JArray(List("B", "I", "I", "E", "O", "O", "O", "B", "I", "I", "E")))))))))) {
       json2 \ "layers"
     }
   }
-  
-  test("find repeats (layers html)"){
+
+  test("find repeats (layers html)") {
     assertResult(JObject(List(JField("2", JString("""<set><series><e class='B'>a</e><e class='I'>b</e><e class='I'>r</e><e class='E'>a</e><e class='O'>c</e><e class='O'>a</e><e class='O'>d</e><e class='B'>a</e><e class='I'>b</e><e class='I'>r</e><e class='E'>a</e></series>
 </set>"""))))) {
       json2 \ "layers_html"
@@ -144,7 +148,7 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
     val request = mock[HttpServletRequest]
     val stringWriter = new StringWriter
     val printWriter = new PrintWriter(stringWriter)
-    
+
     val addr = SimpleHttpServer.findFreeAddress()
     val port = addr.getPort
 
@@ -152,60 +156,60 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
     when(request.getParameter("base")).thenReturn("http://localhost:" + port)
     when(request.getParameter("title")).thenReturn("Main_page")
     when(request.getParameter("n")).thenReturn("3")
-    
+
     SimpleHttpServer.create("localhost", port,
-                            Map(("/index.php", <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:
+      Map(("/index.php", <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:
 //www.mediawiki.org/xml/export-0.8/ http://www.mediawiki.org/xml/export-0.8.xsd" version="0.8" xml:lang="ja">
-  <siteinfo>
-    <sitename>MyLocalWiki</sitename>
-    <base></base>
-    <generator>MediaWiki 1.22alpha</generator>
-    <case>case-sensitive</case>
-    <namespaces>
-    </namespaces>
-  </siteinfo>
-  <page>
-    <title>Main Page</title>
-    <ns>0</ns>
-    <id>1</id>
-    <revision>
-      <id>1200</id>
-      <parentid>1199</parentid>
-      <timestamp>2013-06-04T12:00:00Z</timestamp>
-      <contributor>
-        <ip>0:0:0:0:0:0:0:1</ip>
-      </contributor>
-      <text xml:space="preserve" bytes="6">aaaccc</text>
-      <sha1></sha1>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-    </revision>
-    <revision>
-      <id>1201</id>
-      <parentid>1200</parentid>
-      <timestamp>2013-06-04T12:10:00Z</timestamp>
-      <contributor>
-        <ip>0:0:0:0:0:0:0:1</ip>
-      </contributor>
-      <text xml:space="preserve" bytes="6">aaabbb</text>
-      <sha1></sha1>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-    </revision>
-    <revision>
-      <id>1202</id>
-      <parentid>1201</parentid>
-      <timestamp>2013-06-04T12:20:00Z</timestamp>
-      <contributor>
-        <ip>0:0:0:0:0:0:0:1</ip>
-      </contributor>
-      <text xml:space="preserve" bytes="7">bbb&lt;ccc</text>
-      <sha1></sha1>
-      <model>wikitext</model>
-      <format>text/x-wiki</format>
-    </revision>
-  </page>
-</mediawiki>.toString))).start
+                           <siteinfo>
+                             <sitename>MyLocalWiki</sitename>
+                             <base></base>
+                             <generator>MediaWiki 1.22alpha</generator>
+                             <case>case-sensitive</case>
+                             <namespaces>
+                             </namespaces>
+                           </siteinfo>
+                           <page>
+                             <title>Main Page</title>
+                             <ns>0</ns>
+                             <id>1</id>
+                             <revision>
+                               <id>1200</id>
+                               <parentid>1199</parentid>
+                               <timestamp>2013-06-04T12:00:00Z</timestamp>
+                               <contributor>
+                                 <ip>0:0:0:0:0:0:0:1</ip>
+                               </contributor>
+                               <text xml:space="preserve" bytes="6">aaaccc</text>
+                               <sha1></sha1>
+                               <model>wikitext</model>
+                               <format>text/x-wiki</format>
+                             </revision>
+                             <revision>
+                               <id>1201</id>
+                               <parentid>1200</parentid>
+                               <timestamp>2013-06-04T12:10:00Z</timestamp>
+                               <contributor>
+                                 <ip>0:0:0:0:0:0:0:1</ip>
+                               </contributor>
+                               <text xml:space="preserve" bytes="6">aaabbb</text>
+                               <sha1></sha1>
+                               <model>wikitext</model>
+                               <format>text/x-wiki</format>
+                             </revision>
+                             <revision>
+                               <id>1202</id>
+                               <parentid>1201</parentid>
+                               <timestamp>2013-06-04T12:20:00Z</timestamp>
+                               <contributor>
+                                 <ip>0:0:0:0:0:0:0:1</ip>
+                               </contributor>
+                               <text xml:space="preserve" bytes="7">bbb&lt;ccc</text>
+                               <sha1></sha1>
+                               <model>wikitext</model>
+                               <format>text/x-wiki</format>
+                             </revision>
+                           </page>
+                         </mediawiki>.toString))).start
     TestSimpleHttpServer.waitUntilPrepared(addr, 1000L)
     new WikiBlameServlet().doGet(request, response)
     return parse(stringWriter.toString)
@@ -229,33 +233,34 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
 
   test("wiki blame spans") {
     import WikiBlameServlet._
-    assertResult(List(VersionedString("2011", 20, "aaa", 1),
-                      VersionedString("2010", 10, "ccc", 0))) {
-      getSpans(Seq(VersionedString("2010", 10, "aaaccc", 0),
-                   VersionedString("2011", 20, "bbbccc", 1),
-                   VersionedString("2012", 30, "aaabbb", 2)), 3)
+    assertResult(List(
+      VersionedString("2011", 20, "aaa", 1),
+      VersionedString("2010", 10, "ccc", 0))) {
+      getSpans(Seq(
+        VersionedString("2010", 10, "aaaccc", 0),
+        VersionedString("2011", 20, "bbbccc", 1),
+        VersionedString("2012", 30, "aaabbb", 2)), 3)
     }
   }
 
 }
 
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  *  @author Yusuke Matsubara <whym@whym.org>
+  */
 class TestNestedRepeatsServlet extends FunSuite with MockitoSugar {
   def get(input: String, max: String, min: String): JValue = {
     val response = mock[HttpServletResponse]
     val request = mock[HttpServletRequest]
     val stringWriter = new StringWriter
     val printWriter = new PrintWriter(stringWriter)
-    
+
     when(response.getWriter()).thenReturn(printWriter)
     when(request.getParameter("q")).thenReturn(input)
     when(request.getParameter("max")).thenReturn(max)
     when(request.getParameter("min")).thenReturn(min)
     when(request.getParameter("boundary")).thenReturn("$")
-    
+
     new NestedRepeatsServlet().doGet(request, response)
     return parse(stringWriter.toString)
   }

@@ -1,8 +1,7 @@
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- *
- */
+  *  @author Yusuke Matsubara <whym@whym.org>
+  *
+  */
 
 import org.whym.growthring._
 
@@ -12,12 +11,12 @@ import scala.collection.mutable
 import scala.util.matching.Regex
 
 /**
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  * @author Yusuke Matsubara <whym@whym.org>
+  */
 class TestMain extends FunSuite {
 
   test("anonymize") {
-    assertResult(List("a bc __","bc a")) {
+    assertResult(List("a bc __", "bc a")) {
       Main.anonymize(
         new WordRepeats().repeats,
         Covering.greedyLengthFreq,
@@ -33,19 +32,19 @@ class TestMain extends FunSuite {
   }
 
   test("find covereds") {
-    assertResult(Seq(((0,3),Seq((0,2))), ((4,10),Seq((5,8),(6,9))))) {
+    assertResult(Seq(((0, 3), Seq((0, 2))), ((4, 10), Seq((5, 8), (6, 9))))) {
       Main.findCovereds(
-        Array((0,3), (4,10), (8,12)),
-        Array((0,2), (5,8), (6,9), (7,13)),
+        Array((0, 3), (4, 10), (8, 12)),
+        Array((0, 2), (5, 8), (6, 9), (7, 13)),
         1)
     }
   }
 
   test("find covereds rev") {
-    assertResult(Seq(((7,13), Seq((8,12))))) {
+    assertResult(Seq(((7, 13), Seq((8, 12))))) {
       Main.findCovereds(
-        Array((0,2), (5,8), (6,9), (7,13)),
-        Array((0,3), (4,10), (8,12)),
+        Array((0, 2), (5, 8), (6, 9), (7, 13)),
+        Array((0, 3), (4, 10), (8, 12)),
         1)
     }
   }

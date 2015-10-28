@@ -1,8 +1,7 @@
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- *
- */
+  *  @author Yusuke Matsubara <whym@whym.org>
+  *
+  */
 
 package org.whym.growthring
 
@@ -25,7 +24,7 @@ class NgramQueue[T](val minSize: Int, val maxSize: Int) {
   }
 }
 
-class SlidingQueue[A](val maxSize : Int) extends mutable.Queue[A] {
+class SlidingQueue[A](val maxSize: Int) extends mutable.Queue[A] {
   override def enqueue(elems: A*) = {
     elems.foreach(super.enqueue(_))
     while (this.size > this.maxSize) {
