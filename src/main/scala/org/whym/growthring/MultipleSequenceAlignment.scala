@@ -1,8 +1,8 @@
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- *
- */
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  *
+  */
 
 package org.whym.growthring
 
@@ -10,16 +10,16 @@ import scala.collection.JavaConverters._
 import scala.collection.{mutable, immutable}
 
 /**
- * Helper functions for partial-order multiple sequence alignment
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  * Helper functions for partial-order multiple sequence alignment
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  */
 object MultipleSequenceAlignment {
 
-/**
- * Unit of alignment
- *
- */
+  /**
+    * Unit of alignment
+    *
+    */
   case class Node[T](body: immutable.IndexedSeq[T], start: Int, end: Int, freq: Int = 1) {
     def label = body.slice(start, end)
     override def toString = "Node(" + List(this.label.toString + "@%X".format(this.body.hashCode), start, end, freq).mkString(", ") + ")"
@@ -37,30 +37,30 @@ object MultipleSequenceAlignment {
 }
 
 /**
- * Partial-order multiple sequence alignment of texts
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
-class MultipleSequenceAlignment[T](strings: List[immutable.IndexedSeq[T]]) {
+  * Partial-order multiple sequence alignment of texts
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  */
+class MultipleSequenceAlignment[T](strings: Seq[immutable.IndexedSeq[T]]) {
   import MultipleSequenceAlignment._
   val dags = for (s <- strings) yield {
     Dag(0.until(s.size).map(i => Node(s, i, i + 1)),
-        0.until(s.size-1).map(i => Pair(i, i+1)).toSet)
+      0.until(s.size-1).map(i => Pair(i, i+1)).toSet)
   }
 
   def weight()(implicit
-               eql:Double=0.0,
-               del:Double=1.0,
-               ins:Double=1.0,
-               rep:Double=1.5,
-               ooo:Double=10.0) =
+    eql:Double=0.0,
+    del:Double=1.0,
+    ins:Double=1.0,
+    rep:Double=1.5,
+    ooo:Double=10.0) =
     (_x: Option[Node[T]], _y: Option[Node[T]]) => {
-    (_x, _y) match {
-      case (Some(x),Some(y)) => if (x.label == y.label) eql else rep
-      case (Some(x),_)    => del
-      case (_,Some(x))    => ins
-      case _              => ooo
-    }
+      (_x, _y) match {
+        case (Some(x),Some(y)) => if (x.label == y.label) eql else rep
+        case (Some(x),_)    => del
+        case (_,Some(x))    => ins
+        case _              => ooo
+      }
     }
 
   def align(): Dag[Node[T]] = align(dags)
@@ -69,17 +69,19 @@ class MultipleSequenceAlignment[T](strings: List[immutable.IndexedSeq[T]]) {
     if ( ls.size == 0 ) {
       return Dag(immutable.IndexedSeq(), Set())
     } else if ( ls.size == 1 ) {
-      return ls(0)
+      return ls.head
     } else if ( ls.size == 2 ) {
-      return ls(0).align(ls(1),
-                         this.weight(),
-                         x => x.label.toString,
-                         (x,y) => Node(x.body, x.start, x.end, x.freq + y.freq))
+      return ls.head.align(
+        ls(1),
+        this.weight(),
+        x => x.label.toString,
+        (x,y) => Node(x.body, x.start, x.end, x.freq + y.freq))
     } else {
-      return this.align(ls.slice(0, ls.size/2)).align(this.align(ls.slice(ls.size/2, ls.size)),
-                                                      this.weight(),
-                                                      x => x.label.toString,
-                                                      (x,y) => Node(x.body, x.start, x.end, x.freq + y.freq))
+      return this.align(ls.slice(0, ls.size/2)).align(
+        this.align(ls.slice(ls.size/2, ls.size)),
+        this.weight(),
+        x => x.label.toString,
+        (x,y) => Node(x.body, x.start, x.end, x.freq + y.freq))
     }
   }
 }
@@ -108,7 +110,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
   val next_nodes = Array.tabulate(nodes.size){ i => _next_nodes.getOrElse(i, Set()) }
 
   def align[W](that: Dag[T], weight: (Option[T],Option[T]) => W, id: T=>String = x=>x.toString, merge: (T,T)=>T = (x,y)=>x)
-  (implicit num: Numeric[W]): Dag[T] = {
+    (implicit num: Numeric[W]): Dag[T] = {
 
     val maxValue = num.fromInt(Int.MaxValue)
 
@@ -117,14 +119,14 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
 
       val this_prevs = this.prev_nodes(this_cur)
       val that_prevs = that.prev_nodes(that_cur)
-        
+      
       if ( this_prevs.size == 0 && that_prevs.size == 0 ) {
         (weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))),
-         (if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
-           Operation(this_cur, that_cur, OpEqual)
-         } else {
-           Operation(this_cur, that_cur, OpReplace)
-         }), -1, -1)
+          (if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
+            Operation(this_cur, that_cur, OpEqual)
+          } else {
+            Operation(this_cur, that_cur, OpReplace)
+          }), -1, -1)
       } else {
         var min: (W, Operation, Int, Int) = (maxValue, Operation(-1,-1,OpNone), -1, -1)
         def update_min(p: (W, Operation, Int, Int)) {
@@ -149,14 +151,15 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
           //println("looking for replaces at " + i + "," + j)
           val (score,ops,_,_) = table(i)(j)
           val s = num.plus(score, weight(Some(this.nodes(this_cur)), Some(that.nodes(that_cur))))
-          update_min((s,
-                      Operation(this_cur, that_cur,
-                                if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
-                                  OpEqual
-                                } else {
-                                  OpReplace
-                                }),
-                      i, j))
+          update_min((
+            s,
+            Operation(this_cur, that_cur,
+              if (id(this.nodes(this_cur)) == id(that.nodes(that_cur))) {
+                OpEqual
+              } else {
+                OpReplace
+              }),
+            i, j))
         }
 
         min
@@ -173,19 +176,18 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
     val ops = pointers.map{x => table(x._1)(x._2)._2}.toList
 
     // assertions
-    if ( ops.head.opcode != OpEqual ||
-        ops.last.opcode != OpEqual ) {
+    if (
+      ops.head.opcode != OpEqual ||
+      ops.last.opcode != OpEqual ) {
       throw new RuntimeException("needs to start and end with Equal")
     }
-
-    def sliding_pairs[T](ls: List[T]): List[(T,T)] = ls.slice(0, ls.size-1) zip ls.slice(1, ls.size)
 
     val this_trans = new mutable.HashMap[Int,Int]
     val that_trans = new mutable.HashMap[Int,Int]
     var count = 1
     this_trans(0) = 0
     that_trans(0) = 0
-    for ((prev,cur) <- sliding_pairs(ops)) {
+    for (Seq(prev,cur) <- ops.sliding(2)) {
       for ( i <- Range(prev.at+1, cur.at) ) {
         if ( this_trans.getOrElseUpdate(i, count) == count ) {
           count += 1
@@ -277,12 +279,12 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
 
   def dot(nodeformat:(Int,T)=>String = (i,x)=>"N_%d[label=\"%s\"];".format(i, x.toString)): List[String] =
     List("digraph g {",
-         "  rankdir = LR;") ++
-    (for ((x,i) <- nodes.zipWithIndex) yield {
-      " " + nodeformat(i, x)
-    }) ++
-    edges.map(x => "  N_%d -> N_%d;".format(x._1, x._2)).toList.sorted ++
-    List("}")
+      "  rankdir = LR;") ++
+  (for ((x,i) <- nodes.zipWithIndex) yield {
+    " " + nodeformat(i, x)
+  }) ++
+  edges.map(x => "  N_%d -> N_%d;".format(x._1, x._2)).toList.sorted ++
+  List("}")
 
   def compact(concat: (T,T)=>T): Dag[T] = {
     val visited = new mutable.BitSet
@@ -296,27 +298,29 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
         val p = prevs.head
         val nx = next_nodes(p)
         if ( nx.size == 1 ) {
-          compactable_edges(p,
-                            p :: buff,
-                            acc)
+          compactable_edges(
+            p,
+            p :: buff,
+            acc)
         } else if ( visited contains p ) {
           acc + buff
         } else {
           visited += p
-          compactable_edges(p,
-                            List(),
-                            acc + buff)
+          compactable_edges(
+            p,
+            List(),
+            acc + buff)
         }
       } else {
         Set(buff) ++ (prevs.foldLeft(Set[List[Int]]())((s,x) =>
           s ++ compactable_edges(x, List(), acc)
-          ))
+        ))
       }
     }
 
     val compactable = compactable_edges(nodes.size - 1, List(), Set()).toArray.sorted(Ordering.by[List[Int], Int](_.head))
     val itrans = new mutable.HashMap[Int, (Int, T)] ++
-                 Map(nodes.zipWithIndex.map(_ match {case (n,i) => (i, (i, n))}): _*)
+    Map(nodes.zipWithIndex.map(_ match {case (n,i) => (i, (i, n))}): _*)
 
     for ( ls <- compactable if ls.size >= 2) {
       //System.err.println(ls, ls.map(nodes(_)).reduce(concat))//!
@@ -339,8 +343,10 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int,Int)]) {
         }
       }
     }
-    val ee = edges.map(x => (jtrans(itrans(x._1)._1),
-                             jtrans(itrans(x._2)._1))).filter(x => x._1 != x._2)
+    val ee = edges.map(x => (
+      jtrans(itrans(x._1)._1),
+      jtrans(itrans(x._2)._1)
+    )).filter(x => x._1 != x._2)
     Dag(nn.toIndexedSeq, ee)
   }
 }

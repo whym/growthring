@@ -1,8 +1,8 @@
 /**
- *
- * @author Yusuke Matsubara <whym@whym.org>
- *
- */
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  *
+  */
 
 package org.whym.growthring
 
@@ -10,10 +10,10 @@ import scala.collection.JavaConverters._
 import scala.collection.{mutable, immutable}
 
 /**
- * Maximal repeats and minimal unique substrings via enumerating all substrings
- *
- * @author Yusuke Matsubara <whym@whym.org>
- */
+  * Maximal repeats and minimal unique substrings via enumerating all substrings
+  *
+  * @author Yusuke Matsubara <whym@whym.org>
+  */
 object NaiveExtremalSubstrings {
 
   case class Substring(parent: String, start: Int, end: Int) {
@@ -28,11 +28,11 @@ object NaiveExtremalSubstrings {
 
   def substrings(str: String): Seq[Substring] =
     for ( i <- 0 to str.length;
-          j <- (i+1) to str.length ) yield {
-            Substring(str, i, j)
-         }
+      j <- (i+1) to str.length ) yield {
+      Substring(str, i, j)
+    }
 
-  def count[T](seq: Seq[T]): Map[T,List[T]] = {
+  def count[T](seq: Seq[T]): Map[T,Seq[T]] = {
     val counts = new mutable.HashMap[T,List[T]] withDefault (_ => List())
     for ( s <- seq ) {
       counts(s) = s :: counts(s)
@@ -40,7 +40,7 @@ object NaiveExtremalSubstrings {
     return counts.toMap
   }
 
-  def countBounded[T](seq: Seq[T], bound: Int): Map[T,List[T]] = {
+  def countBounded[T](seq: Seq[T], bound: Int): Map[T,Seq[T]] = {
     val counts = new mutable.HashMap[T,List[T]] withDefault (_ => List())
     val overflown = new mutable.HashSet[T]
     for ( s <- seq ) {
