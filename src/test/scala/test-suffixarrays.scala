@@ -26,6 +26,21 @@ class TestSuffixArrays extends FunSuite {
     }
   }
 
+  test("stringToUchars") {
+    assertResult(IndexedSeq(255, 255)) {
+      SA.stringToUchars(new String(Array(65535.asInstanceOf[Char])))
+    }
+    assertResult(IndexedSeq(3, 0, 255, 255, 5, 0)) {
+      SA.stringToUchars(new String(Array(
+        3.asInstanceOf[Char],
+        65535.asInstanceOf[Char],
+        5.asInstanceOf[Char])))
+    }
+    assertResult("Hello World") {
+      SA.ucharsToString(SA.stringToUchars("Hello World"))
+    }
+  }
+
   test("find") {
     val s = "abracadabra"
     val sa = SA.build(s)

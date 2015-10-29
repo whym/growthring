@@ -23,16 +23,26 @@ object SuffixArrays extends Logging {
 
   /**
     * Conversion from a string to an array of unsigned chars (in int array).
-    *  Needed by org.jsuffixarrays.
+    *  Needed for using the SAIS library which requires [0,255] values.
     */
-  def stringToUchars(str: String): Array[Int] = {
+  def stringToUchars(str: String): IndexedSeq[Int] = {
     val array = Array.fill(str.size * 2)(0)
     for ((x, i) <- str.toCharArray.zipWithIndex) {
       array(i * 2) = x & 0xFF
-      array(i * 2 + 1) = x >>> 8
+      array(i * 2 + 1) = (x >>> 8) & 0xFF
     }
     array
   }
+
+  /**
+    * Conversion from an array of unsigned chars (in int array) to a string.
+    */
+  def ucharsToString(array: IndexedSeq[Int]): String =
+    Range(0, array.size / 2).map(i => {
+      assert(array(i) >= 0)
+      assert(array(i * 2 + 1) >= 0)
+      ((array(i * 2 + 1) << 8) + array(i * 2)).asInstanceOf[Char]
+    }).mkString
 
   /**
     * Calculating a longest common prefix array from a suffix array.
