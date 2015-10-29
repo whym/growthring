@@ -57,5 +57,20 @@ class TestSuffixArrays extends FunSuite {
       sa.okanohara(1)
     }
   }
+  test("okanohara Repeats") {
+    val s = "abracadabra".toCharArray.map(_.asInstanceOf[Int])
+    val sa = SA.build(s, "jsuffixarrays")
+    assertResult(IndexedSeq(
+      Repeat(s, 1, Set(10, 0, 7, 3, 5)),
+      Repeat(s, 4, Set(7, 0)))
+    ) {
+      for (x <- sa.okanohara_repeats(1)) {
+        for (y <- x) {
+          println(y)
+        }
+      }
+      sa.okanohara_repeats(1)
+    }
+  }
 
 }
