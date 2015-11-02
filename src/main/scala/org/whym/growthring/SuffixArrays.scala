@@ -235,8 +235,8 @@ case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedS
       nodes(i)
     }
   }
-  def okanohara_repeats(threshold: Int = 2): Seq[Repeat[Int]] = {
-    okanohara(threshold).map(x => Repeat(arr, x.depth, Range(x.left, x.right).map(i => sa(i)).toSet))
+  def okanohara_repeats(threshold: Int = 2): Seq[Repeat] = {
+    okanohara(threshold).map(x => Repeat(x.depth, Range(x.left, x.right).map(i => sa(i)).toSet))
   }
   def find(q: String): Seq[Int] = find(stringToUchars(q))
   def find(q: IndexedSeq[Int]): Seq[Int] = {

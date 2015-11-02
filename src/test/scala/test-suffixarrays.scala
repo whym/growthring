@@ -76,8 +76,8 @@ class TestSuffixArrays extends FunSuite {
     val s = "abracadabra".toCharArray.map(_.asInstanceOf[Int])
     val sa = SA.build(s, "jsuffixarrays")
     assertResult(IndexedSeq(
-      Repeat(s, 1, Set(10, 0, 7, 3, 5)),
-      Repeat(s, 4, Set(7, 0)))
+      Repeat(1, Set(10, 0, 7, 3, 5)),
+      Repeat(4, Set(7, 0)))
     ) {
       sa.okanohara_repeats(1)
     }
