@@ -16,12 +16,13 @@ import scala.collection.{ mutable, Iterable }
 object Repeat {
 }
 
-case class Repeat[T](body: Seq[T], length: Int, positions: Set[Int]) extends Iterable[Seq[T]] {
-  def iterator = positions.map(i => {
-    val x: Seq[T] = body.slice(i, i + length)
-    x
-  }).iterator
+case class Repeat(length: Int, positions: Set[Int]) extends Iterable[(Int, Int)] {
   override def toString = {
-    "Repeat(body=(%s), length=%s, positions=(%s))".format(body.mkString(", "), length, positions.mkString(", "))
+    "Repeat(length=%s, positions=(%s))".format(length, positions.mkString(", "))
+  }
+  def spans = positions.map(i => (i, i + length))
+  def iterator = spans.iterator
+  def asSlicesOf[T](body: Seq[T]) = new Iterable[Seq[T]] {
+    def iterator = spans.map(_ match { case (i, j) => body.slice(i, j) }).iterator
   }
 }

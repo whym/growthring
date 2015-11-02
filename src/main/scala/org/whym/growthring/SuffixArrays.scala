@@ -25,7 +25,7 @@ object SuffixArrays extends LazyLogging {
     * Conversion from a string to an array of unsigned chars (in int array).
     *  Needed for using the SAIS library which requires [0,255] values.
     */
-  def stringToUchars(str: String): IndexedSeq[Int] = {
+  def stringToUchars(str: String): Array[Int] = {
     val array = Array.fill(str.size * 2)(0)
     for ((x, i) <- str.toCharArray.zipWithIndex) {
       array(i * 2) = x & 0xFF
@@ -236,8 +236,8 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
       nodes(i)
     }
   }
-  def okanohara_repeats(threshold: Int = 2): Seq[Repeat[Int]] = {
-    okanohara(threshold).map(x => Repeat(immutable.ArraySeq.unsafeWrapArray(arr), x.depth, Range(x.left, x.right).map(i => sa(i)).toSet))
+  def okanohara_repeats(threshold: Int = 2): Seq[Repeat] = {
+    okanohara(threshold).map(x => Repeat(x.depth, Range(x.left, x.right).map(i => sa(i)).toSet))
   }
   def find(q: String): Seq[Int] = find(stringToUchars(q))
   def find(q: Array[Int]): Seq[Int] = {

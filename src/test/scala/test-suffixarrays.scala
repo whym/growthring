@@ -37,7 +37,7 @@ class TestSuffixArrays extends AnyFunSuite {
         5.asInstanceOf[Char])))
     }
     assertResult("Hello World") {
-      SA.ucharsToString(SA.stringToUchars("Hello World"))
+      SA.ucharsToString(SA.stringToUchars("Hello World").toIndexedSeq)
     }
   }
 
@@ -75,9 +75,9 @@ class TestSuffixArrays extends AnyFunSuite {
   test("okanohara Repeats") {
     val s = "abracadabra".toCharArray.map(_.asInstanceOf[Int])
     val sa = SA.build(s, "jsuffixarrays")
-    assertResult(Seq(
-      Repeat(s.toIndexedSeq, 1, Set(10, 0, 7, 3, 5)),
-      Repeat(s.toIndexedSeq, 4, Set(7, 0)))
+    assertResult(IndexedSeq(
+      Repeat(1, Set(10, 0, 7, 3, 5)),
+      Repeat(4, Set(7, 0)))
     ) {
       for (x <- sa.okanohara_repeats(1)) {
         for (y <- x) {
