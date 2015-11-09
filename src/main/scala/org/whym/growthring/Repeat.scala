@@ -23,6 +23,6 @@ case class Repeat(length: Int, positions: Set[Int]) extends Iterable[(Int, Int)]
   def spans = positions.map(i => (i, i + length))
   def iterator = spans.iterator
   def asSlicesOf[T](body: Seq[T]) = new Iterable[Seq[T]] {
-    def iterator = spans.map(_ match {case (i, j) => body.slice(i, j)}).iterator
+    def iterator = spans.map{case (i, j) => body.slice(i, j)}.iterator
   }
 }

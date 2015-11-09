@@ -38,7 +38,7 @@ object NgramBlame {
     concat((for (i <- 0 to (body.size - n)) yield {
       val r = pos.getOrElse(body.slice(i, i + n), -1)
       (i, i + n, r)
-    }).filter(_ match { case (_, _, r) => r >= 0 }).map {
+    }).filter{ case (_, _, r) => r >= 0 }.map {
       r =>
         {
           val s = m max r._1

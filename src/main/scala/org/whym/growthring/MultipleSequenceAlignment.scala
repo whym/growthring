@@ -318,7 +318,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
 
     val compactable = compactable_edges(nodes.size - 1, List(), Set()).toArray.sorted(Ordering.by[List[Int], Int](_.head))
     val itrans = new mutable.HashMap[Int, (Int, T)] ++
-      Map(nodes.zipWithIndex.map(_ match { case (n, i) => (i, (i, n)) }): _*)
+      Map(nodes.zipWithIndex.map{ case (n, i) => (i, (i, n)) }: _*)
 
     for (ls <- compactable if ls.size >= 2) {
       //System.err.println(ls, ls.map(nodes(_)).reduce(concat))//!

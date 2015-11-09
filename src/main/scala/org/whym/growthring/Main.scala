@@ -68,7 +68,9 @@ object Main extends Logging {
     }
     logger.debug(f"${unhides.size} matched to regex ${unhide_pattern}.")
     val mflags = flags ++ unhides
-    str.zip(Array.tabulate(str.length)(i => mflags(i))).map(_ match { case (c, true) => c; case (c, false) => cover_char }).mkString.slice(start, end).split('\n').toSeq
+    str.zip(Array.tabulate(str.length)(i => mflags(i))).map{
+      case (c, true) => c; case (c, false) => cover_char
+    }.mkString.slice(start, end).split('\n').toSeq
   }
 
   def formatSpan(str: String, x: (Int, Int)): String = {
