@@ -44,6 +44,13 @@ object SuffixArrays extends LazyLogging {
       ((array(i * 2 + 1) << 8) + array(i * 2)).asInstanceOf[Char]
     }).mkString
 
+  def getInverse(pos: Array[Int]): Array[Int] = {
+    val rank = Array.fill(pos.size)(0)
+    for ( (v, i) <- pos.zipWithIndex ) {
+      rank(pos(i)) = i
+    }
+    return rank
+  }
   /**
     * Calculating a longest common prefix array from a suffix array.
     *  Adapted from "Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications" (Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa and Kunsoo Park, 2009)
@@ -51,10 +58,7 @@ object SuffixArrays extends LazyLogging {
   def getHeight(text: Array[Int], pos: Array[Int]): Array[Int] = {
     val n = text.size
     val height = Array.fill(n)(0)
-    val rank = Array.fill(n)(0)
-    for (i <- 0 until n) {
-      rank(pos(i)) = i
-    }
+    val rank = getInverse(pos)
     var h = 0
     for (i <- 0 until n; if rank(i) > 0) {
       val j = pos(rank(i) - 1)
@@ -176,6 +180,7 @@ object SuffixArrays extends LazyLogging {
   }
 
   case class NodePointer(left: Int, right: Int, depth: Int)
+  case class StackCell(left: Int, depth: Int)
 }
 
 case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
@@ -183,24 +188,24 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
 
   def internalNodes(): IndexedSeq[NodePointer] = {
     val nodes = new mutable.ArrayBuffer[NodePointer]
-    val stack = new mutable.Stack[(Int, Int)]
+    val stack = new mutable.Stack[StackCell]
     val n = arr.size
-    stack.push((-1, -1))
+    stack.push(StackCell(-1, -1))
     for (i <- Range(0, n)) {
-      var cur = (i, if (i == n) { -1 } else { lcp(i) })
+      var cur = StackCell(i, if (i == n) { -1 } else { lcp(i) })
       var cand = stack.head
-      while (cand._2 > cur._2) {
-        if (i - cand._1 > 1) {
-          nodes.append(NodePointer(cand._1, i, cand._2))
+      while (cand.depth > cur.depth) {
+        if (i - cand.left > 1) {
+          nodes.append(NodePointer(cand.left, i, cand.depth))
         }
-        cur = (cand._1, cur._2)
+        cur = StackCell(cand.left, cur.depth)
         stack.pop()
         cand = stack.head
       }
-      if (cand._2 < cur._2) {
+      if (cand.depth < cur.depth) {
         stack.push(cur)
       }
-      stack.push((i, n - sa(i) + 1))
+      stack.push(StackCell(i, n - sa(i) + 1))
     }
     nodes.toIndexedSeq
   }
