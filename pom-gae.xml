@@ -3,14 +3,13 @@
 
   <modelVersion>4.0.0</modelVersion>
   <packaging>war</packaging>
-  <version>0.4</version>
-  
+  <version>0.5</version>
   <groupId>org.whym</groupId>
-  <artifactId>growthring-web</artifactId>
+  <artifactId>growthring-gae</artifactId>
   
   <properties>
     <appengine.app.version>1-develop</appengine.app.version>
-    <appengine.target.version>1.9.6</appengine.target.version>
+    <appengine.target.version>1.9.54</appengine.target.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   
@@ -23,8 +22,8 @@
     </dependency>
     <dependency>
       <groupId>org.whym</groupId>
-      <artifactId>growthring_2.10</artifactId>
-      <version>0.4</version>
+      <artifactId>growthring_2.11</artifactId>
+      <version>0.5-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -74,8 +73,8 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
+        <version>2.5</version>
+	<configuration>
           <archiveClasses>true</archiveClasses>
           <webResources>
             <!-- in order to interpolate version from pom into appengine-web.xml -->

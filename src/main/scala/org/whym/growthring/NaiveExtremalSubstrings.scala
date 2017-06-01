@@ -60,14 +60,14 @@ object NaiveExtremalSubstrings {
 
   def minimals(set: Set[(Int, Int)]): Set[(Int, Int)] =
     set.filter(self => {
-      !(set contains Pair(self._1 + 1, self._2)) &&
-        !(set contains Pair(self._1, self._2 - 1))
+      !(set contains (self._1 + 1, self._2)) &&
+        !(set contains (self._1, self._2 - 1))
     })
 
   def maximals(set: Set[(Int, Int)]): Set[(Int, Int)] =
     set.filter(self => {
-      !(set contains Pair(self._1 - 1, self._2)) &&
-        !(set contains Pair(self._1, self._2 + 1))
+      !(set contains (self._1 - 1, self._2)) &&
+        !(set contains (self._1, self._2 + 1))
     })
 
   def minUniques(str: String, threshold: Int = 2) = {

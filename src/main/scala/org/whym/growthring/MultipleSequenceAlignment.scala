@@ -44,7 +44,7 @@ class MultipleSequenceAlignment[T](strings: Seq[immutable.IndexedSeq[T]]) {
   import MultipleSequenceAlignment._
   val dags = for (s <- strings) yield {
     Dag(0.until(s.size).map(i => Node(s, i, i + 1)),
-      0.until(s.size - 1).map(i => Pair(i, i + 1)).toSet)
+      0.until(s.size - 1).map(i => (i, i + 1)).toSet)
   }
 
   def weight()(implicit eql: Double = 0.0,
@@ -237,9 +237,9 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
       }
     }
     val e = (for ((i, j) <- this.edges) yield {
-      Pair(this_trans(i), this_trans(j))
+      (this_trans(i), this_trans(j))
     }) ++ (for ((i, j) <- that.edges) yield {
-      Pair(that_trans(i), that_trans(j))
+      (that_trans(i), that_trans(j))
     }).toSet
 
     Dag(n.toIndexedSeq, e)

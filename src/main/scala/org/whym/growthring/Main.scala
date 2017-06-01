@@ -5,7 +5,7 @@
 
 package org.whym.growthring
 import scala.collection.JavaConverters._
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import scala.collection.mutable
 import scala.util.matching.Regex
 
@@ -14,7 +14,7 @@ import scala.util.matching.Regex
   *
   *  @author Yusuke Matsubara <whym@whym.org>
   */
-object Main extends Logging {
+object Main extends LazyLogging {
 
   def findCovereds(long: Seq[(Int, Int)], short: Seq[(Int, Int)], supports: Int): Seq[((Int, Int), Seq[(Int, Int)])] = {
     def inside(x: (Int, Int), y: (Int, Int)) = (x._1 >= y._1 && x._2 <= y._2)

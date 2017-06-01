@@ -16,25 +16,31 @@ This software was in part used for a research paper presented in PACLIC 2014: ''
 
 === Using the web interface ===
 
-# <code>sbt container:start</code>
+# <code>sbt ~tomcat:start</code>
 # <code>xdg-open http://localhost:8080</code> # or open http://localhost:8080 on your browser
 
 === Using the multiple sequence aligner ===
 
 # <code>sbt assembly</code>
-# <code>java -Dconfig.file=msa.conf -jar target/scala-2.10/growthring-assembly-0.4.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf</code>
+# <code>java -Dconfig.file=msa.conf -jar target/scala-*/growthring-assembly-*.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf</code>
 
 === Using the de-identifier ===
 
 # <code>sbt assembly</code>
-# <code>java -Dconfig.file=anonym.conf -jar target/scala-2.10/growthring-assembly-0.4.jar < sample_input.txt > sample_output.txt</code>
+# <code>java -Dconfig.file=anonym.conf -jar target/scala-*/growthring-assembly-*.jar < sample_input.txt > sample_output.txt</code>
 
 ==== Using SAIS ====
 
 # Use the command below to get the shared library version of [https://sites.google.com/site/yuta256/sais SAIS].  You may need to add <code>-fPIC</code> to <code>CFLAGS</code> in the Makefile.
 #* <code>make && ld -shared sais.o -o libsais.so</code>
 # Put <code>libsais.so</code> into any directory included by <code>LD_LIBRARY_PATH</code>.
-# Use <code>java -Xss50M -Dconfig.file=anonym.conf -jar target/scala-2.10/growthring-assembly-0.4.jar</code> or otherwise specify <code>-Dorg.whym.growthring.repeatsMethod=sais</code>.
+# Use <code>java -Xss50M -Dconfig.file=anonym.conf -jar target/scala-*/growthring-assembly-*.jar</code> or otherwise specify <code>-Dorg.whym.growthring.repeatsMethod=sais</code>.
+
+=== Launching as an App Engine app (devserver) ===
+
+# <code>sbt publishM2</code>
+# <code>mvn -f pom-gae.xml appengine:devserver</code>
+# <code>xdg-open http://localhost:8080</code> # or open http://localhost:8080 on your browser
 
 == Credits ==
 

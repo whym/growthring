@@ -7,7 +7,7 @@ package org.whym.growthring
 
 import scala.collection.JavaConverters._
 import scala.collection.{ mutable, immutable }
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 
 /**
   * Maximal repeats and minimal unique substrings
@@ -23,7 +23,7 @@ object ExtremalSubstrings {
     if (s.size == 0) {
       s
     } else {
-      s.zip(Pair(-1, -1) +: s.slice(0, s.size - 1)).filter {
+      s.zip((-1, -1) +: s.slice(0, s.size - 1)).filter {
         case ((x1, y1), (x2, y2)) => x1 > x2 && y1 > y2
       }.map(_._1)
     }
@@ -35,7 +35,7 @@ object ExtremalSubstrings {
     if (s.size == 0) {
       s
     } else {
-      s.zip(s.tail :+ Pair(Int.MaxValue, Int.MaxValue)).filter {
+      s.zip(s.tail :+ (Int.MaxValue, Int.MaxValue)).filter {
         case ((x1, y1), (x2, y2)) => x1 < x2 && y1 < y2
       }.map(_._1)
     }
@@ -91,7 +91,7 @@ object ExtremalSubstrings {
 
 }
 
-class ExtremalSubstrings(array: SuffixArrays) extends Logging {
+class ExtremalSubstrings(array: SuffixArrays) extends LazyLogging {
   private val arr = array.arr
   private val sa = array.sa
   private val lcp_ = array.lcp

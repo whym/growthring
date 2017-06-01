@@ -7,7 +7,7 @@ package org.whym.growthring
 
 import scala.collection.JavaConverters._
 import scala.collection.{ mutable, immutable }
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.LazyLogging
 import java.{ io => jio }
 import java.nio
 
@@ -16,7 +16,7 @@ import java.nio
   *
   *  @author Yusuke Matsubara <whym@whym.org>
   */
-object SuffixArrays extends Logging {
+object SuffixArrays extends LazyLogging {
 
   val HEAD = "GAR1".getBytes
   val INTSIZE = 4
