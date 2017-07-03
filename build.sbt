@@ -45,6 +45,6 @@ buildInfoSettings
 sourceGenerators in Compile <+= buildInfo
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 buildInfoKeys += BuildInfoKey.action("buildTime") {
-  java.time.Instant.now
+  String.format("%tFT%<tRZ", java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Z")))
 }
 buildInfoPackage := "org.whym.growthring"
