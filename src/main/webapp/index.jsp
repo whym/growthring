@@ -80,13 +80,14 @@ function update() {
     },
     success: function(json){
       // set the result
+      var elapsed = (get_time() - before_query) + " msecs" + "\n"
       $('#result').html(json.freqs_html);
       $('#resulthtml').html('<sets>' + Object.keys(json.layers_html).map(function(v,i){ return '<h2>'+v+'</h2>' + json.layers_html[v] }).join('') + '<sets>');
        // update the permalink
       var url = document.location.href.split('?')[0] + '?q=' + query;
       $('#permalink').attr('href', url);
       $('#permalinkbox').val(url);
-      $('#resultmessage').text((get_time() - before_query) + " msecs" + "\n");
+      $('#resultmessage').text(elapsed);
       state.lastQueryHash = query.hashCode();
     },
     error: function(jqXHR, textStatus, errorThrown) {
@@ -249,9 +250,11 @@ border-bottom-left-radius: .3em;
 </p>
 
 <p id="busy"></p>
-
 <address>
 <a href="http://whym.org">whym.org</a>
 </address>
+<!--
+<%=org.whym.growthring.BuildInfo.toMap().mkString(",\n")%>
+-->
 </body>
 </html>

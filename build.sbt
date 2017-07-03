@@ -1,20 +1,20 @@
 // -*- mode: scala -*-
 
 organization := "org.whym"
-
 name    := "growthring"
-
 version := "0.5-SNAPSHOT"
-
 scalaVersion := "2.11.6"
-
-scalacOptions ++= Seq("-deprecation",
-                      "-unchecked",
-                      "-optimise",
-                      "-explaintypes",
-                      "-feature",
-                      "-Xmax-classfile-name", "128",
-                      "-g:line")
+scalacOptions ++= Seq(
+  "-deprecation",
+  "-unchecked",
+  "-optimise",
+  "-explaintypes",
+  "-feature",
+  "-Xmax-classfile-name", "128",
+  "-g:line")
+javacOptions ++= Seq(
+  "-source", "1.8"
+)
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
@@ -33,7 +33,6 @@ libraryDependencies ++= Seq(
 )
 
 mainClass in (Compile, run) := Some("org.whym.growthring.Main")
-
 mainClass in assembly := Some("org.whym.growthring.Main")
 
 publishMavenStyle := true
@@ -41,3 +40,11 @@ publishMavenStyle := true
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 
 enablePlugins(TomcatPlugin)
+
+buildInfoSettings
+sourceGenerators in Compile <+= buildInfo
+buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
+buildInfoKeys += BuildInfoKey.action("buildTime") {
+  java.time.Instant.now
+}
+buildInfoPackage := "org.whym.growthring"

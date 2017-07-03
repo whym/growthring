@@ -105,6 +105,7 @@ object Main extends LazyLogging {
     val config = ConfigFactory.load.getConfig("org.whym.growthring")
 
     logger.info("**** main begin ****")
+    logger.info("version = " + buildInfo)
     logger.info("config = " + config.entrySet.asScala.mkString("\t"))
     import scala.io
     import scala.xml.parsing.XhtmlParser
@@ -271,4 +272,6 @@ object Main extends LazyLogging {
     }
     logger.info("**** main end   ****")
   }
+
+  def buildInfo: String = BuildInfo.toMap.mkString(", ")
 }
