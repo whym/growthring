@@ -9,6 +9,8 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.collection.mutable
 import scala.util.matching.Regex
 
+case class ExecMode(help: Seq[String], exec: Seq[String] => Unit)
+
 /**
   * Main entry point
   *
@@ -51,7 +53,7 @@ object Main extends LazyLogging {
     _end: Int): Seq[String] = {
 
     val str = strings.mkString("\n")
-    logger.debug(f"${str.size}%d characters, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length.")
+    logger.debug(f"${str.length}%d characters, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length.")
     val covered = for ((s, e) <- rmethod(str, freq); if e - s + 1 >= min_len) yield (s, e)
 
     val start = if (_start >= 0) { _start } else { 0 }
@@ -68,7 +70,7 @@ object Main extends LazyLogging {
     }
     logger.debug(f"${unhides.size} matched to regex ${unhide_pattern}.")
     val mflags = flags ++ unhides
-    str.zip(Array.tabulate(str.length)(i => mflags(i))).map(_ match { case (c, true) => c; case (c, false) => cover_char }).mkString.slice(start, end).split('\n').toSeq
+    str.zip(Array.tabulate(str.length)(i => mflags(i))).map { case (c, true) => c; case (c, false) => cover_char }.mkString.slice(start, end).split('\n').toSeq
   }
 
   def formatSpan(str: String, x: (Int, Int)): String = {
@@ -83,8 +85,8 @@ object Main extends LazyLogging {
       boundaries(x.start) = true
       boundaries(x.end) = true
     }
-    boundaries(str.size) = true
-    val bd = Array.fill(str.size + 1)(str.size)
+    boundaries(str.length) = true
+    val bd = Array.fill(str.length + 1)(str.length)
     var i = 0
     for (b <- boundaries) {
       while (i < b) {
@@ -97,7 +99,7 @@ object Main extends LazyLogging {
 
   def findBoundaries(str: String, pattern: Regex): Int => Int = {
     val bd = findBoundariesAsArray(str, pattern)
-    return if (bd.size > 0 && bd(0) != str.size) { bd } else { (_ => str.size + 1) }
+    return if (bd.length > 0 && bd(0) != str.length) { bd } else { _ => str.length + 1 }
   }
 
   def main(args: Array[String]) {
@@ -105,30 +107,21 @@ object Main extends LazyLogging {
     val config = ConfigFactory.load.getConfig("org.whym.growthring")
 
     logger.info("**** main begin ****")
-    logger.info("version = " + buildInfo)
+    logger.info("build info = " + buildInfo)
     logger.info("config = " + config.entrySet.asScala.mkString("\t"))
-    import scala.io
-    import scala.xml.parsing.XhtmlParser
-
-    val strings = (if (args.length > 0) {
-      args.map(io.Source.fromFile(_).getLines.toList).flatMap(x => x).toList
-    } else {
-      io.Source.fromInputStream(System.in).getLines.toList
-    })
-    logger.debug(f"${strings.size}%d lines.")
-
-    import scala.sys
-    sys.addShutdownHook {
+    scala.sys.addShutdownHook {
       logger.info("**** shutdown ****")
     }
 
-    config.getString("mode") match {
-      case "multiple-anonym" =>
+    val modes: Map[String, ExecMode] = Map(
+      "multiple-anonym" -> ExecMode(Seq("(not implemented)"), {strings =>
+        import scala.xml.parsing.XhtmlParser
         logger.debug("multiple-anonym is not implemented")
         for (config <- XhtmlParser(io.Source.fromFile(config.getString("configFile"))) \\ "config") {
           println((config \ "file").text)
         }
-      case "anonym" => {
+      }),
+      "anonym" -> ExecMode(Seq("k-anonymize"), {strings =>
         val rmethodstr = config.getString("repeatsMethod")
         val cmethodstr = config.getString("coveringMethod")
         logger.debug(f"repeats type '${rmethodstr}'")
@@ -147,7 +140,7 @@ object Main extends LazyLogging {
           case "exhaustive"   => Covering.exhaustive
           case "dp"           => Covering.dp
           case x => {
-            logger.debug("\"" + x + "\" not found; using default covering algorithm")
+            logger.debug(s"covering method '${x}' not found; using default covering algorithm")
             Covering.greedyLengthFreq
           }
         }
@@ -167,8 +160,8 @@ object Main extends LazyLogging {
 
           println(s)
         }
-      }
-      case "msa" => {
+      }),
+      "msa" -> ExecMode(Seq("find multiple sequence alignment"), {strings =>
         val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^" + x + "$").toCharArray.toIndexedSeq))
         val dag = msa.align.compact((x, y) => x.concat(y))
         def nodeformat(i: Int, x: MultipleSequenceAlignment.Node[Char]): String = {
@@ -179,8 +172,8 @@ object Main extends LazyLogging {
         for (line <- dag.dot(nodeformat)) {
           println(line)
         }
-      }
-      case "dfreq" => {
+      }),
+      "dfreq" -> ExecMode(Seq("calculate document frequencies"), {strings =>
         val str = strings.mkString("\n")
         val bd = findBoundariesAsArray(str, new Regex(config.getString("boundary")))
         val sa = SuffixArrays.build(str, config.getString("repeatsMethod"))
@@ -201,8 +194,8 @@ object Main extends LazyLogging {
         for (pos <- rps) {
           val doc = bd(pos._1)
           val slice = str.slice(pos._1, pos._2 + 1)
-          for (n <- Range.inclusive(config.getInt("minLen"), slice.size).reverse) {
-            for (i <- Range.inclusive(0, slice.size - n)) {
+          for (n <- Range.inclusive(config.getInt("minLen"), slice.length).reverse) {
+            for (i <- Range.inclusive(0, slice.length - n)) {
               val s = slice.slice(i, i + n)
               val atf = sa.find(s).size
               val tf = tfind(s, doc).size
@@ -225,15 +218,17 @@ object Main extends LazyLogging {
             }
           }
         }
-      }
-
-      case "nested" => {
+      }),
+      "nested" -> ExecMode(Seq(
+        "Find nested maximal substrings.",
+        "As parameters, repeats, nested.repeats and nested.supports are required.",
+        "See nested.conf."), {strings =>
         val str = strings.mkString("\n")
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
         val mr = config.getInt("repeats").toInt
         val mu = config.getInt("nested.repeats").toInt
-        val supports = config.getInt("supports").toInt
+        val supports = config.getInt("nested.supports").toInt
         if (mr > mu) {
           logger.debug("warning: repeats (%s) should not be greater than nested repeats (%s)".format(mr, mu))
         }
@@ -250,13 +245,8 @@ object Main extends LazyLogging {
             println("  u\t" + formatSpan(str, u))
           }
         }
-      }
-
-      case name @ ("repeats" | _) => {
-        if (name != "repeats") {
-          logger.debug("\"" + name + "\" not found; using default mode 'repeats'")
-        }
-
+      }),
+      "repeats" -> ExecMode(Seq("find repeats"), {strings =>
         val str = strings.mkString("\n")
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
@@ -268,8 +258,28 @@ object Main extends LazyLogging {
         for (x <- uqs) {
           println("u\t" + formatSpan(str, x))
         }
-      }
+      }))
+
+    val modeName = config.getString("mode")
+    modes.get(modeName) match {
+      case Some(exec) =>
+        import scala.io
+        val strings = if (args.length > 0) {
+          args.flatMap(io.Source.fromFile(_).getLines.toList).toList
+        } else {
+          io.Source.fromInputStream(System.in).getLines.toList
+        }
+        logger.debug(f"${strings.size}%d lines.")
+        exec.exec(strings)
+      case None =>
+        System.err.println(s"mode '${modeName}' not found; choose one from ${modes.keys.mkString(", ")} and set it to -Dorg.whym.growthring.mode=:")
+        modes.foreach{case (name, e) => {
+          val help = e.help.map{"    " + _}.mkString("\n")
+          System.err.println(s"org.whym.growthring.mode=$name")
+          System.err.println(help)
+        }}
     }
+
     logger.info("**** main end   ****")
   }
 
