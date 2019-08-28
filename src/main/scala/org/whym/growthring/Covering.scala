@@ -104,8 +104,7 @@ object Covering {
           } else {
             set.toList.map(x => (gap + x._2 - x._1)).sum
           }
-      }
-    ).map(x => Range.inclusive(x._1, x._2).toSet).flatten
+      }).map(x => Range.inclusive(x._1, x._2).toSet).flatten
 
   def greedyLength[T](body: Array[T], rp: Seq[(Int, Int)], gap: Int = 1): Set[Int] = {
     if (gap != 0 && gap != 1) {

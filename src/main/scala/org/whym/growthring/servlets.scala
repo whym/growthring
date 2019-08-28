@@ -8,7 +8,7 @@ package org.whym.growthring
 import scala.collection.JavaConverters._
 import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
 import javax.servlet.ServletConfig
-import org.json4s.{ JObject, JField, JArray, JValue, JInt, JsonAST }
+import org.json4s.{ JObject, JField, JArray, JValue, JInt }
 import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
 import scala.io
@@ -67,8 +67,8 @@ class FindRepeatsServlet extends HttpServlet {
     })
 
     lazy val repeats_deepest = {
-      val a = repeats.filter(_.regions.length > 0)
-      if (a.length > 0) {
+      val a = repeats.filter(_.regions.nonEmpty)
+      if (a.nonEmpty) {
         a.last
       } else {
         repeats.last
@@ -104,9 +104,9 @@ class FindRepeatsServlet extends HttpServlet {
       }
     }
 
-    def if_field(field: String, f: Unit => JValue): JField = {
+    def if_field(field: String, f: => JValue): JField = {
       if (attr contains field) {
-        JField(field, f())
+        JField(field, f)
       } else {
         JField(field, "")
       }
@@ -122,43 +122,41 @@ class FindRepeatsServlet extends HttpServlet {
         resp.setContentType("application/json")
         val o =
           JObject(List(
-            if_field("masked_plain", _ => masked_plain),
-            if_field("chart", _ => {
+            if_field("masked_plain", masked_plain),
+            if_field(
+              "chart",
               str.zip(flags).map(
                 x => Array.tabulate(threshold.length)(
-                  i => (if (x._2(threshold(threshold.length - i - 1))) { "*" } else { " " })
-                ).mkString + x._1
-              ).mkString("\n") + "\n"
-            }),
-            if_field("flags", _ => JArray(flags.toList.map(x => JArray(x.toList.map(JInt(_)))))),
-            if_field("freqs", _ => max_flags.toList.map(JInt(_))),
-            if_field("freqs_html", _ => max_flags.zipWithIndex.map(x => {
+                  i => (if (x._2(threshold(threshold.length - i - 1))) { "*" } else { " " })).mkString + x._1).mkString("\n") + "\n"
+            ),
+            if_field("flags", JArray(flags.toList.map(x => JArray(x.toList.map(JInt(_)))))),
+            if_field("freqs", max_flags.toList.map(JInt(_))),
+            if_field("freqs_html", max_flags.zipWithIndex.map(x => {
               val c = str.charAt(x._2) match {
                 case ' ' => "&nbsp;"
-                case x   => x.toString
+                case y   => y.toString
               }
               val newline = str.charAt(x._2) match {
                 case '\n' => " nl"
                 case _    => ""
               }
-              f"<div class='cell c${threshold_rev(x._1)}${newline}'>${c}</div>"
+              f"<div class='cell c${threshold_rev(x._1)}$newline'>$c</div>"
             }).mkString("")),
-            if_field("masked_html", _ =>
+            if_field(
+              "masked_html",
               str.zip(flags.map(_.contains(repeats_deepest.threshold))).map {
                 case (char, true)  => char.toString
-                case (char, false) => f"<del>${char}</del>"
-              }.mkString
-            ),
-            if_field("layers", _ => JObject(layers.map(x => JField(x._1.toString, JArray(List[JValue](x._2.map(l => l.map(cell2char)))))).toList)),
-            if_field("layers_html", _ => JObject(layers_html.map(x => JField(x._1.toString, x._2)).toList)),
-            if_field("max_repeats", _ =>
+                case (char, false) => f"<del>$char</del>"
+              }.mkString),
+            if_field("layers", JObject(layers.map(x => JField(x._1.toString, JArray(List[JValue](x._2.map(l => l.map(cell2char)))))).toList)),
+            if_field("layers_html", JObject(layers_html.map(x => JField(x._1.toString, x._2)).toList)),
+            if_field(
+              "max_repeats",
               repeats.map { rp =>
                 JArray(List[JValue](
                   rp.threshold,
-                  rp.regions.map(x => JArray(List(x._1, x._2)))
-                ))
-              })
-          ))
+                  rp.regions.map(x => JArray(List(x._1, x._2)))))
+              })))
         writer.println(pretty(render(o)))
       }
     }
@@ -265,8 +263,7 @@ class NestedRepeatsServlet extends HttpServlet {
     writer.println(
       compact(render(
         JObject(List(
-          JField("max", max)
-        )))))
+          JField("max", max))))))
   }
 }
 

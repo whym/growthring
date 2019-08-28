@@ -43,11 +43,13 @@ object MultipleSequenceAlignment {
 class MultipleSequenceAlignment[T](strings: Seq[immutable.IndexedSeq[T]]) {
   import MultipleSequenceAlignment._
   val dags = for (s <- strings) yield {
-    Dag(0.until(s.size).map(i => Node(s, i, i + 1)),
+    Dag(
+      0.until(s.size).map(i => Node(s, i, i + 1)),
       0.until(s.size - 1).map(i => (i, i + 1)).toSet)
   }
 
-  def weight()(implicit eql: Double = 0.0,
+  def weight()(implicit
+    eql: Double = 0.0,
                del: Double = 1.0,
                ins: Double = 1.0,
                rep: Double = 1.5,
@@ -276,7 +278,8 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
   }
 
   def dot(nodeformat: (Int, T) => String = (i, x) => "N_%d[label=\"%s\"];".format(i, x.toString)): List[String] =
-    List("digraph g {",
+    List(
+      "digraph g {",
       "  rankdir = LR;") ++
       (for ((x, i) <- nodes.zipWithIndex) yield {
         " " + nodeformat(i, x)
@@ -311,8 +314,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
         }
       } else {
         Set(buff) ++ (prevs.foldLeft(Set[List[Int]]())((s, x) =>
-          s ++ compactable_edges(x, List(), acc)
-        ))
+          s ++ compactable_edges(x, List(), acc)))
       }
     }
 
@@ -343,8 +345,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
     }
     val ee = edges.map(x => (
       jtrans(itrans(x._1)._1),
-      jtrans(itrans(x._2)._1)
-    )).filter(x => x._1 != x._2)
+      jtrans(itrans(x._2)._1))).filter(x => x._1 != x._2)
     Dag(nn.toIndexedSeq, ee)
   }
 }

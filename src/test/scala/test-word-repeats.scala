@@ -27,7 +27,8 @@ class TestWordRepeats extends FunSuite {
   }
 
   test("word repeats with various spaces") {
-    assertResult(List((0, 3),
+    assertResult(List(
+      (0, 3),
       (11, 14))) {
       import org.whym.growthring.{ WordRepeats => WR }
       new WR().repeats("abra\n cad  abra\taa　\nab", 2).sorted

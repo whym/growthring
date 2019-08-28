@@ -9,7 +9,7 @@ import org.scalatest.FunSuite
 import java.io.{ Writer, PrintWriter, StringWriter }
 import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.json4s.{ JInt, JString, JField, JObject, JArray, JValue }
 import org.json4s.native.JsonParser._
 import org.json4s.JsonDSL._
@@ -88,13 +88,14 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
   }
 
   test("find repeats (list)") {
-    assertResult(JArray(List(JArray(List(
-      2,
-      List(
-        List(1, 3),
-        List(3, 4),
-        List(8, 10),
-        List(12, 12)))),
+    assertResult(JArray(List(
+      JArray(List(
+        2,
+        List(
+          List(1, 3),
+          List(3, 4),
+          List(8, 10),
+          List(12, 12)))),
       JArray(List(
         4,
         List(
@@ -114,8 +115,10 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
     assertResult(JString("abra___abra")) {
       json2 \ "masked_plain"
     }
-    assertResult(JArray(List(JArray(List(2,
-      List(List(0, 3),
+    assertResult(JArray(List(JArray(List(
+      2,
+      List(
+        List(0, 3),
         List(7, 10))))))) {
       json2 \ "max_repeats"
     }

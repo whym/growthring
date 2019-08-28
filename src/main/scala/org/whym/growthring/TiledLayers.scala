@@ -11,7 +11,7 @@ import scala.collection.mutable
 
 /*
  * Given spans, pack them into smallest layers each of which has no overlaps
- * 
+ *
  *
  * @author Yusuke Matsubara <whym@whym.org>
  */

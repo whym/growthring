@@ -8,7 +8,8 @@ object SimpleHttpServer {
   class MyHandler(body: String, ctype: String) extends HttpHandler {
     @throws[IOException] override def handle(exchange: HttpExchange) {
       val response = body.getBytes();
-      exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK,
+      exchange.sendResponseHeaders(
+        HttpURLConnection.HTTP_OK,
         response.length)
       exchange.getResponseHeaders().set("Content-type", ctype)
       exchange.getResponseBody().write(response)

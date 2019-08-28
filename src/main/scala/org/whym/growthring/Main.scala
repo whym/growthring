@@ -41,16 +41,16 @@ object Main extends LazyLogging {
   }
 
   def anonymize(
-    rmethod: (String, Int) => Seq[(Int, Int)],
-    cmethod: (Array[Char], Seq[(Int, Int)], Int) => Set[Int],
-    strings: Seq[String],
-    min_len: Int,
-    cover_char: Char,
-    freq: Int,
-    unhide_pattern: String = "",
-    gap: Int,
-    _start: Int,
-    _end: Int): Seq[String] = {
+    rmethod:        (String, Int) => Seq[(Int, Int)],
+    cmethod:        (Array[Char], Seq[(Int, Int)], Int) => Set[Int],
+    strings:        Seq[String],
+    min_len:        Int,
+    cover_char:     Char,
+    freq:           Int,
+    unhide_pattern: String                                          = "",
+    gap:            Int,
+    _start:         Int,
+    _end:           Int): Seq[String] = {
 
     val str = strings.mkString("\n")
     logger.debug(f"${str.length}%d characters, frequency at least ${freq}%d, each unprotected span at least ${min_len}%d in length.")
@@ -114,14 +114,14 @@ object Main extends LazyLogging {
     }
 
     val modes: Map[String, ExecMode] = Map(
-      "multiple-anonym" -> ExecMode(Seq("(not implemented)"), {strings =>
+      "multiple-anonym" -> ExecMode(Seq("(not implemented)"), { strings =>
         import scala.xml.parsing.XhtmlParser
         logger.debug("multiple-anonym is not implemented")
         for (config <- XhtmlParser(io.Source.fromFile(config.getString("configFile"))) \\ "config") {
           println((config \ "file").text)
         }
       }),
-      "anonym" -> ExecMode(Seq("k-anonymize"), {strings =>
+      "anonym" -> ExecMode(Seq("k-anonymize"), { strings =>
         val rmethodstr = config.getString("repeatsMethod")
         val cmethodstr = config.getString("coveringMethod")
         logger.debug(f"repeats type '${rmethodstr}'")
@@ -161,7 +161,7 @@ object Main extends LazyLogging {
           println(s)
         }
       }),
-      "msa" -> ExecMode(Seq("find multiple sequence alignment"), {strings =>
+      "msa" -> ExecMode(Seq("find multiple sequence alignment"), { strings =>
         val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^" + x + "$").toCharArray.toIndexedSeq))
         val dag = msa.align.compact((x, y) => x.concat(y))
         def nodeformat(i: Int, x: MultipleSequenceAlignment.Node[Char]): String = {
@@ -173,7 +173,7 @@ object Main extends LazyLogging {
           println(line)
         }
       }),
-      "dfreq" -> ExecMode(Seq("calculate document frequencies"), {strings =>
+      "dfreq" -> ExecMode(Seq("calculate document frequencies"), { strings =>
         val str = strings.mkString("\n")
         val bd = findBoundariesAsArray(str, new Regex(config.getString("boundary")))
         val sa = SuffixArrays.build(str, config.getString("repeatsMethod"))
@@ -222,7 +222,7 @@ object Main extends LazyLogging {
       "nested" -> ExecMode(Seq(
         "Find nested maximal substrings.",
         "As parameters, repeats, nested.repeats and nested.supports are required.",
-        "See nested.conf."), {strings =>
+        "See nested.conf."), { strings =>
         val str = strings.mkString("\n")
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
@@ -246,7 +246,7 @@ object Main extends LazyLogging {
           }
         }
       }),
-      "repeats" -> ExecMode(Seq("find repeats"), {strings =>
+      "repeats" -> ExecMode(Seq("find repeats"), { strings =>
         val str = strings.mkString("\n")
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
         val es = new ExtremalSubstrings(SuffixArrays.build(str, config.getString("repeatsMethod")))
@@ -272,12 +272,15 @@ object Main extends LazyLogging {
         logger.debug(f"${strings.size}%d lines.")
         exec.exec(strings)
       case None =>
+        System.err.println(buildInfo)
         System.err.println(s"mode '${modeName}' not found; choose one from ${modes.keys.mkString(", ")} and set it to -Dorg.whym.growthring.mode=:")
-        modes.foreach{case (name, e) => {
-          val help = e.help.map{"    " + _}.mkString("\n")
-          System.err.println(s"org.whym.growthring.mode=$name")
-          System.err.println(help)
-        }}
+        modes.foreach {
+          case (name, e) => {
+            val help = e.help.map { "    " + _ }.mkString("\n")
+            System.err.println(s"org.whym.growthring.mode=$name")
+            System.err.println(help)
+          }
+        }
     }
 
     logger.info("**** main end   ****")

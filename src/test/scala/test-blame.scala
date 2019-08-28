@@ -15,10 +15,12 @@ import scala.collection.mutable
 class TestNgramBlame extends FunSuite {
 
   test("ngram blame concat") {
-    assertResult(List((0, 1, 1),
+    assertResult(List(
+      (0, 1, 1),
       (1, 5, 0),
       (10, 11, 0))) {
-      NgramBlame.concat(List((0, 1, 1),
+      NgramBlame.concat(List(
+        (0, 1, 1),
         (1, 3, 0),
         (3, 4, 0),
         (4, 5, 0),

@@ -159,7 +159,8 @@ object SuffixArrays extends LazyLogging {
 
     val arr = chars.getBytes(nrec).map(_.asInstanceOf[Int] + 128)
     val sa = ints.getInts(nrec)
-    Some(SuffixArrays(arr,
+    Some(SuffixArrays(
+      arr,
       sa,
       getHeight(arr, sa)))
   }
