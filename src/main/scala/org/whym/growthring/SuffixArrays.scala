@@ -46,7 +46,7 @@ object SuffixArrays extends LazyLogging {
 
   def getInverse(pos: Array[Int]): Array[Int] = {
     val rank = Array.fill(pos.size)(0)
-    for ( (v, i) <- pos.zipWithIndex ) {
+    for ((v, i) <- pos.zipWithIndex) {
       rank(pos(i)) = i
     }
     return rank
