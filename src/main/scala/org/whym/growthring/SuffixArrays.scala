@@ -67,7 +67,7 @@ object SuffixArrays extends LazyLogging {
       //def sais_int(s: Pointer, p: Pointer, n: Int, k: Int): Int
     }
     logger.info("load sais")
-    val sais = Native.loadLibrary("sais", classOf[SAIS]).asInstanceOf[SAIS]
+    val sais = Native.load("sais", classOf[SAIS]).asInstanceOf[SAIS]
     val mem1 = new Memory(arr.size)
     val mem2 = new Memory(arr.size * 4)
     mem1.write(0, arr.map(_.asInstanceOf[Byte]).toArray, 0, arr.size)

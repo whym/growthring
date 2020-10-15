@@ -6,13 +6,13 @@
 import org.whym.growthring._
 
 import scala.collection.JavaConverters._
-import org.scalatest.FunSuite
 import scala.collection.mutable
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * @author Yusuke Matsubara <whym@whym.org>
   */
-class TestWordRepeats extends FunSuite {
+class TestWordRepeats extends AnyFunSuite {
 
   test("word repeats") {
     assertResult(

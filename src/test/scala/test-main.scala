@@ -6,14 +6,14 @@
 import org.whym.growthring._
 
 import scala.collection.JavaConverters._
-import org.scalatest.FunSuite
 import scala.collection.mutable
 import scala.util.matching.Regex
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * @author Yusuke Matsubara <whym@whym.org>
   */
-class TestMain extends FunSuite {
+class TestMain extends AnyFunSuite {
 
   test("anonymize") {
     assertResult(List("a bc __", "bc a")) {

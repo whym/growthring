@@ -6,12 +6,12 @@
 import org.whym.growthring._
 
 import scala.collection.JavaConverters._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * @author Yusuke Matsubara <whym@whym.org>
   */
-class TestMultipleSequenceAlignment extends FunSuite {
+class TestMultipleSequenceAlignment extends AnyFunSuite {
   import org.whym.growthring.{ MultipleSequenceAlignment => MSA }
 
   def weight()(implicit

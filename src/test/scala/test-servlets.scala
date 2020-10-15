@@ -5,7 +5,7 @@
 
 import org.whym.growthring._
 import scala.collection.JavaConverters._
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import java.io.{ Writer, PrintWriter, StringWriter }
 import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
 import org.mockito.Mockito._
@@ -17,7 +17,7 @@ import org.json4s.JsonDSL._
 /**
   *  @author Yusuke Matsubara <whym@whym.org>
   */
-class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
+class TestFindRepeatsServlet extends AnyFunSuite with MockitoSugar {
   def get(input: String, n: String, min: String): JValue = {
     val response = mock[HttpServletResponse]
     val request = mock[HttpServletRequest]
@@ -145,7 +145,7 @@ class TestFindRepeatsServlet extends FunSuite with MockitoSugar {
 
 }
 
-class TestWikiBlameServlet extends FunSuite with MockitoSugar {
+class TestWikiBlameServlet extends AnyFunSuite with MockitoSugar {
   def get(): JValue = {
     val response = mock[HttpServletResponse]
     val request = mock[HttpServletRequest]
@@ -251,7 +251,7 @@ class TestWikiBlameServlet extends FunSuite with MockitoSugar {
 /**
   *  @author Yusuke Matsubara <whym@whym.org>
   */
-class TestNestedRepeatsServlet extends FunSuite with MockitoSugar {
+class TestNestedRepeatsServlet extends AnyFunSuite with MockitoSugar {
   def get(input: String, max: String, min: String): JValue = {
     val response = mock[HttpServletResponse]
     val request = mock[HttpServletRequest]

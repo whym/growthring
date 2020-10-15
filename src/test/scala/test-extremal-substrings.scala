@@ -6,13 +6,13 @@
 import org.whym.growthring._
 
 import scala.collection.JavaConverters._
-import org.scalatest.FunSuite
 import scala.collection.mutable
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   * @author Yusuke Matsubara <whym@whym.org>
   */
-class TestExtremalSubstrings extends FunSuite {
+class TestExtremalSubstrings extends AnyFunSuite {
   import org.whym.growthring.{ NaiveExtremalSubstrings => NES }
 
   import org.whym.growthring.{ ExtremalSubstrings => ES, SuffixArrays }

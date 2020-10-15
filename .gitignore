@@ -4,3 +4,6 @@ target
 *.class
 \#*
 .\#*
+project/metals.sbt
+.bloop
+.metals

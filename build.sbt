@@ -2,8 +2,8 @@
 
 organization := "org.whym"
 name    := "growthring"
-version := "0.5-SNAPSHOT"
-scalaVersion := "2.12.9"
+version := "0.6-SNAPSHOT"
+scalaVersion := "2.12.12"
 scalacOptions ++= Seq(
   "-deprecation",
   "-unchecked",
@@ -21,19 +21,20 @@ javacOptions ++= Seq(
 )
 
 resolvers += Resolver.sonatypeRepo("public")
-resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies ++= Seq(
   "com.carrotsearch"   % "jsuffixarrays" % "0.1.0",
-  "net.java.dev.jna"   % "jna"           % "4.1.0",
-  "org.apache.commons" % "commons-lang3" % "3.3.2",
+  "net.java.dev.jna"   % "jna"           % "5.6.0",
+  "org.apache.commons" % "commons-text" % "1.9",
   "javax.servlet"  % "javax.servlet-api" % "3.1.0" % "provided",
-  "org.json4s"        %% "json4s-native" % "3.5.5",
-  "com.typesafe"       % "config"        % "1.2.0",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.8.0",
+  "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
+  "org.json4s"        %% "json4s-native" % "3.6.0",
+  "com.typesafe"       % "config"        % "1.3.4",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "ch.qos.logback"     % "logback-classic" % "1.2.3",
-  "org.scalatest"     %% "scalatest"     % "3.0.8" % "test",
-  "org.mockito"        % "mockito-core"  % "2.28.2" % "test"
+  "org.scalatest"     %% "scalatest"     % "3.2.2" % "test",
+  "org.scalatestplus" %% "scalatestplus-mockito" % "1.0.0-M2" % Test,
+  "org.mockito"        % "mockito-core"  % "3.5.13" % "test"
 )
 
 mainClass in (Compile, run) := Some("org.whym.growthring.Main")

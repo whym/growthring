@@ -74,7 +74,7 @@ object Main extends LazyLogging {
   }
 
   def formatSpan(str: String, x: (Int, Int)): String = {
-    import org.apache.commons.lang3.{ StringEscapeUtils => SEU }
+    import org.apache.commons.text.{ StringEscapeUtils => SEU }
     val f = str.slice(x._1, x._2 + 1).replace("\n", " ")
     f"${x._1}%d\t${x._2}%d\t${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s\t${f}%s"
   }
@@ -121,6 +121,7 @@ object Main extends LazyLogging {
           println((config \ "file").text)
         }
       }),
+
       "anonym" -> ExecMode(Seq("k-anonymize"), { strings =>
         val rmethodstr = config.getString("repeatsMethod")
         val cmethodstr = config.getString("coveringMethod")
@@ -161,6 +162,7 @@ object Main extends LazyLogging {
           println(s)
         }
       }),
+
       "msa" -> ExecMode(Seq("find multiple sequence alignment"), { strings =>
         val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^" + x + "$").toCharArray.toIndexedSeq))
         val dag = msa.align.compact((x, y) => x.concat(y))
@@ -173,6 +175,7 @@ object Main extends LazyLogging {
           println(line)
         }
       }),
+
       "dfreq" -> ExecMode(Seq("calculate document frequencies"), { strings =>
         val str = strings.mkString("\n")
         val bd = findBoundariesAsArray(str, new Regex(config.getString("boundary")))
@@ -219,6 +222,7 @@ object Main extends LazyLogging {
           }
         }
       }),
+
       "nested" -> ExecMode(Seq(
         "Find nested maximal substrings.",
         "As parameters, repeats, nested.repeats and nested.supports are required.",
@@ -246,6 +250,7 @@ object Main extends LazyLogging {
           }
         }
       }),
+
       "repeats" -> ExecMode(Seq("find repeats"), { strings =>
         val str = strings.mkString("\n")
         val bd = findBoundaries(str, new Regex(config.getString("boundary")))
@@ -260,7 +265,11 @@ object Main extends LazyLogging {
         }
       }))
 
-    val modeName = config.getString("mode")
+    val modeName = config.getString("mode") match {
+      // map aliases
+      case "segment" => "repeats"
+      case x         => x
+    }
     modes.get(modeName) match {
       case Some(exec) =>
         import scala.io

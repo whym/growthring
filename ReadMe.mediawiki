@@ -31,10 +31,12 @@ This application has a number of parameters that are set by a configuration file
 
 ==== Using SAIS ====
 
+Better performance might be achieved by SAIS, which you need to install as separate a native library separately.
+
 # Use the command below to get the shared library version of [https://sites.google.com/site/yuta256/sais SAIS].  You may need to add <code>-fPIC</code> to <code>CFLAGS</code> in the Makefile.
 #* <code>make && ld -shared sais.o -o libsais.so</code>
-# Put <code>libsais.so</code> into any directory included by <code>LD_LIBRARY_PATH</code>.
-# Use <code>java -Xss50M -Dconfig.file=anonym.conf -jar target/scala-*/growthring-assembly-*.jar</code> or otherwise specify <code>-Dorg.whym.growthring.repeatsMethod=sais</code>.
+# Put <code>libsais.so</code> into any directory included by <code>LD_LIBRARY_PATH</code> (or current directory).
+# Use <code>java -Xss50M -Dconfig.file=sais.conf -jar target/scala-*/growthring-assembly-*.jar</code> or otherwise specify <code>-Dorg.whym.growthring.repeatsMethod=sais</code>.
 
 === Launching as an App Engine app (devserver) ===
 

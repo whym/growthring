@@ -4,15 +4,15 @@
   */
 
 import scala.collection.JavaConverters._
-import org.scalatest.FunSuite
 import java.io.{ Writer, PrintWriter, StringWriter, BufferedWriter, OutputStreamWriter }
 import java.net.{ Socket, ServerSocket, InetSocketAddress }
 import scala.io
+import org.scalatest.funsuite.AnyFunSuite
 
 /**
   *  @author Yusuke Matsubara <whym@whym.org>
   */
-class TestSimpleHttpServer extends FunSuite {
+class TestSimpleHttpServer extends AnyFunSuite {
   import org.whym.growthring.SimpleHttpServer
 
   def retrieve(address: InetSocketAddress, path: String): List[String] = {

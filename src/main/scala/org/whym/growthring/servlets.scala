@@ -12,7 +12,7 @@ import org.json4s.{ JObject, JField, JArray, JValue, JInt }
 import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
 import scala.io
-import org.apache.commons.lang3.{ StringEscapeUtils => seu }
+import org.apache.commons.text.{ StringEscapeUtils => seu }
 
 /**
   * a servlet to receive a string and returns and visualizes repeated substrings in it.

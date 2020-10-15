@@ -8,10 +8,10 @@
 import org.whym.growthring._
 
 import scala.collection.JavaConverters._
-import org.scalatest.FunSuite
 import java.{ io => jio }
+import org.scalatest.funsuite.AnyFunSuite
 
-class TestSuffixArrays extends FunSuite {
+class TestSuffixArrays extends AnyFunSuite {
   import org.whym.growthring.{ SuffixArrays => SA }
 
   test("load and store") {
