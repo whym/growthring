@@ -40,6 +40,8 @@ Better performance might be achieved by SAIS, which you need to install as separ
 
 === Launching as an App Engine app (devserver) ===
 
+Note: instructions here have not been tested for years and probably need updating.
+
 # <code>sbt publishM2</code>
 # <code>mvn -f pom-gae.xml appengine:devserver</code>
 # <code>xdg-open http://localhost:8080</code> # or open http://localhost:8080 on your browser

@@ -22,8 +22,8 @@
     </dependency>
     <dependency>
       <groupId>org.whym</groupId>
-      <artifactId>growthring_2.11</artifactId>
-      <version>0.5-SNAPSHOT</version>
+      <artifactId>growthring_2.12</artifactId>
+      <version>0.6-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
