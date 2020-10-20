@@ -1,25 +1,5 @@
 // -*- mode: scala -*-
 
-organization := "org.whym"
-name    := "growthring"
-version := "0.6-SNAPSHOT"
-scalaVersion := "2.12.12"
-scalacOptions ++= Seq(
-  "-deprecation",
-  "-unchecked",
-  "-opt:l:inline",
-  "-opt-inline-from:**",
-  "-opt:box-unbox",
-  "-opt:redundant-casts",
-  "-opt:simplify-jumps",
-  "-explaintypes",
-  "-feature",
-  "-Xmax-classfile-name", "128",
-  "-g:line")
-javacOptions ++= Seq(
-  "-source", "1.8"
-)
-
 resolvers += Resolver.sonatypeRepo("public")
 
 libraryDependencies ++= Seq(
@@ -49,6 +29,25 @@ enablePlugins(TomcatPlugin)
 lazy val root = (project in file(".")).
   enablePlugins(BuildInfoPlugin).
   settings(
+    scalaVersion := "2.12.12",
+    organization := "org.whym",
+    name := "growthring",
+    version := "0.6-SNAPSHOT",
+    scalacOptions ++= Seq(
+      "-deprecation",
+      "-unchecked",
+      // "-opt:l:inline",
+      // "-opt-inline-from:**",
+      // "-opt:box-unbox",
+      // "-opt:redundant-casts",
+      // "-opt:simplify-jumps",
+      "-explaintypes",
+      "-feature",
+      "-Xmax-classfile-name", "128",
+      "-g:line"),
+    javacOptions ++= Seq(
+      "-source", "1.8"
+    ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, BuildInfoKey.action("buildTime") {
       java.time.Instant.now()
     }),
@@ -64,7 +63,7 @@ scalariformPreferences := scalariformPreferences.value
   .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 40)
   .setPreference(CompactControlReadability, false)
   .setPreference(CompactStringConcatenation, false)
-  .setPreference(DoubleIndentClassDeclaration, true)
+  .setPreference(DoubleIndentConstructorArguments, true)
   .setPreference(FormatXml, true)
   .setPreference(IndentLocalDefs, false)
   .setPreference(IndentPackageBlocks, true)
