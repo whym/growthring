@@ -34,8 +34,8 @@ class TestMain extends AnyFunSuite {
   test("find covereds") {
     assertResult(Seq(((0, 3), Seq((0, 2))), ((4, 10), Seq((5, 8), (6, 9))))) {
       Main.findCovereds(
-        Array((0, 3), (4, 10), (8, 12)),
-        Array((0, 2), (5, 8), (6, 9), (7, 13)),
+        Array((0, 3), (4, 10), (8, 12)).toSeq,
+        Array((0, 2), (5, 8), (6, 9), (7, 13)).toSeq,
         1)
     }
   }
@@ -43,8 +43,8 @@ class TestMain extends AnyFunSuite {
   test("find covereds rev") {
     assertResult(Seq(((7, 13), Seq((8, 12))))) {
       Main.findCovereds(
-        Array((0, 2), (5, 8), (6, 9), (7, 13)),
-        Array((0, 3), (4, 10), (8, 12)),
+        Array((0, 2), (5, 8), (6, 9), (7, 13)).toSeq,
+        Array((0, 3), (4, 10), (8, 12)).toSeq,
         1)
     }
   }

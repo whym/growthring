@@ -16,7 +16,7 @@ This application has a number of parameters that are set by a configuration file
 
 === Using the web interface ===
 
-# <code>sbt ~tomcat:start</code>
+# <code>sbt "~Tomcat / start"&</code>
 # <code>xdg-open http://localhost:8080</code> # or open http://localhost:8080 on your browser
 
 === Using the multiple sequence aligner ===
@@ -45,6 +45,13 @@ Note: instructions here have not been tested for years and probably need updatin
 # <code>sbt publishM2</code>
 # <code>mvn -f pom-gae.xml appengine:devserver</code>
 # <code>xdg-open http://localhost:8080</code> # or open http://localhost:8080 on your browser
+
+== How to compile ==
+
+The above procedures automatically invoke compilation, but if you specifically want to compile:
+
+* Build sources with <code>sbt compile</code>.
+* Format sources with <code>sbt "Compile / scalariformFormat"</code>.
 
 == Credits ==
 

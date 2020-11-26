@@ -38,7 +38,7 @@ object SuffixArrays extends LazyLogging {
     * Calculating a longest common prefix array from a suffix array.
     *  Adapted from "Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications" (Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa and Kunsoo Park, 2009)
     */
-  def getHeight(text: IndexedSeq[Int], pos: IndexedSeq[Int]): IndexedSeq[Int] = {
+  def getHeight(text: Array[Int], pos: Array[Int]): Array[Int] = {
     val n = text.size
     val height = Array.fill(n)(0)
     val rank = Array.fill(n)(0)
@@ -59,7 +59,7 @@ object SuffixArrays extends LazyLogging {
     height
   }
 
-  def buildSais(arr: IndexedSeq[Int]): SuffixArrays = {
+  def buildSais(arr: Array[Int]): SuffixArrays = {
     logger.info("start sais build")
     import com.sun.jna.{ Library, Native, Memory, Pointer }
     trait SAIS extends Library {
@@ -79,7 +79,7 @@ object SuffixArrays extends LazyLogging {
     SuffixArrays(arr, sa, getHeight(arr, sa))
   }
 
-  def buildJsuffixarrays(arr: IndexedSeq[Int]): SuffixArrays = {
+  def buildJsuffixarrays(arr: Array[Int]): SuffixArrays = {
     logger.info("start jsuffixarrays build")
     import org.{ jsuffixarrays => JSA }
     val builder = new JSA.DivSufSort()
@@ -87,7 +87,7 @@ object SuffixArrays extends LazyLogging {
     SuffixArrays(arr, sadata.getSuffixArray, sadata.getLCP)
   }
 
-  def build(arr: IndexedSeq[Int], method: String): SuffixArrays = {
+  def build(arr: Array[Int], method: String): SuffixArrays = {
     method match {
       case "sais" => buildSais(arr)
       case _      => buildJsuffixarrays(arr)
@@ -109,7 +109,7 @@ object SuffixArrays extends LazyLogging {
 
   def store(a: SuffixArrays, out: jio.FileOutputStream): Option[Int] = store(a.arr, a.sa, out)
 
-  def store(array: IndexedSeq[Int], sa: IndexedSeq[Int], out: jio.FileOutputStream): Option[Int] = {
+  def store(array: Array[Int], sa: Array[Int], out: jio.FileOutputStream): Option[Int] = {
     val fc = out.getChannel
     val header = nio.ByteBuffer.allocate(HEAD.length + INTSIZE)
     var size = 0
@@ -168,7 +168,7 @@ object SuffixArrays extends LazyLogging {
   case class NodePointer(left: Int, right: Int, depth: Int)
 }
 
-case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedSeq[Int]) {
+case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
   import SuffixArrays._
 
   def internalNodes(): IndexedSeq[NodePointer] = {
@@ -184,7 +184,7 @@ case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedS
           nodes.append(NodePointer(cand._1, i, cand._2))
         }
         cur = (cand._1, cur._2)
-        stack.pop
+        stack.pop()
         cand = stack.head
       }
       if (cand._2 < cur._2) {
@@ -192,7 +192,7 @@ case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedS
       }
       stack.push((i, n - sa(i) + 1))
     }
-    nodes
+    nodes.toIndexedSeq
   }
   def bwt(i: Int): Int = if (i < 0) {
     bwt((i / this.arr.size - 1) * -this.arr.size)
@@ -217,7 +217,7 @@ case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedS
       }
       rank(i) = r
     }
-    val nodes = internalNodes
+    val nodes = internalNodes()
     for (
       i <- Range(0, nodes.size - 1).reverse;
       if !(nodes(i).depth > 1 && nodes(i).right - nodes(i).left < threshold) &&
@@ -227,15 +227,15 @@ case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedS
     }
   }
   def okanohara_repeats(threshold: Int = 2): Seq[Repeat[Int]] = {
-    okanohara(threshold).map(x => Repeat(arr, x.depth, Range(x.left, x.right).map(i => sa(i)).toSet))
+    okanohara(threshold).map(x => Repeat(immutable.ArraySeq.unsafeWrapArray(arr), x.depth, Range(x.left, x.right).map(i => sa(i)).toSet))
   }
   def find(q: String): Seq[Int] = find(stringToUchars(q))
-  def find(q: IndexedSeq[Int]): Seq[Int] = {
+  def find(q: Array[Int]): Seq[Int] = {
     val l = _lowerbound(q)
     val r = _upperbound(q)
     return Range(l, r).map(sa(_) / 2)
   }
-  private def _lowerbound(q: IndexedSeq[Int]): Int = {
+  private def _lowerbound(q: Array[Int]): Int = {
     def cmp(i: Int): Int = {
       for (j <- Range(0, q.size)) {
         if (sa(i) + j >= arr.size) {
@@ -262,7 +262,7 @@ case class SuffixArrays(arr: IndexedSeq[Int], sa: IndexedSeq[Int], lcp: IndexedS
     }
     return r
   }
-  private def _upperbound(q: IndexedSeq[Int]): Int = {
+  private def _upperbound(q: Array[Int]): Int = {
     def cmp(i: Int): Int = {
       for (j <- Range(0, q.size)) {
         if (sa(i) + j >= arr.size) {

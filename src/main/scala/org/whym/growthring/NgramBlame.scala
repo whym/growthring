@@ -19,7 +19,7 @@ object NgramBlame {
         ret.append(s)
       }
     }
-    ret
+    ret.toSeq
   }
 
   def blameGreedy(body: String, revs: IndexedSeq[String], n: Int): Set[(Int, Int, Int)] = {
@@ -30,7 +30,7 @@ object NgramBlame {
       s <- str
     ) yield {
       ng enqueue s
-      for (x <- ng.getNgrams.map(_.toSeq)) {
+      for (x <- ng.getNgrams().map(_.toSeq)) {
         pos(x) = pos.getOrElse(x, -1) max i
       }
     }

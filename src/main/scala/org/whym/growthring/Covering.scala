@@ -7,6 +7,7 @@ package org.whym.growthring
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.collection.IndexedSeqView
 import scala.annotation.tailrec
 
 /**
@@ -96,7 +97,7 @@ object Covering {
     dp_(rp, gap)
 
   def exhaustive[T](body: Array[T], rp: Seq[(Int, Int)], gap: Int = 1): Set[Int] =
-    rp.toSet.subsets.max(
+    rp.toSet.subsets().max(
       Ordering.by[Set[(Int, Int)], Int] {
         set =>
           if (hasOverlap(set)) {
@@ -112,16 +113,16 @@ object Covering {
     }
 
     // sort by length
-    val sorted = new mutable.HashMap[Int, mutable.Set[(Int, Int)]] with mutable.MultiMap[Int, (Int, Int)]
+    val sorted = mutable.MultiDict[Int, (Int, Int)]()
     for (ent <- rp) {
-      sorted.addBinding(ent._1 - ent._2, ent)
+      sorted += ((ent._1 - ent._2, ent))
     }
 
     val flags = new mutable.BitSet
     if (sorted.size == 0) {
       return Set()
     }
-    for ((s, e) <- sorted.keySet.toList.sorted.map(sorted(_).toList).flatten) {
+    for ((s, e) <- sorted.keySet.toList.sorted.map(sorted.get(_).toList).flatten) {
       if (((s == 0) || (gap == 0 | flags(s - 1) == false)) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e + 1) == false)) {
         for (i <- s to e) {
           flags(i) = true
@@ -136,15 +137,15 @@ object Covering {
       throw new IllegalArgumentException("gap must be 1 or 0:" + gap)
     }
 
-    val sorted = new mutable.HashMap[Seq[T], mutable.Set[(Int, Int)]] with mutable.MultiMap[Seq[T], (Int, Int)]
+    val sorted = mutable.MultiDict[IndexedSeqView[T], (Int, Int)]()
     for (ent <- rp) {
-      sorted.addBinding(body.slice(ent._1, ent._2 + 1), ent)
+      sorted += ((body.view.slice(ent._1, ent._2 + 1), ent))
     }
     val flags = new mutable.BitSet
     if (sorted.size == 0) {
       return Set()
     }
-    for ((s, e) <- sorted.keySet.toList.sortBy(x => (-sorted(x).size, -x.size)).map(sorted(_).toList).flatten) {
+    for ((s, e) <- sorted.keySet.toList.sortBy(x => (-sorted.get(x).size, -x.size)).map(sorted.get(_).toList).flatten) {
       if (((s == 0) || (gap == 0 | flags(s - 1) == false)) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e + 1) == false)) {
         for (i <- s to e) {
           flags(i) = true
@@ -157,7 +158,7 @@ object Covering {
   def greedyConservative[T](body: Array[T], rp: Seq[(Int, Int)]): Set[Int] = {
     val flags = new mutable.BitSet
     val invalidated = new mutable.HashMap[IndexedSeq[T], Int] withDefault (_ => 0)
-    val groups = rp.groupBy(x => body.slice(x._1, x._2 + 1).toIndexedSeq)
+    val groups = rp.groupBy(x => body.view.slice(x._1, x._2 + 1).toIndexedSeq)
     val min_freq = groups.map(_._2.size).min
     for ((seg, ls) <- groups.toList.sortBy(x => (-x._1.size, x._2.size))) {
       val checks = for ((s, e) <- ls) yield (((s == 0) || flags(s - 1) == false) && flags(e + 1) == false)
@@ -192,7 +193,7 @@ object Covering {
     }
 
     while (queue.size > 0) {
-      val h = queue.dequeue
+      val h = queue.dequeue()
       val (s, e) = h
       if (((s == 0) || (gap == 0 | flags(s - 1) == false)) && flags(s) == false && flags(e) == false && (gap == 0 | flags(e + 1) == false)) {
         for (i <- s to e) {

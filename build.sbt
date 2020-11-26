@@ -1,6 +1,6 @@
 // -*- mode: scala -*-
 
-resolvers += Resolver.sonatypeRepo("public")
+resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= Seq(
   "com.carrotsearch"   % "jsuffixarrays" % "0.1.0",
@@ -8,7 +8,8 @@ libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-text" % "1.9",
   "javax.servlet"  % "javax.servlet-api" % "3.1.0" % "provided",
   "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
-  "org.json4s"        %% "json4s-native" % "3.6.0",
+  "org.scala-lang.modules" %% "scala-collection-contrib" % "0.2.2",
+  "org.json4s"        %% "json4s-native" % "3.6.10",
   "com.typesafe"       % "config"        % "1.3.4",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
   "ch.qos.logback"     % "logback-classic" % "1.2.3",
@@ -17,8 +18,7 @@ libraryDependencies ++= Seq(
   "org.mockito"        % "mockito-core"  % "3.5.13" % "test"
 )
 
-mainClass in (Compile, run) := Some("org.whym.growthring.Main")
-mainClass in assembly := Some("org.whym.growthring.Main")
+Compile / run / mainClass := Some("org.whym.growthring.Main")
 
 publishMavenStyle := true
 
@@ -29,7 +29,7 @@ enablePlugins(TomcatPlugin)
 lazy val root = (project in file(".")).
   enablePlugins(BuildInfoPlugin).
   settings(
-    scalaVersion := "2.12.12",
+    scalaVersion := "2.13.6",
     organization := "org.whym",
     name := "growthring",
     version := "0.6-SNAPSHOT",
@@ -43,7 +43,6 @@ lazy val root = (project in file(".")).
       // "-opt:simplify-jumps",
       "-explaintypes",
       "-feature",
-      "-Xmax-classfile-name", "128",
       "-g:line"),
     javacOptions ++= Seq(
       "-source", "1.8"

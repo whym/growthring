@@ -125,14 +125,14 @@ class TestCovering extends AnyFunSuite {
     val rsize = (math.sqrt(str.size) / 2).toInt
 
     for (i <- 1 until 20) {
-      lazy val regions: Stream[(Int, Int)] = Stream.tabulate(rsize) {
+      lazy val regions: LazyList[(Int, Int)] = LazyList.tabulate(rsize) {
         case 0 => {
-          val r = (math.random * rsize).toInt
-          (r, r + (math.random * rsize).toInt)
+          val r = (math.random() * rsize).toInt
+          (r, r + (math.random() * rsize).toInt)
         }
         case n => {
-          val r1 = (math.random * rsize).toInt
-          val r2 = (math.random * rsize).toInt
+          val r1 = (math.random() * rsize).toInt
+          val r2 = (math.random() * rsize).toInt
           (regions(n - 1)._1 + r1 + 1, regions(n - 1)._2 + r1 + r2 + 1)
         }
       }

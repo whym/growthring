@@ -29,7 +29,7 @@ class TestNgramRepeats extends AnyFunSuite {
       val ng = new NQ[String](2, 4)
       (for (s <- Seq("abc", "d", "e", "f", "ghi")) yield {
         ng enqueue s
-        ng.getNgrams
+        ng.getNgrams()
       }).flatten
     }
   }

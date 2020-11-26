@@ -6,8 +6,8 @@ import com.sun.net.httpserver.{ HttpServer, HttpHandler, HttpExchange }
 
 object SimpleHttpServer {
   class MyHandler(body: String, ctype: String) extends HttpHandler {
-    @throws[IOException] override def handle(exchange: HttpExchange) {
-      val response = body.getBytes();
+    @throws[IOException] override def handle(exchange: HttpExchange): Unit = {
+      val response = body.getBytes()
       exchange.sendResponseHeaders(
         HttpURLConnection.HTTP_OK,
         response.length)
@@ -36,7 +36,7 @@ object SimpleHttpServer {
     addr
   }
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     import scala.util.Properties.{ propOrElse => p }
     val addr = findFreeAddress()
     val s = create(p("host", "localhost"), p("port", addr.getPort.toString).toInt,

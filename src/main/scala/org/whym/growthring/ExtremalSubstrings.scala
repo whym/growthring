@@ -52,20 +52,20 @@ object ExtremalSubstrings {
   //   (0 until (arr.size - n + 1)).map{i => arr.slice(i, i+n).min}
   // }
 
-  def slidingMinimums(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
+  def slidingMinimums(n: Int, arr: Array[Int]): Array[Int] = {
     class Count() {
       var p = 0
       override def toString = p.toString
     }
     import scala.language.reflectiveCalls
     var bag = new java.util.TreeMap[Int, Count] {
-      def inc(x: Int) {
+      def inc(x: Int): Unit = {
         if (!this.containsKey(x)) {
           this.put(x, new Count)
         }
         this.get(x).p += 1
       }
-      def dec(x: Int) {
+      def dec(x: Int): Unit = {
         if (this.get(x) == null || this.get(x).p == 1) {
           this.remove(x)
         } else {
@@ -75,7 +75,7 @@ object ExtremalSubstrings {
     }
     var seq = new mutable.Queue[Int]
 
-    for (x <- arr.slice(0, n).toList) {
+    for (x <- arr.view.slice(0, n).toList) {
       bag.inc(x)
       seq.enqueue(x)
     }
@@ -83,10 +83,10 @@ object ExtremalSubstrings {
     bag.firstKey +: (for (x <- arr.slice(n, arr.size)) yield {
       bag.inc(x)
       bag.dec(seq.head)
-      seq.dequeue
+      seq.dequeue()
       seq.enqueue(x)
       bag.firstKey
-    }).toIndexedSeq
+    })
   }
 
 }
@@ -130,8 +130,8 @@ class ExtremalSubstrings(array: SuffixArrays) extends LazyLogging {
       mr(p) = mr(p) min this.sa(i)
     }
     logger.info(s"start subsume")
-    return subsumeShorter(mr.zipWithIndex.filter(x => x._1 <= this.arr.size - 1).
-      map(roundMin).filter(x => x._1 <= x._2))
+    return subsumeShorter(immutable.ArraySeq.unsafeWrapArray(mr.zipWithIndex.filter(x => x._1 <= this.arr.size - 1).
+      map(roundMin).filter(x => x._1 <= x._2)))
   }
 
   def minUniques(n: Int = 2, bd: Int => Int = { _ => this.arr.size + 1 }): Seq[(Int, Int)] = {
@@ -150,8 +150,8 @@ class ExtremalSubstrings(array: SuffixArrays) extends LazyLogging {
       }
     }
     logger.info(s"start subsume")
-    return subsumeLonger(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= this.arr.size - 1).
-      map(roundMax).filter(x => x._1 <= x._2))
+    return subsumeLonger(immutable.ArraySeq.unsafeWrapArray(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= this.arr.size - 1).
+      map(roundMax).filter(x => x._1 <= x._2)))
   }
 
 }

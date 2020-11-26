@@ -4,7 +4,7 @@
   */
 
 package org.whym.growthring
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import com.typesafe.scalalogging.LazyLogging
 import scala.collection.mutable
 import scala.util.matching.Regex
@@ -25,19 +25,19 @@ object Main extends LazyLogging {
     while (lit.hasNext) {
       val sit = short.iterator.buffered
       while (sit.hasNext && sit.head._1 < lit.head._1) {
-        sit.next
+        sit.next()
       }
       val buf = new mutable.ArrayBuffer[(Int, Int)]
       while (sit.hasNext && inside(sit.head, lit.head)) {
         buf.append(sit.head)
-        sit.next
+        sit.next()
       }
       if (buf.size >= supports) {
-        ret.append((lit.head, buf))
+        ret.append((lit.head, buf.toSeq))
       }
-      lit.next
+      lit.next()
     }
-    return ret
+    return ret.toSeq
   }
 
   def anonymize(
@@ -94,7 +94,7 @@ object Main extends LazyLogging {
         i += 1
       }
     }
-    return bd
+    return scala.collection.immutable.ArraySeq.unsafeWrapArray(bd)
   }
 
   def findBoundaries(str: String, pattern: Regex): Int => Int = {
@@ -102,7 +102,7 @@ object Main extends LazyLogging {
     return if (bd.length > 0 && bd(0) != str.length) { bd } else { _ => str.length + 1 }
   }
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     import com.typesafe.config.ConfigFactory
     val config = ConfigFactory.load.getConfig("org.whym.growthring")
 
@@ -165,7 +165,7 @@ object Main extends LazyLogging {
 
       "msa" -> ExecMode(Seq("find multiple sequence alignment"), { strings =>
         val msa = new MultipleSequenceAlignment[Char](strings.map(x => ("^" + x + "$").toCharArray.toIndexedSeq))
-        val dag = msa.align.compact((x, y) => x.concat(y))
+        val dag = msa.align().compact((x, y) => x.concat(y))
         def nodeformat(i: Int, x: MultipleSequenceAlignment.Node[Char]): String = {
           def escape(x: String) = x.replace("\\", "\\\\").replace("\"", "\\\"")
           "  N_%d[label=\"%s\",fontsize=%f];".format(i, escape(x.label.map(_.toString).mkString),
@@ -274,9 +274,9 @@ object Main extends LazyLogging {
       case Some(exec) =>
         import scala.io
         val strings = if (args.length > 0) {
-          args.flatMap(io.Source.fromFile(_).getLines.toList).toList
+          args.flatMap(io.Source.fromFile(_).getLines().toList).toList
         } else {
-          io.Source.fromInputStream(System.in).getLines.toList
+          io.Source.fromInputStream(System.in).getLines().toList
         }
         logger.debug(f"${strings.size}%d lines.")
         exec.exec(strings)

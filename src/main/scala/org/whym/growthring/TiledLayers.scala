@@ -52,9 +52,9 @@ object TiledLayers {
         }
       }
       ret.append(cur.toSet)
-      cur.clear
+      cur.clear()
     }
-    ret
+    ret.toSeq
   }
   def greedyTiling[T](body: Array[T], rp: Seq[(Int, Int)]): Seq[IndexedSeq[Cell]] = {
     var c = 1
@@ -71,7 +71,7 @@ object TiledLayers {
             }
             c += 1
           }
-          ((-1 +: -1 +: ar), (-1 +: ar :+ -1), (ar :+ -1 :+ -1)).zipped.map {
+          (-1 +: -1 +: ar).lazyZip(-1 +: ar :+ -1).lazyZip(ar :+ -1 :+ -1).map {
             case (_, -1, _)  => Outside()
             case (-1, _, -1) => Single()
             case (x, y, z)   => (if (x == y && y == z) { Inside() } else if (x == y) { End() } else if (y == z) { Begin() } else { Single() })

@@ -16,7 +16,7 @@ class NgramQueue[T](val minSize: Int, val maxSize: Int) {
 
   def clear() = {
     n = 0
-    queues.foreach(q => q.clear)
+    queues.foreach(q => q.clear())
   }
   def enqueue(token: T) = {
     n += 1
@@ -25,11 +25,22 @@ class NgramQueue[T](val minSize: Int, val maxSize: Int) {
 }
 
 class SlidingQueue[A](val maxSize: Int) extends mutable.Queue[A] {
-  override def enqueue(elems: A*) = {
-    elems.foreach(super.enqueue(_))
+  override def enqueue(e: A) = {
+    super.enqueue(e)
+    if (this.size > this.maxSize) {
+      this.dequeue()
+    }
+    this
+  }
+
+  override def enqueue(e1: A, e2: A, elems: A*) = {
+    super.enqueue(e1)
+    super.enqueue(e2)
+    super.enqueueAll(elems)
     while (this.size > this.maxSize) {
       this.dequeue()
     }
+    this
   }
 }
 

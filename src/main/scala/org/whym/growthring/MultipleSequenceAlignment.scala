@@ -7,6 +7,8 @@ package org.whym.growthring
 
 import scala.collection.JavaConverters._
 import scala.collection.{ mutable, immutable }
+import scala.reflect.runtime.universe._
+import scala.reflect.ClassTag
 
 /**
   * Helper functions for partial-order multiple sequence alignment
@@ -100,7 +102,7 @@ object Dag {
   }
 }
 
-case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
+case class Dag[T: ClassTag](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
   import Dag._
   import Dag.Operation._
 
@@ -113,7 +115,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
 
     val maxValue = num.fromInt(Int.MaxValue)
 
-    lazy val table: Stream[Stream[(W, Operation, Int, Int)]] = Stream.tabulate(this.nodes.size, that.nodes.size) { (this_cur, that_cur) =>
+    lazy val table: LazyList[LazyList[(W, Operation, Int, Int)]] = LazyList.tabulate(this.nodes.size, that.nodes.size) { (this_cur, that_cur) =>
       {
         //println(this_cur, that_cur, this.prev_nodes(this_cur), that.prev_nodes(that_cur)) //!
 
@@ -129,7 +131,7 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
             }), -1, -1)
         } else {
           var min: (W, Operation, Int, Int) = (maxValue, Operation(-1, -1, OpNone), -1, -1)
-          def update_min(p: (W, Operation, Int, Int)) {
+          def update_min(p: (W, Operation, Int, Int)): Unit = {
             if (num.lt(p._1, min._1)) {
               min = p
             }
@@ -318,21 +320,21 @@ case class Dag[T](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int)]) {
       }
     }
 
-    val compactable = compactable_edges(nodes.size - 1, List(), Set()).toArray.sorted(Ordering.by[List[Int], Int](_.head))
-    val itrans = new mutable.HashMap[Int, (Int, T)] ++
-      Map(nodes.zipWithIndex.map(_ match { case (n, i) => (i, (i, n)) }): _*)
+    val compactable = compactable_edges(nodes.size - 1, List(), Set()).toArray.sortBy(_.head)
+    val itrans = new mutable.HashMap[Int, (Int, T)]()
+    itrans ++= Map(nodes.zipWithIndex.map(_ match { case (n, i) => (i, (i, n)) }): _*)
 
     for (ls <- compactable if ls.size >= 2) {
       //System.err.println(ls, ls.map(nodes(_)).reduce(concat))//!
 
       val h = ls.head
       val ids = ls.foldLeft(Set[Int]())((s, x) => s + x).toArray.sorted
-      val n = ids.map(nodes(_)).reduce(concat)
+      val n: T = ids.map(nodes(_)).reduce(concat)
       for (i <- ids) {
         itrans(i) = (ids.head, n)
       }
     }
-    val itrans_sorted = itrans.toArray.sorted(Ordering.by[(Int, (Int, T)), Int](_._1))
+    val itrans_sorted = itrans.toArray.sortBy(_._1)
     val nn = itrans_sorted.map(_._2._2).distinct
     val jtrans = new mutable.HashMap[Int, Int]
     for ((i, (j, n)) <- itrans_sorted) {

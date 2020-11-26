@@ -21,7 +21,7 @@ class TestSimpleHttpServer extends AnyFunSuite {
     writer.write(f"GET ${path} HTTP/1.0\r\n")
     writer.flush
     sock.shutdownOutput
-    val ret = io.Source.fromInputStream(sock.getInputStream).getLines.toList
+    val ret = io.Source.fromInputStream(sock.getInputStream).getLines().toList
     writer.close
     sock.close
     ret

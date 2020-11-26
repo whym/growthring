@@ -20,12 +20,12 @@ import org.apache.commons.text.{ StringEscapeUtils => seu }
   *  @author Yusuke Matsubara <whym@whym.org>
   */
 class FindRepeatsServlet extends HttpServlet {
-  override def init(config: ServletConfig) {
+  override def init(config: ServletConfig): Unit = {
   }
 
   override def doPost(req: HttpServletRequest, resp: HttpServletResponse) = doGet(req, resp)
 
-  override def doGet(req: HttpServletRequest, resp: HttpServletResponse) {
+  override def doGet(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
     resp.setCharacterEncoding("UTF-8")
 
     val str = req.getParameter("q") match {
@@ -37,9 +37,9 @@ class FindRepeatsServlet extends HttpServlet {
       case null => 1
       case x    => x.toInt
     }
-    val threshold: Seq[Int] = req.getParameter("n") match {
-      case null => Seq(2)
-      case x    => x.split(",").map(_.toInt).filter(_ >= 2).sorted
+    val threshold = req.getParameter("n") match {
+      case null => IndexedSeq(2)
+      case x    => x.split(",").map(_.toInt).filter(_ >= 2).sorted.toIndexedSeq
     }
     val attr = (req.getParameter("prop") match {
       case null => Array("plain", "max_repeats")
@@ -170,12 +170,12 @@ class FindRepeatsServlet extends HttpServlet {
   */
 class WikiBlameServlet extends HttpServlet {
 
-  override def init(config: ServletConfig) {
+  override def init(config: ServletConfig): Unit = {
   }
 
   override def doPost(req: HttpServletRequest, resp: HttpServletResponse) = doGet(req, resp)
 
-  override def doGet(req: HttpServletRequest, resp: HttpServletResponse) {
+  override def doGet(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
     resp.setCharacterEncoding("UTF-8")
     val title = req.getParameter("title")
     val ng = Option(req.getParameter("n")).getOrElse("30").toInt
@@ -246,12 +246,12 @@ object WikiBlameServlet {
   */
 class NestedRepeatsServlet extends HttpServlet {
 
-  override def init(config: ServletConfig) {
+  override def init(config: ServletConfig): Unit = {
   }
 
   override def doPost(req: HttpServletRequest, resp: HttpServletResponse) = doGet(req, resp)
 
-  override def doGet(req: HttpServletRequest, resp: HttpServletResponse) {
+  override def doGet(req: HttpServletRequest, resp: HttpServletResponse): Unit = {
     resp.setCharacterEncoding("UTF-8")
     val body = req.getParameter("q")
     val boundary = req.getParameter("boundary")

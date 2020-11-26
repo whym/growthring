@@ -20,9 +20,9 @@ class TestSuffixArrays extends AnyFunSuite {
     assertResult(Some(28)) {
       SA.store(Array(255, 2, 33, 4), Array(0, 2, 3, 1), new jio.FileOutputStream(temp))
     }
-    assertResult((Array(255, 2, 33, 4).deep, Array(0, 2, 3, 1).deep)) {
+    assertResult((Array(255, 2, 33, 4).toIndexedSeq, Array(0, 2, 3, 1).toIndexedSeq)) {
       val a = SA.load(new jio.FileInputStream(temp)).get
-      (a.arr, a.sa)
+      (a.arr.toIndexedSeq, a.sa.toIndexedSeq)
     }
   }
 
@@ -51,7 +51,7 @@ class TestSuffixArrays extends AnyFunSuite {
   test("internalNodes") {
     val s = "abracadabra".toCharArray.map(_.asInstanceOf[Int])
     val sa = SA.build(s, "jsuffixarrays")
-    assertResult(IndexedSeq(
+    assertResult(Seq(
       SA.NodePointer(0, 5, 1),
       SA.NodePointer(1, 3, 4))) {
       sa.okanohara(1)
@@ -60,9 +60,9 @@ class TestSuffixArrays extends AnyFunSuite {
   test("okanohara Repeats") {
     val s = "abracadabra".toCharArray.map(_.asInstanceOf[Int])
     val sa = SA.build(s, "jsuffixarrays")
-    assertResult(IndexedSeq(
-      Repeat(s, 1, Set(10, 0, 7, 3, 5)),
-      Repeat(s, 4, Set(7, 0)))
+    assertResult(Seq(
+      Repeat(s.toIndexedSeq, 1, Set(10, 0, 7, 3, 5)),
+      Repeat(s.toIndexedSeq, 4, Set(7, 0)))
     ) {
       for (x <- sa.okanohara_repeats(1)) {
         for (y <- x) {
