@@ -13,6 +13,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.json4s.{ JInt, JString, JField, JObject, JArray, JValue }
 import org.json4s.native.JsonParser._
 import org.json4s.JsonDSL._
+import util.SimpleHttpServer
 
 /**
   *  @author Yusuke Matsubara <whym@whym.org>

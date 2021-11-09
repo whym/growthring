@@ -1,4 +1,4 @@
-package org.whym.growthring
+package util
 
 import java.net.{ HttpURLConnection, InetSocketAddress, ServerSocket }
 import java.io.IOException

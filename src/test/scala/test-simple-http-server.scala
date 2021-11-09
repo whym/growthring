@@ -13,7 +13,7 @@ import org.scalatest.funsuite.AnyFunSuite
   *  @author Yusuke Matsubara <whym@whym.org>
   */
 class TestSimpleHttpServer extends AnyFunSuite {
-  import org.whym.growthring.SimpleHttpServer
+  import util.SimpleHttpServer
 
   def retrieve(address: InetSocketAddress, path: String): List[String] = {
     val sock = new Socket(address.getAddress, address.getPort)
