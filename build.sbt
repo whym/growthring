@@ -44,9 +44,6 @@ lazy val root = (project in file(".")).
       "-explaintypes",
       "-feature",
       "-g:line"),
-    javacOptions ++= Seq(
-      "-source", "1.8"
-    ),
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, BuildInfoKey.action("buildTime") {
       java.time.Instant.now()
     }),
