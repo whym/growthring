@@ -27,10 +27,10 @@ class TestSuffixArrays extends AnyFunSuite {
   }
 
   test("stringToUchars") {
-    assertResult(IndexedSeq(255, 255)) {
+    assertResult(Array(255, 255)) {
       SA.stringToUchars(new String(Array(65535.asInstanceOf[Char])))
     }
-    assertResult(IndexedSeq(3, 0, 255, 255, 5, 0)) {
+    assertResult(Array(3, 0, 255, 255, 5, 0)) {
       SA.stringToUchars(new String(Array(
         3.asInstanceOf[Char],
         65535.asInstanceOf[Char],

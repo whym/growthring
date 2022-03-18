@@ -56,7 +56,7 @@ class TestExtremalSubstrings extends AnyFunSuite {
   }
 
   test("sliding minimum") {
-    assertResult(IndexedSeq(1, 1, 1, 1, 2, 2)) {
+    assertResult(Array(1, 1, 1, 1, 2, 2)) {
       ES.slidingMinimums(3, Array(1, 4, 2, 1, 9, 3, 2, 7))
     }
   }

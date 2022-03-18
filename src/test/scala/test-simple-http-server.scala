@@ -8,33 +8,25 @@ import java.io.{ Writer, PrintWriter, StringWriter, BufferedWriter, OutputStream
 import java.net.{ Socket, ServerSocket, InetSocketAddress }
 import scala.io
 import org.scalatest.funsuite.AnyFunSuite
+import sttp.client3._
 
 /**
   *  @author Yusuke Matsubara <whym@whym.org>
   */
 class TestSimpleHttpServer extends AnyFunSuite {
   import util.SimpleHttpServer
-
-  def retrieve(address: InetSocketAddress, path: String): List[String] = {
-    val sock = new Socket(address.getAddress, address.getPort)
-    val writer = new BufferedWriter(new OutputStreamWriter(sock.getOutputStream))
-    writer.write(f"GET ${path} HTTP/1.0\r\n")
-    writer.flush
-    sock.shutdownOutput
-    val ret = io.Source.fromInputStream(sock.getInputStream).getLines().toList
-    writer.close
-    sock.close
-    ret
-  }
-
   test("simple http server 0") {
-    assertResult((true, "def")) {
-      val a = SimpleHttpServer.findFreeAddress()
-      val s = SimpleHttpServer.create("localhost", a.getPort, Map(("/abc", "def")))
-      s.start
-      val r = TestSimpleHttpServer.waitUntilPrepared(a, 10000L)
-      (r, retrieve(a, "/abc").last)
+    val a = SimpleHttpServer.findFreeAddress()
+    val s = SimpleHttpServer.create("localhost", a.getPort, Map(("/abc", "here be dragons")))
+    s.start
+    val r = TestSimpleHttpServer.waitUntilPrepared(a, 10000L)
+    assert(r)
+    val backend = HttpURLConnectionBackend()
+    def retrieve(path: String): sttp.client3.Response[Either[String, String]] = {
+      basicRequest.get(uri"http://${a.getHostString()}:${a.getPort()}/$path").send(backend)
     }
+    assert(retrieve("not-found").code.toString.contains("404"))
+    assert(retrieve("abc").body == Right("here be dragons"))
   }
 }
 

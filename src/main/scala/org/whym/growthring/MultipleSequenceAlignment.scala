@@ -7,7 +7,6 @@ package org.whym.growthring
 
 import scala.collection.JavaConverters._
 import scala.collection.{ mutable, immutable }
-import scala.reflect.runtime.universe._
 import scala.reflect.ClassTag
 
 /**

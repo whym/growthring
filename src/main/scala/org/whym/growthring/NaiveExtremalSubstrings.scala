@@ -20,6 +20,7 @@ object NaiveExtremalSubstrings {
     def head_removed = Substring(parent, start + 1, end)
     def last_removed = Substring(parent, start, end - 1)
     override def equals(x: Any) = x.isInstanceOf[Substring] && slice == x.asInstanceOf[Substring].slice
+    def equalsAsString(x: Any) = slice == x
     private def slice = parent.substring(start, end)
     private val _hash = slice.hashCode
     override def hashCode = _hash
@@ -56,7 +57,7 @@ object NaiveExtremalSubstrings {
     return counts.toMap
   }
 
-  def find(body: String, q: String): Seq[Int] = substrings(body).filter(x => x == q).map(_.start)
+  def find(body: String, q: String): Seq[Int] = substrings(body).filter(_.equalsAsString(q)).map(_.start)
 
   def minimals(set: Set[(Int, Int)]): Set[(Int, Int)] =
     set.filter(self => {

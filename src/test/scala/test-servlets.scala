@@ -11,8 +11,9 @@ import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
 import org.json4s.{ JInt, JString, JField, JObject, JArray, JValue }
-import org.json4s.native.JsonParser._
+import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
+import org.json4s.MonadicJValue.jvalueToMonadic
 import util.SimpleHttpServer
 
 /**

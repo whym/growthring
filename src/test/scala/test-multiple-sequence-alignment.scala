@@ -219,7 +219,7 @@ class TestMultipleSequenceAlignment extends AnyFunSuite {
         (0, 1), (1, 3),
         (0, 2), (2, 3)))) {
       Dag(
-        "^abcA$".toIndexedSeq.map({ x: Char => x.toString }),
+        "^abcA$".toIndexedSeq.map({ (x: Char) => x.toString }),
         Set(
           (0, 1), (1, 2), (2, 3), (3, 5),
           (0, 4), (4, 5))).compact((x, y) => x + y)
@@ -233,7 +233,7 @@ class TestMultipleSequenceAlignment extends AnyFunSuite {
         (0, 1), (1, 3),
         (0, 2), (2, 3)))) {
       Dag(
-        "^abAB$".toIndexedSeq.map({ x: Char => x.toString }),
+        "^abAB$".toIndexedSeq.map({ (x: Char) => x.toString }),
         Set(
           (0, 1), (1, 2), (2, 5),
           (0, 3), (3, 4), (4, 5))).compact((x, y) => x + y)
@@ -249,7 +249,7 @@ class TestMultipleSequenceAlignment extends AnyFunSuite {
         (0, 4), (4, 5),
         (0, 2), (2, 3)))) {
       Dag(
-        "^aAbBCDEc$".toIndexedSeq.map({ x: Char => x.toString }),
+        "^aAbBCDEc$".toIndexedSeq.map({ (x: Char) => x.toString }),
         Set(
           (0, 2), (2, 4), (4, 5), (5, 6), (6, 7), (7, 9),
           (4, 9),
@@ -263,7 +263,7 @@ class TestMultipleSequenceAlignment extends AnyFunSuite {
       Vector("^", "1", "23", "45", "$"),
       Set((0, 1), (1, 4), (0, 2), (2, 3), (0, 3), (3, 4)))) {
       Dag(
-        "^12345$".toIndexedSeq.map({ x: Char => x.toString }),
+        "^12345$".toIndexedSeq.map({ (x: Char) => x.toString }),
         Set(
           (0, 1), (1, 6),
           (0, 2), (2, 3), (3, 4),
@@ -279,7 +279,7 @@ class TestMultipleSequenceAlignment extends AnyFunSuite {
         (0, 1), (1, 3),
         (0, 2), (2, 3)))) {
       Dag(
-        "^abCDEc$".toIndexedSeq.map({ x: Char => x.toString }),
+        "^abCDEc$".toIndexedSeq.map({ (x: Char) => x.toString }),
         Set(
           (0, 1), (1, 2), (2, 6), (6, 7),
           (2, 3), (3, 4), (4, 5), (5, 7))).compact((x, y) => x + y)
