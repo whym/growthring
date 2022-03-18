@@ -40,7 +40,7 @@ object SimpleHttpServer {
     import scala.util.Properties.{ propOrElse => p }
     val addr = findFreeAddress()
     val s = create(p("host", "localhost"), p("port", addr.getPort.toString).toInt,
-      Range(1, 10).map(x => (p("path" + x, x.toString), p("body" + x, ""))).toMap)
+      Range(1, 10).map(x => (p("path" + x, x.toString), p("body" + x, "OK"))).toMap)
     System.err.println(f"host: ${s.getAddress}")
     s.start
   }

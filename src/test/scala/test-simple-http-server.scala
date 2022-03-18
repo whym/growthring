@@ -16,11 +16,14 @@ import sttp.client3._
 class TestSimpleHttpServer extends AnyFunSuite {
   import util.SimpleHttpServer
   test("simple http server 0") {
+    // launch server
     val a = SimpleHttpServer.findFreeAddress()
     val s = SimpleHttpServer.create("localhost", a.getPort, Map(("/abc", "here be dragons")))
     s.start
     val r = TestSimpleHttpServer.waitUntilPrepared(a, 10000L)
     assert(r)
+
+    // send requests
     val backend = HttpURLConnectionBackend()
     def retrieve(path: String): sttp.client3.Response[Either[String, String]] = {
       basicRequest.get(uri"http://${a.getHostString()}:${a.getPort()}/$path").send(backend)
