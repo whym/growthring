@@ -31,7 +31,7 @@ if __name__ == '__main__':
     parser.add_argument('inputs', nargs='+')
     options = parser.parse_args()
     if options.verbose:
-        print >>sys.stderr, options
+        print(options, file=sys.stderr)
 
     if options.inputs == ['-']:
         options.inputs = [codecs.getreader(options.encoding)(sys.stdin)]
@@ -47,5 +47,5 @@ if __name__ == '__main__':
     random.shuffle(segments)
     for s in segments[0:options.tests]:
         n = number_of_matches(s, olines)
-        print n, repr(s)
+        print(f'{n}, {repr(s)}')
         

@@ -76,7 +76,7 @@ object Main extends LazyLogging {
   def formatSpan(str: String, x: (Int, Int)): String = {
     import org.apache.commons.text.{ StringEscapeUtils => SEU }
     val f = str.slice(x._1, x._2 + 1).replace("\n", " ")
-    f"${x._1}%d\t${x._2}%d\t${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}%s\t${f}%s"
+    s"${x._1}\t${x._2}\t${SEU.escapeJava(new String(str.slice(x._1, x._2 + 1)))}\t${f}"
   }
 
   def findBoundariesAsArray(str: String, pattern: Regex): IndexedSeq[Int] = {

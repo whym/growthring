@@ -39,7 +39,7 @@ def match(stoken, etoken, supp):
 def evaluate(expect, system, suppchar='_'):
     for ((stoken, slabel), (etoken, elabel)) in zip(system, expect):
         if not match(stoken, etoken, suppchar):
-            print >>sys.stderr, 'error: %s vs %s' % (etoken, stoken)
+            print('error: %s vs %s' % (etoken, stoken), file=sys.stderr)
             next
         yield (stoken, slabel, etoken, elabel, ('T' if slabel == elabel else 'F') + ('N' if slabel == '' else 'P'))
 
@@ -107,8 +107,7 @@ if __name__ == '__main__':
                                                                   convert(load_unlabeled(
                                                                       open(system)), options.tag, ratio, options.wildcard),
                                                                   options.wildcard):
-                print >>options.doutput, '# %s\t%s\t%s\t%s\t%s' % (
-                    stoken, slabel, etoken, elabel, res)
+                print('# %s\t%s\t%s\t%s\t%s' % (stoken, slabel, etoken, elabel, res), file=options.doutput)
                 contig[(elabel != '', slabel != '')] += 1
 
             sig = 'unknown'

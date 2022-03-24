@@ -8,3 +8,4 @@ project/metals.sbt
 .bloop
 .metals
 .bsp
+.idea
