@@ -10,7 +10,7 @@
    if ( threshold == null ) { threshold = "140"; }
 
    String base = request.getParameter("base");
-   if ( base == null ) { base = "http://en.wikipedia.org/w"; }
+   if ( base == null ) { base = "https://en.wikipedia.org/w"; }
 
    String method = request.getParameter("reqm");
    if ( method == null ) { method = "POST"; }

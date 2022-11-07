@@ -12,6 +12,7 @@ import org.json4s.{ JObject, JField, JArray, JValue, JInt }
 import org.json4s.native.JsonMethods._
 import org.json4s.JsonDSL._
 import scala.io
+import scala.util.{ Failure, Success, Try }
 import org.apache.commons.text.{ StringEscapeUtils => seu }
 
 /**
@@ -180,20 +181,24 @@ class WikiBlameServlet extends HttpServlet {
     val title = req.getParameter("title")
     val ng = Option(req.getParameter("n")).getOrElse("30").toInt
     val mrevs = Option(req.getParameter("max")).getOrElse("100").toInt
-    val base = Option(req.getParameter("base")).getOrElse("http://en.wikipedia.org/w")
+    val base = Option(req.getParameter("base")).getOrElse("https://en.wikipedia.org/w")
     val revisions = WikiBlameServlet.getRevs(title, base, mrevs)
-    val html = WikiBlameServlet.getHtml(revisions, ng)
-    // write response
-    val writer = resp.getWriter
-    resp.setContentType("application/json")
-    writer.println(
-      compact(render(
-        JObject(List(
-          JField("title", title),
-          JField("nrevs", revisions.size),
-          JField("rev_id", revisions(0).id),
-          JField("timestamp", revisions(0).timestamp),
-          JField("html", html))))))
+    if (revisions.size == 0) {
+      resp.sendError(HttpServletResponse.SC_SEE_OTHER, "revision not found")
+    } else {
+      val html = WikiBlameServlet.getHtml(revisions, ng)
+      // write response
+      val writer = resp.getWriter
+      resp.setContentType("application/json")
+      writer.println(
+        compact(render(
+          JObject(List(
+            JField("title", title),
+            JField("nrevs", revisions.size),
+            JField("rev_id", revisions(0).id),
+            JField("timestamp", revisions(0).timestamp),
+            JField("html", html))))))
+    }
   }
 }
 
@@ -233,9 +238,22 @@ object WikiBlameServlet {
   def getRevs(title: String, base: String, maxRevs: Int): Seq[VersionedString] = {
     import scala.xml.parsing.XhtmlParser
     val url = f"${base}%s/index.php?title=Special:Export&pages=${title}%s&history"
-    (XhtmlParser(io.Source.fromURL(url)) \\ "revision").map {
-      rev => VersionedString((rev \ "timestamp").text.toString, (rev \ "id").text.toInt, (rev \ "text").text.toString, -1)
-    }.sorted(Ordering.by[VersionedString, String](_.timestamp)).reverse
+    System.out.println(url)
+    Try(io.Source.fromURL(url)) match {
+      case Success(src) =>
+        if (src.isEmpty) {
+          System.err.println(f"${url}: empty response")
+          Seq()
+        } else {
+          (XhtmlParser(src) \\ "revision").map {
+            rev => VersionedString((rev \ "timestamp").text.toString, (rev \ "id").text.toInt, (rev \ "text").text.toString, -1)
+          }.sorted(Ordering.by[VersionedString, String](_.timestamp)).reverse
+        }
+      case Failure(e) => {
+        System.err.println(f"${url}: ${e}")
+        Seq()
+      }
+    }
   }
 }
 
