@@ -1,6 +1,6 @@
 // -*- mode: scala -*-
 
-resolvers += Resolver.sonatypeRepo("releases")
+resolvers ++= Resolver.sonatypeOssRepos("releases")
 
 libraryDependencies ++= Seq(
   "com.carrotsearch"   % "jsuffixarrays" % "0.1.0",
@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   "org.json4s"        %% "json4s-native" % "4.0.4",
   "com.typesafe"       % "config"        % "1.3.4",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
-  "ch.qos.logback"     % "logback-classic" % "1.2.3",
+  "ch.qos.logback"     % "logback-classic" % "1.2.11",
   "com.softwaremill.sttp.client3" %% "core" % "3.5.1" % "test",
   "org.scalatest"     %% "scalatest"     % "3.2.10" % "test",
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % "test",
@@ -29,7 +29,7 @@ enablePlugins(TomcatPlugin)
 lazy val root = (project in file(".")).
   enablePlugins(BuildInfoPlugin).
   settings(
-    scalaVersion := "3.1.1",
+    scalaVersion := "3.2.2",
     organization := "org.whym",
     name := "growthring",
     version := "0.6-SNAPSHOT",
