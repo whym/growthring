@@ -5,10 +5,11 @@
 
 package org.whym.growthring
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.collection.IndexedSeqView
 import scala.annotation.tailrec
+import scala.util.boundary, boundary.break
 
 /**
   * Given spans, fill the parent sequence with some of the spans so that no overlap nor concatenation happens
@@ -20,13 +21,13 @@ object Covering {
   def overlaps(x: (Int, Int), y: (Int, Int)) =
     (x != y && ((x._2 - y._1 + 2) * (x._1 - y._2 - 2) < 0))
 
-  def hasOverlap(xx: Iterable[(Int, Int)], yy: Iterable[(Int, Int)]): Boolean = {
-    for (x <- xx; y <- yy; if overlaps(x, y)) {
-      return true
-    }
-    return false
+  def hasOverlap(xx: Iterable[(Int, Int)], yy: Iterable[(Int, Int)]): Boolean =
+    boundary:
+      for (x <- xx; y <- yy; if overlaps(x, y))
+        do break(true)
+      false
     //TODO: spans(x._1) = x._2 なる配列を使ったほうが速そう
-  }
+
   def hasOverlap(x: Iterable[(Int, Int)]): Boolean = hasOverlap(x, x)
 
   def dp_(rp2: Seq[(Int, Int)], gap: Int): Set[Int] = {

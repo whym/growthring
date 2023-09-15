@@ -5,7 +5,7 @@
 
 import org.whym.growthring._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import org.scalatest.funsuite.AnyFunSuite
 

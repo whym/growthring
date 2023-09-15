@@ -5,7 +5,7 @@
 
 package org.whym.growthring
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.{ mutable, immutable }
 import com.typesafe.scalalogging.LazyLogging
 import java.{ io => jio }

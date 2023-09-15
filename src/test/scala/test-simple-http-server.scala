@@ -3,7 +3,7 @@
   *
   */
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import java.io.{ Writer, PrintWriter, StringWriter, BufferedWriter, OutputStreamWriter }
 import java.net.{ Socket, ServerSocket, InetSocketAddress }
 import scala.io

@@ -5,7 +5,7 @@
 
 package org.whym.growthring
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
 import javax.servlet.ServletConfig
 import org.json4s.{ JObject, JField, JArray, JValue, JInt }
