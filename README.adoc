@@ -1,0 +1,61 @@
+== GrowthRing
+:!toc:
+
+*GrowthRing* is a collections of attempts to visualize how a document grows over revisions. It contains:
+
+* a multiple sequence alignment tool for texts, written in Scala.
+* an interactive demo of text de-identification.
+
+This software was in part used for a research paper presented in PACLIC 2014: *_k_-repeating substrings: a string-algorithmic approach to privacy-preserving publishing of textual data*. (https://aclanthology.org/Y14-1075/[paper], https://drive.google.com/file/d/1_euzu8GrMHqpQUNCP8ovE0QsVuLkhAW9/view?usp=sharing[slides])
+
+=== How to use
+
+_https://www.scala-sbt.org/[sbt] and Java Development Kit (JDK) are required both for building and using this application_. Latest release is built with sbt 1.8.2 and openjdk 11.0.21.
+
+This application has a number of parameters that are set by a configuration file (or by Java properties). See `src/main/resources/reference.conf` for the default values and `.conf` files at the top level of the repository for other examples.`
+
+==== Using the web interface
+
+. `sbt "~Tomcat / start"&`
+. `xdg-open http://localhost:8080` # or open http://localhost:8080 on your browser
+
+==== Using the multiple sequence aligner
+
+. `sbt assembly`
+. `java -Dconfig.file=msa.conf -jar target/scala-\*/growthring-assembly-*.jar < sample_input.txt | dot /dev/stdin -Tpdf -o sample_output.pdf`
+
+==== Using the de-identifier
+
+. `sbt assembly`
+. `java -Dconfig.file=anonym.conf -jar target/scala-\*/growthring-assembly-*.jar < sample_input.txt > sample_output.txt`
+
+===== Using SAIS
+
+_Note: instructions below have not been tested for years and probably need updating._
+
+Better performance might be achieved by SAIS, which you need to install as separate a native library separately.
+
+. Use the command below to get the shared library version of https://sites.google.com/site/yuta256/sais[SAIS]. You may need to add `-fPIC` to `CFLAGS` in the Makefile.
+* `make && ld -shared sais.o -o libsais.so`
+. Put `libsais.so` into any directory included by `LD_LIBRARY_PATH` (or current directory).
+. Use `java -Xss50M -Dconfig.file=sais.conf -jar target/scala-\*/growthring-assembly-*.jar` or otherwise specify `-Dorg.whym.growthring.repeatsMethod=sais`.
+
+==== Launching as an App Engine app (devserver)
+
+_Note: instructions below have not been tested for years and probably need updating._
+
+. `sbt publishM2`
+. `mvn -f pom-gae.xml appengine:devserver`
+. `xdg-open http://localhost:8080` # or open http://localhost:8080 on your browser
+
+=== How to compile
+
+The above procedures will automatically invoke compilation, but if you specifically want to compile:
+
+* Build sources with `sbt compile`.
+* Format sources with `sbt "Compile / scalariformFormat"`.
+
+=== Credits
+
+* Yusuke Matsubara <whym@whym.org>
+* See https://meta.wikimedia.org/wiki/Talk:Vision/ja for credits of the texts contained in `sample_input.txt`
