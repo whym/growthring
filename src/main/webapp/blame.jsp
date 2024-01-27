@@ -29,7 +29,7 @@
 <meta name="description" content="repeat detection in strings" />
 <meta name="keywords" content="growthring,growth-ring,multiple-sequence-analysis,maximum-repeats,suffix-arrays" />
 <meta name="robots" content="INDEX,FOLLOW" />
-<link rev="made" href="http://whym.org" />
+<link rev="made" href="https://whym.org" />
 <link rel="INDEX" href="." />
 <title>growthring<%= request.toString() %></title>
 <script type="text/javascript" src="resources/jquery.js"></script>

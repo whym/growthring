@@ -32,7 +32,7 @@ lazy val root = (project in file(".")).
     scalaVersion := "3.3.0",
     organization := "org.whym",
     name := "growthring",
-    version := "0.6-SNAPSHOT",
+    version := "0.7-SNAPSHOT",
     scalacOptions ++= Seq(
       "-deprecation",
       "-unchecked",

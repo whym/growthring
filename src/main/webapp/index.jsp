@@ -29,7 +29,7 @@
 <meta name="description" content="repeat detection in strings" />
 <meta name="keywords" content="growthring,growth-ring,multiple-sequence-analysis,maximum-repeats,suffix-arrays" />
 <meta name="robots" content="INDEX,FOLLOW" />
-<link rev="made" href="http://whym.org" />
+<link rev="made" href="https://whym.org" />
 <link rel="INDEX" href="." />
 <title>growthring<%= str.equals("") ? "": " - " + snippet%></title>
 <!-- q=<%=str%> n=<%=threshold%> min=<%=min_len%> method=<%=method%> -->
@@ -251,7 +251,7 @@ border-bottom-left-radius: .3em;
 
 <p id="busy"></p>
 <address>
-<a href="http://whym.org">whym.org</a>
+<a href="https://whym.org">whym.org</a>
 </address>
 <!--
 <%=org.whym.growthring.BuildInfo.toMap().mkString(",\n")%>
