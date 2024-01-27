@@ -148,7 +148,7 @@ class TestFindRepeatsServlet extends AnyFunSuite with MockitoSugar {
 }
 
 class TestWikiBlameServlet extends AnyFunSuite with MockitoSugar {
-  def get(): JValue = {
+  object MockedResponse1 {
     val response = mock[HttpServletResponse]
     val request = mock[HttpServletRequest]
     val stringWriter = new StringWriter
@@ -162,7 +162,7 @@ class TestWikiBlameServlet extends AnyFunSuite with MockitoSugar {
     when(request.getParameter("title")).thenReturn("Main_page")
     when(request.getParameter("n")).thenReturn("3")
 
-    SimpleHttpServer.create("localhost", port,
+    val server = SimpleHttpServer.create("localhost", port,
       Map(("/index.php", <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http:
 //www.mediawiki.org/xml/export-0.8/ http://www.mediawiki.org/xml/export-0.8.xsd" version="0.8" xml:lang="ja">
                            <siteinfo>
@@ -214,12 +214,18 @@ class TestWikiBlameServlet extends AnyFunSuite with MockitoSugar {
                                <format>text/x-wiki</format>
                              </revision>
                            </page>
-                         </mediawiki>.toString))).start
-    TestSimpleHttpServer.waitUntilPrepared(addr, 1000L)
-    new WikiBlameServlet().doGet(request, response)
-    return parse(stringWriter.toString)
+                         </mediawiki>.toString)))
+    try {
+      server.start
+      TestSimpleHttpServer.waitUntilPrepared(addr, 1000L)
+      new WikiBlameServlet().doGet(request, response)
+    } finally {
+      server.stop(0)
+    }
+    val result = parse(stringWriter.toString)
   }
-  val json = get()
+
+  val json = MockedResponse1.result
 
   test("wiki blame servlet") {
     assertResult(JString("Main_page")) {

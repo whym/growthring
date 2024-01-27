@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   "com.typesafe"       % "config"        % "1.3.4",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
   "ch.qos.logback"     % "logback-classic" % "1.2.11",
-  "com.softwaremill.sttp.client3" %% "core" % "3.5.1" % "test",
+  "com.softwaremill.sttp.client3" %% "core" % "3.9.2" % "test",
   "org.scalatest"     %% "scalatest"     % "3.2.10" % "test",
   "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % "test",
 )

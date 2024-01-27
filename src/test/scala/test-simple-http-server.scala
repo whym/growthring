@@ -42,6 +42,7 @@ object TestSimpleHttpServer {
         sock.close
         return true
       } else {
+        sock.close
         if (System.currentTimeMillis - start > limit) {
           return false
         }

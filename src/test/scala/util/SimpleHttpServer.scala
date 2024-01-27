@@ -5,7 +5,7 @@ import java.io.IOException
 import com.sun.net.httpserver.{ HttpServer, HttpHandler, HttpExchange }
 
 object SimpleHttpServer {
-  class MyHandler(body: String, ctype: String) extends HttpHandler {
+  class MyHandler(path: String, body: String, ctype: String) extends HttpHandler {
     @throws[IOException] override def handle(exchange: HttpExchange): Unit = {
       val response = body.getBytes()
       exchange.sendResponseHeaders(
@@ -24,7 +24,7 @@ object SimpleHttpServer {
       val ctype = if (body.size > 0 && body(0) == '<') { "text/xml" }
       else if (body.size > 0 && body(0) == '{') { "application/json" }
       else { "text/plain" }
-      httpServer.createContext(if (path(0) == '/') { path } else { "/" + path }, new MyHandler(body, ctype))
+      httpServer.createContext(if (path(0) == '/') { path } else { "/" + path }, new MyHandler(path, body, ctype))
     }
     httpServer
   }

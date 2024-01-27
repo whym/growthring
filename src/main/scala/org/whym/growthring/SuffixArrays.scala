@@ -7,6 +7,7 @@ package org.whym.growthring
 
 import scala.jdk.CollectionConverters._
 import scala.collection.{ mutable, immutable }
+import scala.util.boundary, boundary.break
 import com.typesafe.scalalogging.LazyLogging
 import java.{ io => jio }
 import java.nio
@@ -252,15 +253,12 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
   }
   private def _lowerbound(q: Array[Int]): Int = {
     def cmp(i: Int): Int = {
-      for (j <- Range(0, q.size)) {
-        if (sa(i) + j >= arr.size) {
-          return -1
-        }
-        if (q(j) != arr(sa(i) + j)) {
-          return arr(sa(i) + j) - q(j)
-        }
-      }
-      return 0
+      boundary:
+        for j <- Range(0, q.size)
+        do
+          if (sa(i) + j >= arr.size) then break(-1)
+          else if (q(j) != arr(sa(i) + j)) then break(arr(sa(i) + j) - q(j))
+        0
     }
     var l = -1
     var r = arr.size
@@ -279,15 +277,12 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
   }
   private def _upperbound(q: Array[Int]): Int = {
     def cmp(i: Int): Int = {
-      for (j <- Range(0, q.size)) {
-        if (sa(i) + j >= arr.size) {
-          return +1
-        }
-        if (q(j) != arr(sa(i) + j)) {
-          return arr(sa(i) + j) - q(j)
-        }
-      }
-      return 0
+      boundary:
+        for j <- Range(0, q.size)
+        do
+          if (sa(i) + j >= arr.size) then break(+1)
+          else if (q(j) != arr(sa(i) + j)) then break(arr(sa(i) + j) - q(j))
+        0
     }
     var l = -1
     var r = arr.size
