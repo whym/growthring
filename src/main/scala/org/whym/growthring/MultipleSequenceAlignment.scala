@@ -7,6 +7,7 @@ package org.whym.growthring
 
 import scala.jdk.CollectionConverters._
 import scala.collection.{ mutable, immutable }
+import scala.util.boundary, boundary.break
 import scala.reflect.ClassTag
 
 /**
@@ -262,19 +263,19 @@ case class Dag[T: ClassTag](nodes: immutable.IndexedSeq[T], edges: Set[(Int, Int
           None
         }
       }
-    if (seq.size == 0) {
-      Some(List())
-    } else {
-      val rseq = seq.reverse.map(x => id2(x))
-      for (i <- 0.until(nodes.size)) {
-        if (rseq.head == id(nodes(i))) {
-          val r = _trace(rseq.tail, List(i))
-          if (r != None) {
-            return r
+    boundary {
+      if (seq.size == 0) {
+        Some(List())
+      } else {
+        val rseq = seq.reverse.map(x => id2(x))
+        for (i <- 0.until(nodes.size)) {
+          if (rseq.head == id(nodes(i))) {
+            val r = _trace(rseq.tail, List(i))
+            if r != None then break(r)
           }
         }
+        None
       }
-      return None
     }
   }
 

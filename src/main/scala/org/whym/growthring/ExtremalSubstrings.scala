@@ -112,7 +112,7 @@ class ExtremalSubstrings(array: SuffixArrays) extends LazyLogging {
     logger.info(s"start maxRepeats(${n})")
     val lcpm = gen_lcp_table(n)
     val mr = Array.fill(this.arr.size + n + 1)(this.arr.size)
-    logger.info(s"start main loop")
+    logger.info("start main loop")
     for (
       i <- 0 until this.arr.size;
       l = ((i - n + 2) until (i + 2)).map(lcpm).max;
@@ -130,7 +130,7 @@ class ExtremalSubstrings(array: SuffixArrays) extends LazyLogging {
 
       mr(p) = mr(p) min this.sa(i)
     }
-    logger.info(s"start subsume")
+    logger.info("start subsume")
     return subsumeShorter(immutable.ArraySeq.unsafeWrapArray(mr.zipWithIndex.filter(x => x._1 <= this.arr.size - 1).
       map(roundMin).filter(x => x._1 <= x._2)))
   }
@@ -139,7 +139,7 @@ class ExtremalSubstrings(array: SuffixArrays) extends LazyLogging {
     logger.info(s"start minUniques(${n})")
     val lcpm = gen_lcp_table(n)
     val mu = Array.fill(this.arr.size + n + 1)(-1)
-    logger.info(s"start main loop")
+    logger.info("start main loop")
     for (
       i <- 0 until this.arr.size;
       l = ((i - n + 2) until (i + 2)).map(lcpm).max
@@ -150,7 +150,7 @@ class ExtremalSubstrings(array: SuffixArrays) extends LazyLogging {
         mu(p) = mu(p) max this.sa(i)
       }
     }
-    logger.info(s"start subsume")
+    logger.info("start subsume")
     return subsumeLonger(immutable.ArraySeq.unsafeWrapArray(mu.zipWithIndex.filter(x => x._1 >= 0 && x._2 <= this.arr.size - 1).
       map(roundMax).filter(x => x._1 <= x._2)))
   }
