@@ -1,19 +1,23 @@
 /**
-  *  @author Yusuke Matsubara <whym@whym.org>
-  *
+  * @author
+  *   Yusuke Matsubara <whym@whym.org>
   */
 
 package org.whym.growthring
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.collection.mutable
 import scala.util.matching.Regex
-import org.whym.growthring.{ NaiveExtremalSubstrings => NES }
+import org.whym.growthring.{NaiveExtremalSubstrings as NES}
 
 class WordRepeats(sep: Regex = "[ \u3000　\n\r	\t]+".r) {
   def repeats(str: String, k: Int) = {
     val counts = mutable.MultiDict[String, (Int, Int)]()
-    for (s <- ((0, 0) +: (sep findAllMatchIn str).map(x => (x.start, x.end)).toList :+ (str.length, str.length)).sliding(2)) {
+    for
+      s <- ((0, 0) +: (sep findAllMatchIn str).map(x =>
+        (x.start, x.end)
+      ).toList :+ (str.length, str.length)).sliding(2)
+    do {
       val start = s(0)._2
       val end = s(1)._1 - 1
       counts += ((str.slice(start, end + 1), (start, end)))

@@ -1,17 +1,18 @@
 /**
-  *  @author Yusuke Matsubara <whym@whym.org>
-  *
+  * @author
+  *   Yusuke Matsubara <whym@whym.org>
   */
 
 package org.whym.growthring
 
-import scala.jdk.CollectionConverters._
-import scala.collection.{ mutable, immutable }
+import scala.jdk.CollectionConverters.*
+import scala.collection.{mutable, immutable}
 
 /**
   * Maximal repeats and minimal unique substrings via enumerating all substrings
   *
-  *  @author Yusuke Matsubara <whym@whym.org>
+  * @author
+  *   Yusuke Matsubara <whym@whym.org>
   */
 object NaiveExtremalSubstrings {
 
@@ -19,7 +20,8 @@ object NaiveExtremalSubstrings {
     def length = end - start
     def head_removed = Substring(parent, start + 1, end)
     def last_removed = Substring(parent, start, end - 1)
-    override def equals(x: Any) = x.isInstanceOf[Substring] && slice == x.asInstanceOf[Substring].slice
+    override def equals(x: Any) =
+      x.isInstanceOf[Substring] && slice == x.asInstanceOf[Substring].slice
     def equalsAsString(x: Any) = slice == x
     private def slice = parent.substring(start, end)
     private val _hash = slice.hashCode
@@ -36,7 +38,7 @@ object NaiveExtremalSubstrings {
 
   def count[T](seq: Seq[T]): Map[T, Seq[T]] = {
     val counts = new mutable.HashMap[T, List[T]] withDefault (_ => List())
-    for (s <- seq) {
+    for s <- seq do {
       counts(s) = s :: counts(s)
     }
     return counts.toMap
@@ -45,10 +47,10 @@ object NaiveExtremalSubstrings {
   def countBounded[T](seq: Seq[T], bound: Int): Map[T, Seq[T]] = {
     val counts = new mutable.HashMap[T, List[T]] withDefault (_ => List())
     val overflown = new mutable.HashSet[T]
-    for (s <- seq) {
-      if (!(overflown contains s)) {
+    for s <- seq do {
+      if !(overflown contains s) then {
         counts(s) = s :: counts(s)
-        if (counts(s).size > bound) {
+        if counts(s).size > bound then {
           counts.remove(s)
           overflown += s
         }
@@ -57,28 +59,33 @@ object NaiveExtremalSubstrings {
     return counts.toMap
   }
 
-  def find(body: String, q: String): Seq[Int] = substrings(body).filter(_.equalsAsString(q)).map(_.start)
+  def find(body: String, q: String): Seq[Int] =
+    substrings(body).filter(_.equalsAsString(q)).map(_.start)
 
   def minimals(set: Set[(Int, Int)]): Set[(Int, Int)] =
     set.filter(self => {
       !(set contains (self._1 + 1, self._2)) &&
-        !(set contains (self._1, self._2 - 1))
+      !(set contains (self._1, self._2 - 1))
     })
 
   def maximals(set: Set[(Int, Int)]): Set[(Int, Int)] =
     set.filter(self => {
       !(set contains (self._1 - 1, self._2)) &&
-        !(set contains (self._1, self._2 + 1))
+      !(set contains (self._1, self._2 + 1))
     })
 
   def minUniques(str: String, threshold: Int = 2) = {
     val counts = countBounded(substrings(str), threshold - 1)
-    minimals(counts.values.flatten.map(x => (x.start, x.end - 1)).toSet).toList.sorted
+    minimals(
+      counts.values.flatten.map(x => (x.start, x.end - 1)).toSet
+    ).toList.sorted
   }
 
   def maxRepeats(str: String, threshold: Int = 2) = {
     val counts = count(substrings(str)).filter(x => x._2.size >= threshold)
-    maximals(counts.values.flatten.map(x => (x.start, x.end - 1)).toSet).toList.sorted
+    maximals(
+      counts.values.flatten.map(x => (x.start, x.end - 1)).toSet
+    ).toList.sorted
   }
 
 }

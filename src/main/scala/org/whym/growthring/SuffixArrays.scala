@@ -1,21 +1,22 @@
 /**
-  *  @author Yusuke Matsubara <whym@whym.org>
-  *
+  * @author
+  *   Yusuke Matsubara <whym@whym.org>
   */
 
 package org.whym.growthring
 
-import scala.jdk.CollectionConverters._
-import scala.collection.{ mutable, immutable }
+import scala.jdk.CollectionConverters.*
+import scala.collection.{mutable, immutable}
 import scala.util.boundary, boundary.break
 import com.typesafe.scalalogging.LazyLogging
-import java.{ io => jio }
+import java.{io as jio}
 import java.nio
 
 /**
   * Suffix array utilities
   *
-  *  @author Yusuke Matsubara <whym@whym.org>
+  * @author
+  *   Yusuke Matsubara <whym@whym.org>
   */
 object SuffixArrays extends LazyLogging {
 
@@ -24,11 +25,11 @@ object SuffixArrays extends LazyLogging {
 
   /**
     * Conversion from a string to an array of unsigned chars (in int array).
-    *  Needed for using the SAIS library which requires [0,255] values.
+    * Needed for using the SAIS library which requires [0,255] values.
     */
   def stringToUchars(str: String): Array[Int] = {
     val array = Array.fill(str.size * 2)(0)
-    for ((x, i) <- str.toCharArray.zipWithIndex) {
+    for (x, i) <- str.toCharArray.zipWithIndex do {
       array(i * 2) = x & 0xFF
       array(i * 2 + 1) = (x >>> 8) & 0xFF
     }
@@ -47,27 +48,30 @@ object SuffixArrays extends LazyLogging {
 
   def getInverse(pos: Array[Int]): Array[Int] = {
     val rank = Array.fill(pos.size)(0)
-    for ((v, i) <- pos.zipWithIndex) {
+    for (v, i) <- pos.zipWithIndex do {
       rank(pos(i)) = i
     }
     return rank
   }
+
   /**
-    * Calculating a longest common prefix array from a suffix array.
-    *  Adapted from "Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and Its Applications" (Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa and Kunsoo Park, 2009)
+    * Calculating a longest common prefix array from a suffix array. Adapted
+    * from "Linear-Time Longest-Common-Prefix Computation in Suffix Arrays and
+    * Its Applications" (Toru Kasai, Gunho Lee, Hiroki Arimura, Setsuo Arikawa
+    * and Kunsoo Park, 2009)
     */
   def getHeight(text: Array[Int], pos: Array[Int]): Array[Int] = {
     val n = text.size
     val height = Array.fill(n)(0)
     val rank = getInverse(pos)
     var h = 0
-    for (i <- 0 until n; if rank(i) > 0) {
+    for i <- 0 until n; if rank(i) > 0 do {
       val j = pos(rank(i) - 1)
-      while (i + h < n && j + h < n && text(i + h) == text(j + h)) {
+      while i + h < n && j + h < n && text(i + h) == text(j + h) do {
         h += 1
       }
       height(rank(i)) = h
-      if (h > 0) {
+      if h > 0 then {
         h -= 1
       }
     }
@@ -76,10 +80,10 @@ object SuffixArrays extends LazyLogging {
 
   def buildSais(arr: Array[Int]): SuffixArrays = {
     logger.info("start sais build")
-    import com.sun.jna.{ Library, Native, Memory, Pointer }
+    import com.sun.jna.{Library, Native, Memory, Pointer}
     trait SAIS extends Library {
       def sais(s: Pointer, p: Pointer, n: Int): Int
-      //def sais_int(s: Pointer, p: Pointer, n: Int, k: Int): Int
+      // def sais_int(s: Pointer, p: Pointer, n: Int, k: Int): Int
     }
     logger.info("load sais")
     val sais = Native.load("sais", classOf[SAIS]).asInstanceOf[SAIS]
@@ -88,7 +92,7 @@ object SuffixArrays extends LazyLogging {
     mem1.write(0, arr.map(_.asInstanceOf[Byte]).toArray, 0, arr.size)
     logger.info("start sais")
     sais.sais(mem1, mem2, arr.size)
-    //sais.sais_int(mem1, mem2, arr.size, 256)
+    // sais.sais_int(mem1, mem2, arr.size, 256)
     val sa = Array.tabulate(arr.size)(i => mem2.getInt(i * 4))
     logger.info("start lcp")
     SuffixArrays(arr, sa, getHeight(arr, sa))
@@ -96,9 +100,10 @@ object SuffixArrays extends LazyLogging {
 
   def buildJsuffixarrays(arr: Array[Int]): SuffixArrays = {
     logger.info("start jsuffixarrays build")
-    import org.{ jsuffixarrays => JSA }
+    import org.{jsuffixarrays as JSA}
     val builder = new JSA.DivSufSort()
-    val sadata = JSA.SuffixArrays.createWithLCP(arr.toArray, 0, arr.size, builder)
+    val sadata =
+      JSA.SuffixArrays.createWithLCP(arr.toArray, 0, arr.size, builder)
     SuffixArrays(arr, sadata.getSuffixArray, sadata.getLCP)
   }
 
@@ -122,9 +127,14 @@ object SuffixArrays extends LazyLogging {
   }
   // format: ON
 
-  def store(a: SuffixArrays, out: jio.FileOutputStream): Option[Int] = store(a.arr, a.sa, out)
+  def store(a: SuffixArrays, out: jio.FileOutputStream): Option[Int] =
+    store(a.arr, a.sa, out)
 
-  def store(array: Array[Int], sa: Array[Int], out: jio.FileOutputStream): Option[Int] = {
+  def store(
+      array: Array[Int],
+      sa: Array[Int],
+      out: jio.FileOutputStream
+  ): Option[Int] = {
     val fc = out.getChannel
     val header = nio.ByteBuffer.allocate(HEAD.length + INTSIZE)
     var size = 0
@@ -134,14 +144,14 @@ object SuffixArrays extends LazyLogging {
     size += fc.write(header)
 
     val ints = nio.ByteBuffer.allocate(INTSIZE * sa.length)
-    for (x <- sa) {
+    for x <- sa do {
       ints.putInt(x)
     }
     ints.flip
     size += fc.write(ints)
 
     val chars = nio.ByteBuffer.allocate(array.length)
-    for (x <- array) {
+    for x <- array do {
       chars.put((x - 128).asInstanceOf[Byte])
     }
     chars.flip
@@ -158,7 +168,7 @@ object SuffixArrays extends LazyLogging {
     val hbytes = new Array[Byte](HEAD.length)
     header.clear
     header.get(hbytes)
-    if (new String(hbytes) != new String(HEAD)) {
+    if new String(hbytes) != new String(HEAD) then {
       println("wrong header: " + hbytes)
       return None
     }
@@ -177,7 +187,8 @@ object SuffixArrays extends LazyLogging {
     Some(SuffixArrays(
       arr,
       sa,
-      getHeight(arr, sa)))
+      getHeight(arr, sa)
+    ))
   }
 
   case class NodePointer(left: Int, right: Int, depth: Int)
@@ -185,36 +196,40 @@ object SuffixArrays extends LazyLogging {
 }
 
 case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
-  import SuffixArrays._
+  import SuffixArrays.*
 
   def internalNodes(): IndexedSeq[NodePointer] = {
     val nodes = new mutable.ArrayBuffer[NodePointer]
     val stack = new mutable.Stack[StackCell]
     val n = arr.size
     stack.push(StackCell(-1, -1))
-    for (i <- Range(0, n)) {
-      var cur = StackCell(i, if (i == n) { -1 } else { lcp(i) })
+    for i <- Range(0, n) do {
+      var cur = StackCell(
+        i,
+        if i == n then { -1 }
+        else { lcp(i) }
+      )
       var cand = stack.head
-      while (cand.depth > cur.depth) {
-        if (i - cand.left > 1) {
+      while cand.depth > cur.depth do {
+        if i - cand.left > 1 then {
           nodes.append(NodePointer(cand.left, i, cand.depth))
         }
         cur = StackCell(cand.left, cur.depth)
         stack.pop()
         cand = stack.head
       }
-      if (cand.depth < cur.depth) {
+      if cand.depth < cur.depth then {
         stack.push(cur)
       }
       stack.push(StackCell(i, n - sa(i) + 1))
     }
     nodes.toIndexedSeq
   }
-  def bwt(i: Int): Int = if (i < 0) {
+  def bwt(i: Int): Int = if i < 0 then {
     bwt((i / this.arr.size - 1) * -this.arr.size)
-  } else if (i >= this.arr.size) {
+  } else if i >= this.arr.size then {
     bwt(i % this.arr.size)
-  } else if (sa(i) == 0) {
+  } else if sa(i) == 0 then {
     this.arr(this.arr.size - 1)
   } else {
     this.arr(sa(i) - 1)
@@ -225,10 +240,10 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
   def okanohara(threshold: Int = 2): Seq[NodePointer] = {
     var r = 0
     val rank = Array.fill(this.arr.size)(0)
-    for (i <- Range(1, arr.size)) {
-      if (sa(i) - 1 < 0 || sa(i - 1) - 1 < 0) {
+    for i <- Range(1, arr.size) do {
+      if sa(i) - 1 < 0 || sa(i - 1) - 1 < 0 then {
         r += 1
-      } else if (bwt(i) != bwt(i - 1)) {
+      } else if bwt(i) != bwt(i - 1) then {
         r += 1
       }
       rank(i) = r
@@ -243,7 +258,9 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
     }
   }
   def okanohara_repeats(threshold: Int = 2): Seq[Repeat] = {
-    okanohara(threshold).map(x => Repeat(x.depth, Range(x.left, x.right).map(i => sa(i)).toSet))
+    okanohara(threshold).map(x =>
+      Repeat(x.depth, Range(x.left, x.right).map(i => sa(i)).toSet)
+    )
   }
   def find(q: String): Seq[Int] = find(stringToUchars(q))
   def find(q: Array[Int]): Seq[Int] = {
@@ -256,18 +273,18 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
       boundary:
         for j <- Range(0, q.size)
         do
-          if (sa(i) + j >= arr.size) then break(-1)
-          else if (q(j) != arr(sa(i) + j)) then break(arr(sa(i) + j) - q(j))
+          if sa(i) + j >= arr.size then break(-1)
+          else if q(j) != arr(sa(i) + j) then break(arr(sa(i) + j) - q(j))
         0
     }
     var l = -1
     var r = arr.size
-    while (true) {
+    while true do {
       var m = l + (r - l) / 2
-      if (m <= l) {
+      if m <= l then {
         return r
       }
-      if (cmp(m) < 0) {
+      if cmp(m) < 0 then {
         l = m
       } else {
         r = m
@@ -280,18 +297,18 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
       boundary:
         for j <- Range(0, q.size)
         do
-          if (sa(i) + j >= arr.size) then break(+1)
-          else if (q(j) != arr(sa(i) + j)) then break(arr(sa(i) + j) - q(j))
+          if sa(i) + j >= arr.size then break(+1)
+          else if q(j) != arr(sa(i) + j) then break(arr(sa(i) + j) - q(j))
         0
     }
     var l = -1
     var r = arr.size
-    while (true) {
+    while true do {
       var m = l + (r - l) / 2
-      if (m <= l) {
+      if m <= l then {
         return r
       }
-      if (cmp(m) <= 0) {
+      if cmp(m) <= 0 then {
         l = m
       } else {
         r = m
@@ -300,4 +317,3 @@ case class SuffixArrays(arr: Array[Int], sa: Array[Int], lcp: Array[Int]) {
     return l + 1
   }
 }
-

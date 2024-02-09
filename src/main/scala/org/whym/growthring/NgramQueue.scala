@@ -1,6 +1,6 @@
 /**
-  *  @author Yusuke Matsubara <whym@whym.org>
-  *
+  * @author
+  *   Yusuke Matsubara <whym@whym.org>
   */
 
 package org.whym.growthring
@@ -9,10 +9,13 @@ import scala.collection.mutable
 
 class NgramQueue[T](val minSize: Int, val maxSize: Int) {
   private var n = 0
-  private val queues = (minSize to maxSize).reverse.map(n => new SlidingQueue[T](n))
+  private val queues =
+    (minSize to maxSize).reverse.map(n => new SlidingQueue[T](n))
 
   def getNgrams() =
-    queues.filter(q => q.size == q.maxSize).map(_.toList) // return queues that are filled
+    queues.filter(q => q.size == q.maxSize).map(
+      _.toList
+    ) // return queues that are filled
 
   def clear() = {
     n = 0
@@ -27,7 +30,7 @@ class NgramQueue[T](val minSize: Int, val maxSize: Int) {
 class SlidingQueue[A](val maxSize: Int) extends mutable.Queue[A] {
   override def enqueue(e: A) = {
     super.enqueue(e)
-    if (this.size > this.maxSize) {
+    if this.size > this.maxSize then {
       this.dequeue()
     }
     this
@@ -37,7 +40,7 @@ class SlidingQueue[A](val maxSize: Int) extends mutable.Queue[A] {
     super.enqueue(e1)
     super.enqueue(e2)
     super.enqueueAll(elems)
-    while (this.size > this.maxSize) {
+    while this.size > this.maxSize do {
       this.dequeue()
     }
     this

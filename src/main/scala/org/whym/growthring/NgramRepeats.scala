@@ -1,11 +1,11 @@
 /**
-  *  @author Yusuke Matsubara <whym@whym.org>
-  *
+  * @author
+  *   Yusuke Matsubara <whym@whym.org>
   */
 
 package org.whym.growthring
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.collection.mutable
 
 class NgramRepeats(val n: Int) {
@@ -14,10 +14,12 @@ class NgramRepeats(val n: Int) {
     val pos = mutable.MultiDict[Seq[Character], Int]()
     for ((s, i) <- str.toList.zipWithIndex) yield {
       ng enqueue s
-      for (x <- ng.getNgrams().map(_.toSeq)) {
+      for x <- ng.getNgrams().map(_.toSeq) do {
         pos += ((x, i))
       }
     }
-    pos.sets.filter(_._2.size >= k).keys.map(x => pos.get(x).map(y => (y - x.length + 1, y)).toSet).flatten.toList
+    pos.sets.filter(_._2.size >= k).keys.map(x =>
+      pos.get(x).map(y => (y - x.length + 1, y)).toSet
+    ).flatten.toList
   }
 }
