@@ -53,7 +53,6 @@ _Note: instructions below have not been tested for years and probably need updat
 The above procedures will automatically invoke compilation, but if you specifically want to compile:
 
 * Build sources with `sbt compile`.
-* Format sources with `sbt "Compile / scalariformFormat"`.
 
 === Credits
 
