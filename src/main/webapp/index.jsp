@@ -254,7 +254,7 @@ border-bottom-left-radius: .3em;
 <a href="https://whym.org">whym.org</a>
 </address>
 <!--
-<%=org.whym.growthring.BuildInfo.toMap().mkString(",\n")%>
+<%=org.whym.growthring.Main.buildInfo()%>
 -->
 </body>
 </html>
