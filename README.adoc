@@ -10,7 +10,7 @@ This software was in part used for a research paper presented in PACLIC 2014: *_
 
 === How to use
 
-_https://www.scala-sbt.org/[sbt] and Java Development Kit (JDK) are required both for building and using this application_. Latest release is built with sbt 1.8.2 and openjdk 11.0.21.
+_https://www.scala-sbt.org/[sbt] and Java Development Kit (JDK) are required both for building and using this application_. Latest release is built with sbt 1.10.0 and openjdk 21.0.3.
 
 This application has a number of parameters that are set by a configuration file (or by Java properties). See `src/main/resources/reference.conf` for the default values and `.conf` files at the top level of the repository for other examples.`
 

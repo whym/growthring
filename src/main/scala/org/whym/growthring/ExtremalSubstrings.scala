@@ -44,12 +44,10 @@ object ExtremalSubstrings {
     }
 
   def roundMax(x: (Int, Int)): (Int, Int) =
-    ((x._1 - (x._1 & 1)) / 2,
-      x._2 / 2)
+    ((x._1 - (x._1 & 1)) / 2, x._2 / 2)
 
   def roundMin(x: (Int, Int)): (Int, Int) =
-    ((x._1 + (x._1 & 1)) / 2,
-      (x._2 - ((x._2 + 1) & 1)) / 2)
+    ((x._1 + (x._1 & 1)) / 2, (x._2 - ((x._2 + 1) & 1)) / 2)
 
   // def slidingMinimums(n: Int, arr: IndexedSeq[Int]): IndexedSeq[Int] = {
   //   (0 until (arr.size - n + 1)).map{i => arr.slice(i, i+n).min}

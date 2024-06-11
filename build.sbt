@@ -29,7 +29,7 @@ enablePlugins(TomcatPlugin)
 lazy val root = (project in file(".")).
   enablePlugins(BuildInfoPlugin).
   settings(
-    scalaVersion := "3.3.0",
+    scalaVersion := "3.4.2",
     organization := "org.whym",
     name := "growthring",
     version := "0.7-SNAPSHOT",
