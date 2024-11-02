@@ -6,7 +6,7 @@ libraryDependencies ++= Seq(
   "com.carrotsearch"   % "jsuffixarrays" % "0.1.0",
   "net.java.dev.jna"   % "jna"           % "5.6.0",
   "org.apache.commons" % "commons-text" % "1.9",
-  "javax.servlet"  % "javax.servlet-api" % "3.1.0" % "provided",
+  "jakarta.servlet" % "jakarta.servlet-api" % "6.0.0" % Provided,
   "org.scala-lang.modules" %% "scala-xml" % "2.0.1",
   ("org.scala-lang.modules" %% "scala-collection-contrib" % "0.2.2").cross(CrossVersion.for3Use2_13),
   "org.json4s"        %% "json4s-native" % "4.0.4",
@@ -24,12 +24,12 @@ publishMavenStyle := true
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 
-enablePlugins(TomcatPlugin)
+enablePlugins(SbtWar)
 
 lazy val root = (project in file(".")).
   enablePlugins(BuildInfoPlugin).
   settings(
-    scalaVersion := "3.4.2",
+    scalaVersion := "3.5.2",
     organization := "org.whym",
     name := "growthring",
     version := "0.7-SNAPSHOT",
@@ -47,6 +47,7 @@ lazy val root = (project in file(".")).
       java.time.Instant.now()
     }),
     buildInfoPackage := "org.whym.growthring",
-    buildInfoOptions += BuildInfoOption.ToMap
+    buildInfoOptions += BuildInfoOption.ToMap,
+    warPort := 8080
   )
 

@@ -7,7 +7,7 @@ import org.whym.growthring._
 import scala.jdk.CollectionConverters._
 import org.scalatest.funsuite.AnyFunSuite
 import java.io.{ Writer, PrintWriter, StringWriter }
-import javax.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
+import jakarta.servlet.http.{ HttpServlet, HttpServletRequest, HttpServletResponse }
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
 import org.json4s.{ JInt, JString, JField, JObject, JArray, JValue }
