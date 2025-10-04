@@ -16,7 +16,7 @@ This application has a number of parameters that are set by a configuration file
 
 ==== Using the web interface
 
-. `sbt "~WarStart` # see https://index.scala-lang.org/earldouglas/sbt-war
+. `sbt "~warStart` # see https://index.scala-lang.org/earldouglas/sbt-war
 . `xdg-open http://localhost:8080` # or open http://localhost:8080 on your browser
 
 ==== Using the multiple sequence aligner
