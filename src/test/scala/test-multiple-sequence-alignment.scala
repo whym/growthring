@@ -288,7 +288,7 @@ class TestMultipleSequenceAlignment extends AnyFunSuite {
 
   test("test node concat") {
     assertResult(MSA.Node("abcdef".toIndexedSeq, 0, 4)) {
-      MSA.Node("abcdef".toIndexedSeq, 0, 2) concat MSA.Node("cdef".toIndexedSeq, 0, 2)
+      MSA.Node("abcdef".toIndexedSeq, 0, 2) `concat` MSA.Node("cdef".toIndexedSeq, 0, 2)
     }
   }
 
@@ -301,22 +301,22 @@ class TestMultipleSequenceAlignment extends AnyFunSuite {
     assertResult(Some(List(0, 1, 3, 4, 6))) {
       aligned.trace(
         "^abc$".toIndexedSeq,
-        x => x.label.head.toString)(_.toString)
+        x => x.label.head.toString)(using _.toString)
     }
     assertResult(Some(List(0, 2, 3, 4, 6))) {
       aligned.trace(
         "^xbc$".toIndexedSeq,
-        x => x.label.head.toString)(_.toString)
+        x => x.label.head.toString)(using _.toString)
     }
     assertResult(Some(List(0, 3, 4, 5, 6))) {
       aligned.trace(
         "^bcd$".toIndexedSeq,
-        x => x.label.head.toString)(_.toString)
+        x => x.label.head.toString)(using _.toString)
     }
     assertResult(Some(List(0, 3, 4, 5, 6))) {
       aligned.trace(
         "^bcd$".toIndexedSeq,
-        x => x.label.head.toString)(_.toString)
+        x => x.label.head.toString)(using _.toString)
     }
   }
 
@@ -328,12 +328,12 @@ class TestMultipleSequenceAlignment extends AnyFunSuite {
     assertResult(Some(List(0, 2, 4, 5))) {
       m.align().trace(
         "^xb$".toIndexedSeq,
-        x => x.label.head.toString)(_.toString)
+        x => x.label.head.toString)(using _.toString)
     }
     assertResult(Some(List(0, 1, 3, 5))) {
       m.align().trace(
         "^ac$".toIndexedSeq,
-        x => x.label.head.toString)(_.toString)
+        x => x.label.head.toString)(using _.toString)
     }
   }
 }

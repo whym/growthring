@@ -277,7 +277,7 @@ object WikiBlameServlet {
     val revs = revisions.map(_.body)
     val spans =
       NgramBlame.blameGreedy(revs(0), revs.slice(1, revs.size).toIndexedSeq, n)
-    spans.toList.sorted(Ordering.by[(Int, Int, Int), Int](_._1)).map {
+    spans.toList.sorted(using Ordering.by[(Int, Int, Int), Int](_._1)).map {
       case (s, e, i) =>
         VersionedString(
           revisions(i).timestamp,
@@ -338,7 +338,7 @@ object WikiBlameServlet {
                 (rev \ "text").text.toString,
                 -1
               )
-          }.sorted(Ordering.by[VersionedString, String](_.timestamp)).reverse
+          }.sorted(using Ordering.by[VersionedString, String](_.timestamp)).reverse
         }
       case Failure(e) => {
         System.err.println(f"${url}: ${e}")

@@ -13,7 +13,7 @@ class NgramRepeats(val n: Int) {
     val ng = new NgramQueue[Character](minLen, n)
     val pos = mutable.MultiDict[Seq[Character], Int]()
     for ((s, i) <- str.toList.zipWithIndex) yield {
-      ng enqueue s
+      ng `enqueue` s
       for x <- ng.getNgrams().map(_.toSeq) do {
         pos += ((x, i))
       }

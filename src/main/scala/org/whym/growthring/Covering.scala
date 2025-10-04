@@ -105,7 +105,7 @@ object Covering {
       gap: Int = 1
   ): Set[Int] =
     rp.toSet.subsets().max(
-      Ordering.by[Set[(Int, Int)], Int] {
+      using Ordering.by[Set[(Int, Int)], Int] {
         set =>
           if hasOverlap(set) then {
             Int.MinValue
@@ -217,7 +217,7 @@ object Covering {
     import scala.collection.mutable.PriorityQueue
     val flags = new mutable.BitSet
     val queue =
-      new PriorityQueue[(Int, Int)]()(Ordering.by[(Int, Int), Int](x =>
+      new PriorityQueue[(Int, Int)]()(using Ordering.by[(Int, Int), Int](x =>
         x._2 - x._1
       ))
     for x <- rp do {

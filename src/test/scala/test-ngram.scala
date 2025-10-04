@@ -28,7 +28,7 @@ class TestNgramRepeats extends AnyFunSuite {
       import org.whym.growthring.{ NgramQueue => NQ }
       val ng = new NQ[String](2, 4)
       (for (s <- Seq("abc", "d", "e", "f", "ghi")) yield {
-        ng enqueue s
+        ng `enqueue` s
         ng.getNgrams()
       }).flatten
     }

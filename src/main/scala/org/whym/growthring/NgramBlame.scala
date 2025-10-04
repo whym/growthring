@@ -33,7 +33,7 @@ object NgramBlame {
       (str, i) <- revs.zipWithIndex;
       s <- str
     ) yield {
-      ng enqueue s
+      ng `enqueue` s
       for x <- ng.getNgrams().map(_.toSeq) do {
         pos(x) = pos.getOrElse(x, -1) max i
       }

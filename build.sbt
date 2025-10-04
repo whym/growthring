@@ -1,7 +1,5 @@
 // -*- mode: scala -*-
 
-resolvers ++= Resolver.sonatypeOssRepos("releases")
-
 libraryDependencies ++= Seq(
   "com.carrotsearch"   % "jsuffixarrays" % "0.1.0",
   "net.java.dev.jna"   % "jna"           % "5.6.0",
@@ -29,7 +27,7 @@ enablePlugins(SbtWar)
 lazy val root = (project in file(".")).
   enablePlugins(BuildInfoPlugin).
   settings(
-    scalaVersion := "3.5.2",
+    scalaVersion := "3.7.2",
     organization := "org.whym",
     name := "growthring",
     version := "0.7-SNAPSHOT",
@@ -50,4 +48,3 @@ lazy val root = (project in file(".")).
     buildInfoOptions += BuildInfoOption.ToMap,
     warPort := 8080
   )
-
