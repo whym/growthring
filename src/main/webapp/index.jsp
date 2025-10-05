@@ -1,3 +1,5 @@
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="java.util.Locale" %>
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%
@@ -21,6 +23,9 @@
    String thisURL = request.getServletPath().toString() + "?" + request.getQueryString();
    thisURL = thisURL.replace("index.jsp", "");
  %>
+<%
+   ResourceBundle messages = ResourceBundle.getBundle("messages", request.getLocale());
+%>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
 <head>
 <%@page contentType="text/html;charset=UTF-8"%>
@@ -223,7 +228,7 @@ border-bottom-left-radius: .3em;
 <div id="body">
 
 <div class="box">
-<p>↓ここにテキストを入力してください。</p>
+<p><%= messages.getString("enter_text_here")%></p>
 <textarea rows="4" cols="20" id="edit" name="q">
 <%=str%></textarea>
 <label class="counter" id="editcount" for="edit"><%=str.length()%></label>
@@ -245,7 +250,7 @@ border-bottom-left-radius: .3em;
 </form>
 
 <p class="permalinkline">
-<a id="permalink" name="permalink" href="<%=thisURL%>">この結果へのリンク</a>:
+<a id="permalink" name="permalink" href="<%=thisURL%>"><%=messages.getString("link_this_result")%></a>:
 <input id="permalinkbox" type="text" size="50" readonly="readonly" value="<%=thisURL%>" />
 </p>
 
